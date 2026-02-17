@@ -42,37 +42,34 @@ class BorderPainter {
     BorderStyle? endJunctionPerpB,
   }) {
     // Compute extensions from junction context when provided.
+    //
+    // Skia uses half-open intervals [start, end) for stroke fills, so:
+    //   - Start extension (inclusive): ext=N fills pixel at (base - N). No extra.
+    //   - End extension (exclusive): ext=N only fills pixel at (base + N - 1).
+    //     Add 1.0 to compensate when there IS a perpendicular border to meet.
     final effectiveStartExt = startJunctionPerpA != null ||
             startJunctionPerpB != null
         ? _extensionFromJunction(startJunctionPerpA, startJunctionPerpB, width)
         : startExt;
+    final rawEndExt = endJunctionPerpA != null || endJunctionPerpB != null
+        ? _extensionFromJunction(endJunctionPerpA, endJunctionPerpB, width)
+        : null;
     final effectiveEndExt =
-        endJunctionPerpA != null || endJunctionPerpB != null
-            ? _extensionFromJunction(endJunctionPerpA, endJunctionPerpB, width)
-            : endExt;
-
-    // For horizontal lines, reduce the start (left) extension by 1px so the
-    // line aligns with the cell boundary. The perpendicular border's extension
-    // already covers the corner pixel at that position.
-    final isHorizontal =
-        (end.dx - start.dx).abs() > (end.dy - start.dy).abs();
-    final adjustedStartExt = isHorizontal
-        ? (effectiveStartExt - 1.0).clamp(0.0, effectiveStartExt)
-        : effectiveStartExt;
+        rawEndExt != null ? (rawEndExt > 0 ? rawEndExt + 1.0 : 0.0) : endExt;
 
     switch (lineStyle) {
       case BorderLineStyle.none:
         return;
       case BorderLineStyle.solid:
-        final extStart = _extendStart(start, end, adjustedStartExt);
+        final extStart = _extendStart(start, end, effectiveStartExt);
         final extEnd = _extendEnd(start, end, effectiveEndExt);
         canvas.drawLine(extStart, extEnd, paint);
       case BorderLineStyle.dotted:
-        final extStart = _extendStart(start, end, adjustedStartExt);
+        final extStart = _extendStart(start, end, effectiveStartExt);
         final extEnd = _extendEnd(start, end, effectiveEndExt);
         _drawDashedLine(canvas, extStart, extEnd, paint, width, width * 2);
       case BorderLineStyle.dashed:
-        final extStart = _extendStart(start, end, adjustedStartExt);
+        final extStart = _extendStart(start, end, effectiveStartExt);
         final extEnd = _extendEnd(start, end, effectiveEndExt);
         _drawDashedLine(canvas, extStart, extEnd, paint, width * 4, width * 2);
       case BorderLineStyle.double:
@@ -102,9 +99,9 @@ class BorderPainter {
   /// Computes extension distance from perpendicular junction borders.
   ///
   /// Rules (from BORDERS.md):
-  /// - THICK or DOUBLE perpendicular → extend by half their visual width
-  ///   so this edge fills through the junction area.
-  /// - THIN perpendicular → extend by half their width (0.5px for width=1).
+  /// - THICK or DOUBLE perpendicular → extend by half (visualWidth - 1) so
+  ///   this edge fills through the junction area without overshooting.
+  /// - THIN perpendicular (width=1) → no extension needed (0px).
   /// - NONE → no extension.
   ///
   /// When two perpendicular borders meet (A and B), use the maximum extension
@@ -126,9 +123,11 @@ class BorderPainter {
         ? perp.width * 3.0
         : perp.width;
 
-    // Extend by half the perpendicular border's visual width so this edge
-    // reaches through the junction block.
-    return perpVisualWidth / 2.0;
+    // Extend by half the perpendicular border's visual width minus 1px.
+    // The -1 accounts for Skia's pixel model where a stroke of width W
+    // centered at coordinate C fills pixels C-W/2 .. C+W/2-1.  Without the
+    // -1 the extension overshoots by 1px for even-width borders.
+    return perpVisualWidth > 1.0 ? (perpVisualWidth - 1.0) / 2.0 : 0.0;
   }
 
   /// Returns true if [perp] is a double border whose gap channel must be
