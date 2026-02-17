@@ -601,6 +601,124 @@ void main() {
       });
     });
 
+    // Regression tests for thick solid borders.
+    //
+    // With Skia's half-open pixel model [start, end), junction extensions
+    // must use (perpVisualWidth - 1) / 2 for start and add +1.0 for end.
+    // Without this, even-width borders overshoot at the start or leave
+    // gaps at the end. These tests verify no overshoot for widths 2 and 3.
+    group('thick solid borders', () {
+      test('width=2 border does not overshoot cell boundary', () async {
+        data.setStyle(
+          const CellCoordinate(2, 2),
+          const CellStyle(
+            borders: CellBorders.all(BorderStyle(
+              color: Color(0xFF000000),
+              lineStyle: BorderLineStyle.solid,
+              width: 2.0,
+            )),
+          ),
+        );
+
+        final pixels = await renderBorders(data);
+
+        // Cell (2,2): bounds left=40, top=40, right=60, bottom=60
+        // H-top at y=40.5, strokeWidth=2: fills y=40,41
+        // V-left at x=40.5, strokeWidth=2: fills x=40,41
+        //
+        // Key assertion: no pixels above/left of the border.
+        expect(isWhite(pixelAt(pixels, 50, 39)), isTrue,
+            reason: 'Row above top border (y=39) should be white');
+        expect(isWhite(pixelAt(pixels, 39, 50)), isTrue,
+            reason: 'Column left of left border (x=39) should be white');
+
+        // Border pixels should be present.
+        expect(isNonWhite(pixelAt(pixels, 50, 40)), isTrue,
+            reason: 'Top border row 1 (y=40)');
+        expect(isNonWhite(pixelAt(pixels, 50, 41)), isTrue,
+            reason: 'Top border row 2 (y=41)');
+        expect(isNonWhite(pixelAt(pixels, 40, 50)), isTrue,
+            reason: 'Left border col 1 (x=40)');
+        expect(isNonWhite(pixelAt(pixels, 41, 50)), isTrue,
+            reason: 'Left border col 2 (x=41)');
+
+        // Interior should still be white.
+        expect(isWhite(pixelAt(pixels, 50, 50)), isTrue,
+            reason: 'Cell interior should be white');
+      });
+
+      test('width=3 border does not overshoot cell boundary', () async {
+        data.setStyle(
+          const CellCoordinate(2, 2),
+          const CellStyle(
+            borders: CellBorders.all(BorderStyle(
+              color: Color(0xFF000000),
+              lineStyle: BorderLineStyle.solid,
+              width: 3.0,
+            )),
+          ),
+        );
+
+        final pixels = await renderBorders(data);
+
+        // Cell (2,2): bounds left=40, top=40, right=60, bottom=60
+        // H-top at y=40.5, strokeWidth=3: fills y=39,40,41
+        // V-left at x=40.5, strokeWidth=3: fills x=39,40,41
+        //
+        // Key assertion: no pixels outside the 3px border width.
+        expect(isWhite(pixelAt(pixels, 50, 38)), isTrue,
+            reason: 'Row above top border (y=38) should be white');
+        expect(isWhite(pixelAt(pixels, 38, 50)), isTrue,
+            reason: 'Column left of left border (x=38) should be white');
+
+        // Border pixels should be present (3px wide).
+        expect(isNonWhite(pixelAt(pixels, 50, 39)), isTrue,
+            reason: 'Top border row 1 (y=39)');
+        expect(isNonWhite(pixelAt(pixels, 50, 40)), isTrue,
+            reason: 'Top border row 2 (y=40)');
+        expect(isNonWhite(pixelAt(pixels, 50, 41)), isTrue,
+            reason: 'Top border row 3 (y=41)');
+        expect(isNonWhite(pixelAt(pixels, 39, 50)), isTrue,
+            reason: 'Left border col 1 (x=39)');
+        expect(isNonWhite(pixelAt(pixels, 40, 50)), isTrue,
+            reason: 'Left border col 2 (x=40)');
+        expect(isNonWhite(pixelAt(pixels, 41, 50)), isTrue,
+            reason: 'Left border col 3 (x=41)');
+      });
+
+      test('width=2 corners are filled without gaps', () async {
+        data.setStyle(
+          const CellCoordinate(2, 2),
+          const CellStyle(
+            borders: CellBorders.all(BorderStyle(
+              color: Color(0xFF000000),
+              lineStyle: BorderLineStyle.solid,
+              width: 2.0,
+            )),
+          ),
+        );
+
+        final pixels = await renderBorders(data);
+
+        // Cell (2,2): H fills y=40,41 at top; V fills x=40,41 at left.
+        // The 2x2 corner block at top-left (40,40)-(41,41) should be solid.
+        for (var x = 40; x <= 41; x++) {
+          for (var y = 40; y <= 41; y++) {
+            expect(isNonWhite(pixelAt(pixels, x, y)), isTrue,
+                reason: 'Top-left corner pixel ($x,$y) should be filled');
+          }
+        }
+
+        // Bottom-right corner: H fills y=60,61; V fills x=60,61.
+        for (var x = 60; x <= 61; x++) {
+          for (var y = 60; y <= 61; y++) {
+            expect(isNonWhite(pixelAt(pixels, x, y)), isTrue,
+                reason: 'Bottom-right corner pixel ($x,$y) should be filled');
+          }
+        }
+      });
+    });
+
     group('widthScale', () {
       test('widthScale > 1.0 makes borders thicker', () async {
         final layoutSolver = LayoutSolver(
