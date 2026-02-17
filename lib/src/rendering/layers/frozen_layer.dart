@@ -4,14 +4,13 @@ import '../../core/data/merged_cell_registry.dart';
 import '../../core/data/worksheet_data.dart';
 import '../../core/models/cell_range.dart';
 import '../../core/geometry/layout_solver.dart';
-import '../../core/models/border_resolver.dart';
 import '../../core/models/cell_coordinate.dart';
 import '../../core/models/cell_format.dart';
 import '../../core/models/cell_style.dart';
 import '../../core/models/cell_value.dart';
 import '../../core/models/freeze_config.dart';
 import '../../widgets/worksheet_theme.dart';
-import '../painters/border_painter.dart';
+import '../painters/cell_border_renderer.dart';
 import 'render_layer.dart';
 
 /// Callback when the layer needs to be repainted.
@@ -235,6 +234,32 @@ class FrozenLayer extends RenderLayer {
       zoom,
     );
 
+    // Paint borders on top of all cell backgrounds (fixes z-order)
+    if (zoom >= 0.4) {
+      CellBorderRenderer.renderBorders(
+        canvas: canvas,
+        borderPaint: _borderPaint,
+        data: data,
+        mergedCells: mergedCells,
+        startRow: 0,
+        endRow: _freezeConfig.frozenRows - 1,
+        startCol: 0,
+        endCol: _freezeConfig.frozenColumns - 1,
+        maxRow: layoutSolver.rowCount - 1,
+        maxCol: layoutSolver.columnCount - 1,
+        getBounds: (coord) {
+          final cellBounds = layoutSolver.getCellBounds(coord);
+          return Rect.fromLTWH(
+            cellBounds.left * zoom,
+            cellBounds.top * zoom,
+            cellBounds.width * zoom,
+            cellBounds.height * zoom,
+          );
+        },
+        widthScale: 1.0,
+      );
+    }
+
     canvas.restore();
   }
 
@@ -301,6 +326,34 @@ class FrozenLayer extends RenderLayer {
       zoom,
       offsetX: bounds.left,
     );
+
+    // Paint borders on top of all cell backgrounds (fixes z-order)
+    if (zoom >= 0.4) {
+      final frozenRowsScrollX = scrollX;
+      final frozenRowsBoundsLeft = bounds.left;
+      CellBorderRenderer.renderBorders(
+        canvas: canvas,
+        borderPaint: _borderPaint,
+        data: data,
+        mergedCells: mergedCells,
+        startRow: 0,
+        endRow: _freezeConfig.frozenRows - 1,
+        startCol: startCol,
+        endCol: endCol,
+        maxRow: layoutSolver.rowCount - 1,
+        maxCol: layoutSolver.columnCount - 1,
+        getBounds: (coord) {
+          final cellBounds = layoutSolver.getCellBounds(coord);
+          return Rect.fromLTWH(
+            (cellBounds.left - frozenRowsScrollX) * zoom + frozenRowsBoundsLeft,
+            cellBounds.top * zoom,
+            cellBounds.width * zoom,
+            cellBounds.height * zoom,
+          );
+        },
+        widthScale: 1.0,
+      );
+    }
 
     canvas.restore();
   }
@@ -369,6 +422,34 @@ class FrozenLayer extends RenderLayer {
       offsetY: bounds.top,
     );
 
+    // Paint borders on top of all cell backgrounds (fixes z-order)
+    if (zoom >= 0.4) {
+      final frozenColsScrollY = scrollY;
+      final frozenColsBoundsTop = bounds.top;
+      CellBorderRenderer.renderBorders(
+        canvas: canvas,
+        borderPaint: _borderPaint,
+        data: data,
+        mergedCells: mergedCells,
+        startRow: startRow,
+        endRow: endRow,
+        startCol: 0,
+        endCol: _freezeConfig.frozenColumns - 1,
+        maxRow: layoutSolver.rowCount - 1,
+        maxCol: layoutSolver.columnCount - 1,
+        getBounds: (coord) {
+          final cellBounds = layoutSolver.getCellBounds(coord);
+          return Rect.fromLTWH(
+            cellBounds.left * zoom,
+            (cellBounds.top - frozenColsScrollY) * zoom + frozenColsBoundsTop,
+            cellBounds.width * zoom,
+            cellBounds.height * zoom,
+          );
+        },
+        widthScale: 1.0,
+      );
+    }
+
     canvas.restore();
   }
 
@@ -394,127 +475,9 @@ class FrozenLayer extends RenderLayer {
           coord: coord);
     }
 
-    // Paint borders (coordinates are already zoom-scaled)
-    final borders = style?.borders;
-    if (borders != null && !borders.isNone && zoom >= 0.4) {
-      _paintCellBorders(canvas, coord, bounds);
-    }
-  }
-
-  void _paintCellBorders(
-    Canvas canvas,
-    CellCoordinate coord,
-    Rect bounds,
-  ) {
-    final style = data.getStyle(coord);
-    final borders = style?.borders;
-    if (borders == null || borders.isNone) return;
-
-    final maxRow = layoutSolver.rowCount - 1;
-    final maxCol = layoutSolver.columnCount - 1;
-
-    // Use merge region edges for conflict resolution neighbors.
-    final region = mergedCells?.getRegion(coord);
-    final topEdgeRow = region?.range.startRow ?? coord.row;
-    final bottomEdgeRow = region?.range.endRow ?? coord.row;
-    final leftEdgeCol = region?.range.startColumn ?? coord.column;
-    final rightEdgeCol = region?.range.endColumn ?? coord.column;
-
-    // Top border
-    if (!borders.top.isNone) {
-      final resolved = topEdgeRow > 0
-          ? BorderResolver.resolve(
-              data.getStyle(CellCoordinate(topEdgeRow - 1, coord.column))?.borders?.bottom ?? BorderStyle.none,
-              borders.top,
-            )
-          : borders.top;
-      if (!resolved.isNone) {
-        _borderPaint
-          ..color = resolved.color
-          ..strokeWidth = resolved.width;
-        final y = bounds.top.roundToDouble() + 0.5;
-        BorderPainter.drawBorderEdge(
-          canvas,
-          Offset(bounds.left, y),
-          Offset(bounds.right, y),
-          _borderPaint,
-          resolved.lineStyle,
-          resolved.width,
-        );
-      }
-    }
-
-    // Bottom border
-    if (!borders.bottom.isNone) {
-      final resolved = bottomEdgeRow < maxRow
-          ? BorderResolver.resolve(
-              borders.bottom,
-              data.getStyle(CellCoordinate(bottomEdgeRow + 1, coord.column))?.borders?.top ?? BorderStyle.none,
-            )
-          : borders.bottom;
-      if (!resolved.isNone) {
-        _borderPaint
-          ..color = resolved.color
-          ..strokeWidth = resolved.width;
-        final y = bounds.bottom.roundToDouble() + 0.5;
-        BorderPainter.drawBorderEdge(
-          canvas,
-          Offset(bounds.left, y),
-          Offset(bounds.right, y),
-          _borderPaint,
-          resolved.lineStyle,
-          resolved.width,
-        );
-      }
-    }
-
-    // Left border
-    if (!borders.left.isNone) {
-      final resolved = leftEdgeCol > 0
-          ? BorderResolver.resolve(
-              data.getStyle(CellCoordinate(coord.row, leftEdgeCol - 1))?.borders?.right ?? BorderStyle.none,
-              borders.left,
-            )
-          : borders.left;
-      if (!resolved.isNone) {
-        _borderPaint
-          ..color = resolved.color
-          ..strokeWidth = resolved.width;
-        final x = bounds.left.roundToDouble() + 0.5;
-        BorderPainter.drawBorderEdge(
-          canvas,
-          Offset(x, bounds.top),
-          Offset(x, bounds.bottom),
-          _borderPaint,
-          resolved.lineStyle,
-          resolved.width,
-        );
-      }
-    }
-
-    // Right border
-    if (!borders.right.isNone) {
-      final resolved = rightEdgeCol < maxCol
-          ? BorderResolver.resolve(
-              borders.right,
-              data.getStyle(CellCoordinate(coord.row, rightEdgeCol + 1))?.borders?.left ?? BorderStyle.none,
-            )
-          : borders.right;
-      if (!resolved.isNone) {
-        _borderPaint
-          ..color = resolved.color
-          ..strokeWidth = resolved.width;
-        final x = bounds.right.roundToDouble() + 0.5;
-        BorderPainter.drawBorderEdge(
-          canvas,
-          Offset(x, bounds.top),
-          Offset(x, bounds.bottom),
-          _borderPaint,
-          resolved.lineStyle,
-          resolved.width,
-        );
-      }
-    }
+    // Borders are rendered after ALL cells in _paintCorner/_paintFrozenRows/
+    // _paintFrozenColumns to fix z-order (a cell's borders must not be hidden
+    // by the next cell's background).
   }
 
   void _paintCellContent(

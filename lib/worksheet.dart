@@ -64,6 +64,7 @@ export 'src/interaction/gesture_handler.dart';
 
 // Rendering - Painters
 export 'src/rendering/painters/border_painter.dart';
+export 'src/rendering/painters/cell_border_renderer.dart';
 export 'src/rendering/painters/selection_renderer.dart';
 export 'src/rendering/painters/header_renderer.dart';
 

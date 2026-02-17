@@ -2,13 +2,13 @@
     <rect x="6" y="6" width="52" height="52" rx="12" fill="#00C853"/>
     <g stroke="#2E7D32" stroke-width="3">
     <rect x="14" y="34" width="36" height="16"/>
-    
-    <!-- <line x1="14" y1="34" x2="50" y2="34"/> -->
-    <line x1="24" y1="35" x2="24" y2="50"/>
+
+    <line x1="26" y1="35" x2="26" y2="50"/>
+    <line x1="38" y1="35" x2="38" y2="50"/>
     <line x1="14" y1="42" x2="50" y2="42"/>
     </g>
-    <rect x="24" y="42" width="26" height="8" stroke-width="3" stroke="#E0F2F1"/>
-    <!-- <path d="M25,25 h30 v18 q0,12 -12,12 h-18 z" stroke="#3182CE" stroke-width="6"/> -->
+    <rect x="26" y="42" width="24" height="8" stroke-width="3" stroke="#E0F2F1" fill="#00C853"/>
+
 
     <text x="12" y="30" font-size="22" fill="#FFFFFF" font-family="Futura"
      font-weight="800">W</text>

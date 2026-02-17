@@ -448,6 +448,58 @@ void main() {
         picture.dispose();
       });
 
+      test('thick border (width 3) on all sides renders without crash', () {
+        data.setCell(CellCoordinate(1, 1), CellValue.text('Thick'));
+        data.setStyle(
+          CellCoordinate(1, 1),
+          const CellStyle(
+            borders: CellBorders.all(
+              BorderStyle(
+                color: Color(0xFF000000),
+                width: 3.0,
+                lineStyle: BorderLineStyle.solid,
+              ),
+            ),
+          ),
+        );
+
+        final picture = painter.renderTile(
+          coordinate: TileCoordinate(0, 0),
+          bounds: const ui.Rect.fromLTWH(0, 0, 256, 256),
+          cellRange: CellRange(0, 0, 5, 5),
+          zoomBucket: ZoomBucket.full,
+        );
+
+        expect(picture, isA<ui.Picture>());
+        picture.dispose();
+      });
+
+      test('double border on all sides renders without crash', () {
+        data.setCell(CellCoordinate(1, 1), CellValue.text('Double'));
+        data.setStyle(
+          CellCoordinate(1, 1),
+          const CellStyle(
+            borders: CellBorders.all(
+              BorderStyle(
+                color: Color(0xFF000000),
+                width: 3.0,
+                lineStyle: BorderLineStyle.double,
+              ),
+            ),
+          ),
+        );
+
+        final picture = painter.renderTile(
+          coordinate: TileCoordinate(0, 0),
+          bounds: const ui.Rect.fromLTWH(0, 0, 256, 256),
+          cellRange: CellRange(0, 0, 5, 5),
+          zoomBucket: ZoomBucket.full,
+        );
+
+        expect(picture, isA<ui.Picture>());
+        picture.dispose();
+      });
+
       test('merged cell right border resolves correctly', () {
         // Merge (0,0)-(0,2) — 1 row, 3 columns
         data.mergeCells(const CellRange(0, 0, 0, 2));

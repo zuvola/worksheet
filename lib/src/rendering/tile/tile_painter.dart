@@ -6,14 +6,13 @@ import '../../core/data/merged_cell_registry.dart';
 import '../../core/data/worksheet_data.dart';
 import '../../core/geometry/layout_solver.dart';
 import '../../core/geometry/zoom_transformer.dart';
-import '../../core/models/border_resolver.dart';
 import '../../core/models/cell_coordinate.dart';
 import '../../core/models/cell_range.dart';
 import '../../core/models/cell_format.dart';
 import '../../core/models/cell_style.dart';
 import '../../core/models/cell_value.dart';
 import '../../widgets/worksheet_theme.dart';
-import '../painters/border_painter.dart';
+import '../painters/cell_border_renderer.dart';
 import 'tile_coordinate.dart';
 import 'tile_manager.dart';
 
@@ -251,138 +250,28 @@ class TilePainter implements TileRenderer {
     final startCol = cellRange.startColumn.clamp(0, maxCol);
     final endCol = cellRange.endColumn.clamp(0, maxCol);
 
-    final strokeWidth = _getGridlineStrokeWidth(zoomBucket);
-
-    final renderedBorderAnchors = <CellCoordinate>{};
-
-    for (var row = startRow; row <= endRow; row++) {
-      for (var col = startCol; col <= endCol; col++) {
-        final coord = CellCoordinate(row, col);
-
-        // For merged cells, resolve to anchor for border rendering.
-        final region = mergedCells?.getRegion(coord);
-        final renderCoord = region?.anchor ?? coord;
-
-        if (region != null) {
-          if (renderedBorderAnchors.contains(renderCoord)) continue;
-          renderedBorderAnchors.add(renderCoord);
-        }
-
-        final style = data.getStyle(renderCoord);
-        final borders = style?.borders;
-        if (borders == null || borders.isNone) continue;
-
-        final cellBounds = layoutSolver.getCellBounds(renderCoord);
-        final localBounds = ui.Rect.fromLTWH(
+    CellBorderRenderer.renderBorders(
+      canvas: canvas,
+      borderPaint: _borderPaint,
+      data: data,
+      mergedCells: mergedCells,
+      startRow: startRow,
+      endRow: endRow,
+      startCol: startCol,
+      endCol: endCol,
+      maxRow: maxRow,
+      maxCol: maxCol,
+      getBounds: (coord) {
+        final cellBounds = layoutSolver.getCellBounds(coord);
+        return ui.Rect.fromLTWH(
           cellBounds.left - tileBounds.left,
           cellBounds.top - tileBounds.top,
           cellBounds.width,
           cellBounds.height,
         );
-
-        // Use merge region edges for conflict resolution neighbors.
-        final topEdgeRow = region?.range.startRow ?? renderCoord.row;
-        final bottomEdgeRow = region?.range.endRow ?? renderCoord.row;
-        final leftEdgeCol = region?.range.startColumn ?? renderCoord.column;
-        final rightEdgeCol = region?.range.endColumn ?? renderCoord.column;
-
-        // Top border
-        if (!borders.top.isNone) {
-          final resolved = topEdgeRow > 0
-              ? BorderResolver.resolve(
-                  data.getStyle(CellCoordinate(topEdgeRow - 1, renderCoord.column))?.borders?.bottom ?? BorderStyle.none,
-                  borders.top,
-                )
-              : borders.top;
-          if (!resolved.isNone) {
-            _borderPaint
-              ..color = resolved.color
-              ..strokeWidth = resolved.width * strokeWidth;
-            final y = localBounds.top.roundToDouble() + 0.5;
-            BorderPainter.drawBorderEdge(
-              canvas,
-              Offset(localBounds.left, y),
-              Offset(localBounds.right, y),
-              _borderPaint,
-              resolved.lineStyle,
-              resolved.width * strokeWidth,
-            );
-          }
-        }
-
-        // Bottom border
-        if (!borders.bottom.isNone) {
-          final resolved = bottomEdgeRow < maxRow
-              ? BorderResolver.resolve(
-                  borders.bottom,
-                  data.getStyle(CellCoordinate(bottomEdgeRow + 1, renderCoord.column))?.borders?.top ?? BorderStyle.none,
-                )
-              : borders.bottom;
-          if (!resolved.isNone) {
-            _borderPaint
-              ..color = resolved.color
-              ..strokeWidth = resolved.width * strokeWidth;
-            final y = localBounds.bottom.roundToDouble() + 0.5;
-            BorderPainter.drawBorderEdge(
-              canvas,
-              Offset(localBounds.left, y),
-              Offset(localBounds.right, y),
-              _borderPaint,
-              resolved.lineStyle,
-              resolved.width * strokeWidth,
-            );
-          }
-        }
-
-        // Left border
-        if (!borders.left.isNone) {
-          final resolved = leftEdgeCol > 0
-              ? BorderResolver.resolve(
-                  data.getStyle(CellCoordinate(renderCoord.row, leftEdgeCol - 1))?.borders?.right ?? BorderStyle.none,
-                  borders.left,
-                )
-              : borders.left;
-          if (!resolved.isNone) {
-            _borderPaint
-              ..color = resolved.color
-              ..strokeWidth = resolved.width * strokeWidth;
-            final x = localBounds.left.roundToDouble() + 0.5;
-            BorderPainter.drawBorderEdge(
-              canvas,
-              Offset(x, localBounds.top),
-              Offset(x, localBounds.bottom),
-              _borderPaint,
-              resolved.lineStyle,
-              resolved.width * strokeWidth,
-            );
-          }
-        }
-
-        // Right border
-        if (!borders.right.isNone) {
-          final resolved = rightEdgeCol < maxCol
-              ? BorderResolver.resolve(
-                  borders.right,
-                  data.getStyle(CellCoordinate(renderCoord.row, rightEdgeCol + 1))?.borders?.left ?? BorderStyle.none,
-                )
-              : borders.right;
-          if (!resolved.isNone) {
-            _borderPaint
-              ..color = resolved.color
-              ..strokeWidth = resolved.width * strokeWidth;
-            final x = localBounds.right.roundToDouble() + 0.5;
-            BorderPainter.drawBorderEdge(
-              canvas,
-              Offset(x, localBounds.top),
-              Offset(x, localBounds.bottom),
-              _borderPaint,
-              resolved.lineStyle,
-              resolved.width * strokeWidth,
-            );
-          }
-        }
-      }
-    }
+      },
+      widthScale: _getGridlineStrokeWidth(zoomBucket),
+    );
   }
 
   void _renderCellContent(
