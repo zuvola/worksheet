@@ -276,4 +276,108 @@ void main() {
       expect(resizedHeight!, greaterThan(30.0));
     });
   });
+
+  group('Auto-fit with merged cells', () {
+    testWidgets('auto-fit anchor column considers merged cell content',
+        (tester) async {
+      // Merge (0,0)–(0,2), set wide text on anchor (0,0)
+      data.mergeCells(const CellRange(0, 0, 0, 2));
+      data.setCell(
+          const CellCoordinate(0, 0),
+          CellValue.text(
+              'This is a very long merged cell text that spans columns'));
+
+      double? resizedWidth;
+      await tester.pumpWidget(buildWorksheet(
+        onResizeColumn: (column, newWidth) {
+          if (column == 0) resizedWidth = newWidth;
+        },
+      ));
+      await tester.pump();
+
+      // Double-click on column 0 right edge
+      await doubleTapAt(tester, const Offset(149.0, 12.0));
+
+      expect(resizedWidth, isNotNull);
+      // Merged content was measured; after subtracting other columns'
+      // widths, the remainder for column 0 should exceed the minimum.
+      expect(resizedWidth, greaterThan(20.0));
+    });
+
+    testWidgets('auto-fit non-anchor column picks up merged content',
+        (tester) async {
+      // Merge (0,0)–(0,2), set wide text on anchor (0,0)
+      data.mergeCells(const CellRange(0, 0, 0, 2));
+      data.setCell(
+          const CellCoordinate(0, 0),
+          CellValue.text(
+              'This is a very long merged cell text that spans columns'));
+
+      double? resizedWidth;
+      await tester.pumpWidget(buildWorksheet(
+        onResizeColumn: (column, newWidth) {
+          if (column == 1) resizedWidth = newWidth;
+        },
+      ));
+      await tester.pump();
+
+      // Column 1 right edge: headerWidth + 2*colWidth = 50 + 200 = 250
+      await doubleTapAt(tester, const Offset(249.0, 12.0));
+
+      expect(resizedWidth, isNotNull);
+      // Non-anchor column should pick up merged content and get > minimum
+      expect(resizedWidth, greaterThan(20.0));
+    });
+
+    testWidgets('auto-fit row considers merged cell spanning multiple rows',
+        (tester) async {
+      // Merge (0,0)–(2,0), set long wrapping text on anchor
+      data.mergeCells(const CellRange(0, 0, 2, 0));
+      data.setCell(const CellCoordinate(0, 0),
+          CellValue.text('A' * 200)); // long text
+      data.setStyle(
+        const CellCoordinate(0, 0),
+        const CellStyle(wrapText: true),
+      );
+
+      double? resizedHeight;
+      await tester.pumpWidget(buildWorksheet(
+        onResizeRow: (row, newHeight) {
+          if (row == 1) resizedHeight = newHeight;
+        },
+      ));
+      await tester.pump();
+
+      // Row 1 bottom edge: headerHeight + 2*rowHeight = 24 + 48 = 72
+      await doubleTapAt(tester, const Offset(25.0, 71.0));
+
+      expect(resizedHeight, isNotNull);
+      // Non-anchor row should pick up merged content height
+      expect(resizedHeight, greaterThan(10.0));
+    });
+
+    testWidgets(
+        'merged cell content fits in other columns — no extra width needed',
+        (tester) async {
+      // Merge (0,0)–(0,2), set short text that easily fits in other columns
+      data.mergeCells(const CellRange(0, 0, 0, 2));
+      data.setCell(const CellCoordinate(0, 0), CellValue.text('Hi'));
+
+      double? resizedWidth;
+      await tester.pumpWidget(buildWorksheet(
+        onResizeColumn: (column, newWidth) {
+          if (column == 1) resizedWidth = newWidth;
+        },
+      ));
+      await tester.pump();
+
+      // Column 1 right edge: headerWidth + 2*colWidth = 50 + 200 = 250
+      await doubleTapAt(tester, const Offset(249.0, 12.0));
+
+      expect(resizedWidth, isNotNull);
+      // Short text "Hi" fits within other columns' widths, so column 1
+      // needs only the minimum.
+      expect(resizedWidth, equals(20.0));
+    });
+  });
 }

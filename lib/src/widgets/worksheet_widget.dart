@@ -754,6 +754,49 @@ class _WorksheetState extends State<Worksheet>
       tp.dispose();
     }
 
+    // Second pass: consider merged cells spanning this column
+    final fullColumnRange = CellRange(0, column, widget.rowCount - 1, column);
+    for (final region in widget.data.mergedCells.regionsInRange(fullColumnRange)) {
+      final anchor = region.anchor;
+      final cellValue = widget.data.getCell(anchor);
+      if (cellValue == null) continue;
+      final text = cellValue.displayValue;
+      if (text.isEmpty) continue;
+
+      final baseTextStyle = TextStyle(
+        fontSize: theme.fontSize,
+        fontFamily: theme.fontFamily,
+        package: WorksheetThemeData.resolveFontPackage(theme.fontFamily),
+      );
+
+      final richText = widget.data.getRichText(anchor);
+      final TextSpan textSpan;
+      if (richText != null && richText.isNotEmpty) {
+        textSpan = TextSpan(style: baseTextStyle, children: richText);
+      } else {
+        textSpan = TextSpan(text: text, style: baseTextStyle);
+      }
+
+      final tp = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final totalNeeded = tp.width + 2 * theme.cellPadding;
+      tp.dispose();
+
+      // Subtract widths of other columns in the merge
+      double otherColumnsWidth = 0.0;
+      for (var c = region.range.startColumn; c <= region.range.endColumn; c++) {
+        if (c != column) {
+          otherColumnsWidth += _layoutSolver.getColumnWidth(c);
+        }
+      }
+      final remainder = (totalNeeded - otherColumnsWidth).clamp(0.0, double.infinity);
+      if (remainder > maxWidth + 2 * theme.cellPadding) {
+        maxWidth = remainder - 2 * theme.cellPadding;
+      }
+    }
+
     // Add padding and clamp
     final newWidth = (maxWidth + 2 * theme.cellPadding).clamp(20.0, 1000.0);
     _layoutSolver.setColumnWidth(column, newWidth);
@@ -811,6 +854,66 @@ class _WorksheetState extends State<Worksheet>
         maxHeight = tp.height;
       }
       tp.dispose();
+    }
+
+    // Second pass: consider merged cells spanning this row
+    final fullRowRange = CellRange(row, 0, row, widget.columnCount - 1);
+    for (final region in widget.data.mergedCells.regionsInRange(fullRowRange)) {
+      final anchor = region.anchor;
+      final cellValue = widget.data.getCell(anchor);
+      if (cellValue == null) continue;
+      final text = cellValue.displayValue;
+      if (text.isEmpty) continue;
+
+      final cellStyle = CellStyle.defaultStyle.merge(
+        widget.data.getStyle(anchor),
+      );
+      final wraps = cellStyle.wrapText ?? false;
+      final double layoutWidth;
+      if (wraps) {
+        // Use full merged width (all spanned columns) as layout constraint
+        double mergedWidth = 0.0;
+        for (var c = region.range.startColumn; c <= region.range.endColumn; c++) {
+          mergedWidth += _layoutSolver.getColumnWidth(c);
+        }
+        final availWidth = mergedWidth - 2 * theme.cellPadding;
+        layoutWidth = availWidth > 0 ? availWidth : double.infinity;
+      } else {
+        layoutWidth = double.infinity;
+      }
+
+      final baseTextStyle = TextStyle(
+        fontSize: theme.fontSize,
+        fontFamily: theme.fontFamily,
+        package: WorksheetThemeData.resolveFontPackage(theme.fontFamily),
+      );
+
+      final richText = widget.data.getRichText(anchor);
+      final TextSpan textSpan;
+      if (richText != null && richText.isNotEmpty) {
+        textSpan = TextSpan(style: baseTextStyle, children: richText);
+      } else {
+        textSpan = TextSpan(text: text, style: baseTextStyle);
+      }
+
+      final tp = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+      )..layout(maxWidth: layoutWidth);
+      final totalNeeded = tp.height + 2 * theme.cellPadding;
+      tp.dispose();
+
+      // Subtract heights of other rows in the merge
+      double otherRowsHeight = 0.0;
+      for (var r = region.range.startRow; r <= region.range.endRow; r++) {
+        if (r != row) {
+          otherRowsHeight += _layoutSolver.getRowHeight(r);
+        }
+      }
+      final remainder = (totalNeeded - otherRowsHeight).clamp(0.0, double.infinity);
+      if (remainder > maxHeight + 2 * theme.cellPadding) {
+        maxHeight = remainder - 2 * theme.cellPadding;
+      }
     }
 
     // Add padding and clamp
