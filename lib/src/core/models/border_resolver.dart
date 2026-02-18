@@ -2,11 +2,11 @@ import 'cell_style.dart';
 
 /// Resolves which border wins when adjacent cells share an edge.
 ///
-/// Rules (matching Excel/Google Sheets):
+/// Rules:
 /// 1. Non-none wins over none
-/// 2. Thicker border wins
-/// 3. Same width → higher-priority line style wins
+/// 2. Higher-priority line style wins
 ///    (`double` > `solid` > `dashed` > `dotted`)
+/// 3. Same line style → thicker border wins
 /// 4. All equal → [b] wins (right/bottom neighbor, i.e. the later cell
 ///    in reading order)
 class BorderResolver {
@@ -25,13 +25,13 @@ class BorderResolver {
     if (aNone) return b;
     if (bNone) return a;
 
-    // Rule 2: thicker border wins
-    if (a.width > b.width) return a;
-    if (b.width > a.width) return b;
-
-    // Rule 3: higher-priority line style wins
+    // Rule 2: higher-priority line style wins
     if (a.lineStyle.index > b.lineStyle.index) return a;
     if (b.lineStyle.index > a.lineStyle.index) return b;
+
+    // Rule 3: thicker border wins
+    if (a.width > b.width) return a;
+    if (b.width > a.width) return b;
 
     // Rule 4: all equal → b wins (later cell in reading order)
     return b;

@@ -28,6 +28,20 @@ class CellBorderRenderer {
   ///   or zoom-scaled viewport coords).
   /// - [widthScale]: Multiplier for border widths. TilePainter passes
   ///   the zoom-bucket gridline stroke width; FrozenLayer passes 1.0.
+  /// Returns the rendering pass for a border style.
+  ///
+  /// Pass 0: normal/single (non-double, width <= 1)
+  /// Pass 1: thick (non-double, width > 1)
+  /// Pass 2: double (lineStyle == double)
+  ///
+  /// Higher-priority borders paint in later passes so they aren't
+  /// overwritten at perpendicular junctions.
+  static int _borderPass(BorderStyle border) {
+    if (border.lineStyle == BorderLineStyle.double) return 2;
+    if (border.width > 1.0) return 1;
+    return 0;
+  }
+
   static void renderBorders({
     required Canvas canvas,
     required Paint borderPaint,
@@ -42,99 +56,104 @@ class CellBorderRenderer {
     required Rect Function(CellCoordinate) getBounds,
     required double widthScale,
   }) {
-    final renderedBorderAnchors = <CellCoordinate>{};
+    // 3-pass rendering: normal (pass 0) → thick (pass 1) → double (pass 2).
+    // Higher-priority borders paint last so they aren't overwritten at
+    // perpendicular junctions.
+    for (var pass = 0; pass < 3; pass++) {
+      final renderedBorderAnchors = <CellCoordinate>{};
 
-    for (var row = startRow; row <= endRow; row++) {
-      for (var col = startCol; col <= endCol; col++) {
-        final coord = CellCoordinate(row, col);
+      for (var row = startRow; row <= endRow; row++) {
+        for (var col = startCol; col <= endCol; col++) {
+          final coord = CellCoordinate(row, col);
 
-        // For merged cells, resolve to anchor for border rendering.
-        final region = mergedCells?.getRegion(coord);
-        final renderCoord = region?.anchor ?? coord;
+          // For merged cells, resolve to anchor for border rendering.
+          final region = mergedCells?.getRegion(coord);
+          final renderCoord = region?.anchor ?? coord;
 
-        if (region != null) {
-          if (renderedBorderAnchors.contains(renderCoord)) continue;
-          renderedBorderAnchors.add(renderCoord);
+          if (region != null) {
+            if (renderedBorderAnchors.contains(renderCoord)) continue;
+            renderedBorderAnchors.add(renderCoord);
+          }
+
+          final style = data.getStyle(renderCoord);
+          final borders = style?.borders;
+          if (borders == null || borders.isNone) continue;
+
+          final localBounds = getBounds(renderCoord);
+
+          // Use merge region edges for conflict resolution neighbors.
+          final topEdgeRow = region?.range.startRow ?? renderCoord.row;
+          final bottomEdgeRow = region?.range.endRow ?? renderCoord.row;
+          final leftEdgeCol = region?.range.startColumn ?? renderCoord.column;
+          final rightEdgeCol = region?.range.endColumn ?? renderCoord.column;
+
+          // Look up perpendicular borders on the OTHER side of each junction
+          // (perpB). These tell BorderPainter whether a double border continues
+          // through the junction (both perpA and perpB double → + junction) or
+          // terminates (only one → L/T junction).
+
+          // Vertical perp going UP from top-edge junctions.
+          final topLeftPerpUp = topEdgeRow > 0
+              ? data.getStyle(CellCoordinate(topEdgeRow - 1, leftEdgeCol))
+                  ?.borders?.left
+              : null;
+          final topRightPerpUp = topEdgeRow > 0
+              ? data.getStyle(CellCoordinate(topEdgeRow - 1, rightEdgeCol))
+                  ?.borders?.right
+              : null;
+          // Vertical perp going DOWN from bottom-edge junctions.
+          final bottomLeftPerpDown = bottomEdgeRow < maxRow
+              ? data.getStyle(CellCoordinate(bottomEdgeRow + 1, leftEdgeCol))
+                  ?.borders?.left
+              : null;
+          final bottomRightPerpDown = bottomEdgeRow < maxRow
+              ? data.getStyle(CellCoordinate(bottomEdgeRow + 1, rightEdgeCol))
+                  ?.borders?.right
+              : null;
+          // Horizontal perp going LEFT from left-edge junctions.
+          final topLeftPerpLeft = leftEdgeCol > 0
+              ? data.getStyle(CellCoordinate(topEdgeRow, leftEdgeCol - 1))
+                  ?.borders?.top
+              : null;
+          final bottomLeftPerpLeft = leftEdgeCol > 0
+              ? data.getStyle(CellCoordinate(bottomEdgeRow, leftEdgeCol - 1))
+                  ?.borders?.bottom
+              : null;
+          // Horizontal perp going RIGHT from right-edge junctions.
+          final topRightPerpRight = rightEdgeCol < maxCol
+              ? data.getStyle(CellCoordinate(topEdgeRow, rightEdgeCol + 1))
+                  ?.borders?.top
+              : null;
+          final bottomRightPerpRight = rightEdgeCol < maxCol
+              ? data.getStyle(CellCoordinate(bottomEdgeRow, rightEdgeCol + 1))
+                  ?.borders?.bottom
+              : null;
+
+          _renderTopBorder(
+            canvas, borderPaint, data, borders, localBounds,
+            topEdgeRow, renderCoord.column, widthScale, pass,
+            startPerpB: topLeftPerpUp,
+            endPerpB: topRightPerpUp,
+          );
+          _renderBottomBorder(
+            canvas, borderPaint, data, borders, localBounds,
+            bottomEdgeRow, renderCoord.column, maxRow, widthScale, pass,
+            startPerpB: bottomLeftPerpDown,
+            endPerpB: bottomRightPerpDown,
+          );
+          _renderLeftBorder(
+            canvas, borderPaint, data, borders, localBounds,
+            renderCoord.row, leftEdgeCol, widthScale, pass,
+            startPerpB: topLeftPerpLeft,
+            endPerpB: bottomLeftPerpLeft,
+          );
+          _renderRightBorder(
+            canvas, borderPaint, data, borders, localBounds,
+            renderCoord.row, rightEdgeCol, maxCol, widthScale, pass,
+            startPerpB: topRightPerpRight,
+            endPerpB: bottomRightPerpRight,
+          );
         }
-
-        final style = data.getStyle(renderCoord);
-        final borders = style?.borders;
-        if (borders == null || borders.isNone) continue;
-
-        final localBounds = getBounds(renderCoord);
-
-        // Use merge region edges for conflict resolution neighbors.
-        final topEdgeRow = region?.range.startRow ?? renderCoord.row;
-        final bottomEdgeRow = region?.range.endRow ?? renderCoord.row;
-        final leftEdgeCol = region?.range.startColumn ?? renderCoord.column;
-        final rightEdgeCol = region?.range.endColumn ?? renderCoord.column;
-
-        // Look up perpendicular borders on the OTHER side of each junction
-        // (perpB). These tell BorderPainter whether a double border continues
-        // through the junction (both perpA and perpB double → + junction) or
-        // terminates (only one → L/T junction).
-
-        // Vertical perp going UP from top-edge junctions.
-        final topLeftPerpUp = topEdgeRow > 0
-            ? data.getStyle(CellCoordinate(topEdgeRow - 1, leftEdgeCol))
-                ?.borders?.left
-            : null;
-        final topRightPerpUp = topEdgeRow > 0
-            ? data.getStyle(CellCoordinate(topEdgeRow - 1, rightEdgeCol))
-                ?.borders?.right
-            : null;
-        // Vertical perp going DOWN from bottom-edge junctions.
-        final bottomLeftPerpDown = bottomEdgeRow < maxRow
-            ? data.getStyle(CellCoordinate(bottomEdgeRow + 1, leftEdgeCol))
-                ?.borders?.left
-            : null;
-        final bottomRightPerpDown = bottomEdgeRow < maxRow
-            ? data.getStyle(CellCoordinate(bottomEdgeRow + 1, rightEdgeCol))
-                ?.borders?.right
-            : null;
-        // Horizontal perp going LEFT from left-edge junctions.
-        final topLeftPerpLeft = leftEdgeCol > 0
-            ? data.getStyle(CellCoordinate(topEdgeRow, leftEdgeCol - 1))
-                ?.borders?.top
-            : null;
-        final bottomLeftPerpLeft = leftEdgeCol > 0
-            ? data.getStyle(CellCoordinate(bottomEdgeRow, leftEdgeCol - 1))
-                ?.borders?.bottom
-            : null;
-        // Horizontal perp going RIGHT from right-edge junctions.
-        final topRightPerpRight = rightEdgeCol < maxCol
-            ? data.getStyle(CellCoordinate(topEdgeRow, rightEdgeCol + 1))
-                ?.borders?.top
-            : null;
-        final bottomRightPerpRight = rightEdgeCol < maxCol
-            ? data.getStyle(CellCoordinate(bottomEdgeRow, rightEdgeCol + 1))
-                ?.borders?.bottom
-            : null;
-
-        _renderTopBorder(
-          canvas, borderPaint, data, borders, localBounds,
-          topEdgeRow, renderCoord.column, widthScale,
-          startPerpB: topLeftPerpUp,
-          endPerpB: topRightPerpUp,
-        );
-        _renderBottomBorder(
-          canvas, borderPaint, data, borders, localBounds,
-          bottomEdgeRow, renderCoord.column, maxRow, widthScale,
-          startPerpB: bottomLeftPerpDown,
-          endPerpB: bottomRightPerpDown,
-        );
-        _renderLeftBorder(
-          canvas, borderPaint, data, borders, localBounds,
-          renderCoord.row, leftEdgeCol, widthScale,
-          startPerpB: topLeftPerpLeft,
-          endPerpB: bottomLeftPerpLeft,
-        );
-        _renderRightBorder(
-          canvas, borderPaint, data, borders, localBounds,
-          renderCoord.row, rightEdgeCol, maxCol, widthScale,
-          startPerpB: topRightPerpRight,
-          endPerpB: bottomRightPerpRight,
-        );
       }
     }
   }
@@ -147,7 +166,8 @@ class CellBorderRenderer {
     Rect localBounds,
     int topEdgeRow,
     int column,
-    double widthScale, {
+    double widthScale,
+    int pass, {
     BorderStyle? startPerpB,
     BorderStyle? endPerpB,
   }) {
@@ -162,6 +182,7 @@ class CellBorderRenderer {
           )
         : borders.top;
     if (resolved.isNone) return;
+    if (_borderPass(resolved) != pass) return;
 
     final effectiveWidth = resolved.width * widthScale;
     final totalWidth = resolved.lineStyle == BorderLineStyle.double
@@ -197,7 +218,8 @@ class CellBorderRenderer {
     int bottomEdgeRow,
     int column,
     int maxRow,
-    double widthScale, {
+    double widthScale,
+    int pass, {
     BorderStyle? startPerpB,
     BorderStyle? endPerpB,
   }) {
@@ -214,6 +236,7 @@ class CellBorderRenderer {
         ? BorderResolver.resolve(borders.bottom, neighborTop)
         : borders.bottom;
     if (resolved.isNone) return;
+    if (_borderPass(resolved) != pass) return;
 
     final effectiveWidth = resolved.width * widthScale;
     final totalWidth = resolved.lineStyle == BorderLineStyle.double
@@ -250,7 +273,8 @@ class CellBorderRenderer {
     Rect localBounds,
     int row,
     int leftEdgeCol,
-    double widthScale, {
+    double widthScale,
+    int pass, {
     BorderStyle? startPerpB,
     BorderStyle? endPerpB,
   }) {
@@ -265,6 +289,7 @@ class CellBorderRenderer {
           )
         : borders.left;
     if (resolved.isNone) return;
+    if (_borderPass(resolved) != pass) return;
 
     final effectiveWidth = resolved.width * widthScale;
     final totalWidth = resolved.lineStyle == BorderLineStyle.double
@@ -300,7 +325,8 @@ class CellBorderRenderer {
     int row,
     int rightEdgeCol,
     int maxCol,
-    double widthScale, {
+    double widthScale,
+    int pass, {
     BorderStyle? startPerpB,
     BorderStyle? endPerpB,
   }) {
@@ -317,6 +343,7 @@ class CellBorderRenderer {
         ? BorderResolver.resolve(borders.right, neighborLeft)
         : borders.right;
     if (resolved.isNone) return;
+    if (_borderPass(resolved) != pass) return;
 
     final effectiveWidth = resolved.width * widthScale;
     final totalWidth = resolved.lineStyle == BorderLineStyle.double

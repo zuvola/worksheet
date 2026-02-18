@@ -65,7 +65,7 @@ void main() {
       expect(BorderResolver.resolve(a, b), b);
     });
 
-    test('width takes priority over line style', () {
+    test('line style takes priority over width', () {
       const thickDotted = BorderStyle(
         width: 3.0,
         lineStyle: BorderLineStyle.dotted,
@@ -75,7 +75,8 @@ void main() {
         lineStyle: BorderLineStyle.double,
       );
 
-      expect(BorderResolver.resolve(thickDotted, thinDouble), thickDotted);
+      expect(BorderResolver.resolve(thickDotted, thinDouble), thinDouble);
+      expect(BorderResolver.resolve(thinDouble, thickDotted), thinDouble);
     });
 
     test('none lineStyle with non-zero width is still none', () {

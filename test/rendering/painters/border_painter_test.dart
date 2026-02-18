@@ -385,12 +385,13 @@ void main() {
         return byteData!;
       }
 
-      test('thick perpendicular at start extends edge', () async {
-        // Horizontal solid line from x=20 to x=44 at y=32.5
+      test('thick perpendicular at start suppresses extension for thin edge',
+          () async {
+        // Horizontal solid W=1 line from x=20 to x=44 at y=32.5
         // With a thick (width=5) perpendicular border at start.
-        // The horizontal start extension is reduced by 1px so it stays
-        // within the perpendicular border's pixel footprint.
-        // width=5 → extension = 5/2 = 2.5, adjusted = 1.5
+        // Since the perp (W=5) is strictly wider than this edge (W=1),
+        // the extension is suppressed — the thick perp's stroke already
+        // covers the junction area.
         final withJunction = await renderEdgeWithJunction(
           start: const Offset(20, 32.5),
           end: const Offset(44, 32.5),
@@ -405,17 +406,18 @@ void main() {
           lineStyle: BorderLineStyle.solid,
         );
 
-        // width=5 → extension = 2.5, adjusted -1px = 1.5
-        // Line should extend further left with junction than without.
-        // Count drawn pixels to the left of x=20.
+        // With the width-priority rule, W=5 > W=1, so extension is suppressed.
+        // Both should have the same pixel coverage left of start.
         var junctionLeftCount = 0;
         var noJunctionLeftCount = 0;
         for (var x = 15; x < 20; x++) {
           if (isNonWhite(pixelAt(withJunction, x, 32))) junctionLeftCount++;
-          if (isNonWhite(pixelAt(withoutJunction, x, 32))) noJunctionLeftCount++;
+          if (isNonWhite(pixelAt(withoutJunction, x, 32))) {
+            noJunctionLeftCount++;
+          }
         }
-        expect(junctionLeftCount, greaterThan(noJunctionLeftCount),
-            reason: 'Junction extension draws more pixels left of start');
+        expect(junctionLeftCount, equals(noJunctionLeftCount),
+            reason: 'Thin edge should not extend into wider perp zone');
 
         // Verify the main line body is drawn too.
         expect(isNonWhite(pixelAt(withJunction, 30, 32)), isTrue,
@@ -436,22 +438,28 @@ void main() {
             reason: 'No extension past end when no junction');
       });
 
-      test('double perpendicular extends by visual width / 2', () async {
-        // Double border has visual width = width * 3 = 1 * 3 = 3
-        // Extension = 3 / 2 = 1.5
+      test('thinner same-style perpendicular extends by visual width / 2',
+          () async {
+        // Solid W=3 edge with solid W=2 perpendicular at end.
+        // Same style (both solid), perp W=2 < this W=3 → not suppressed.
+        // Extension uses visual width: (2-1)/2 = 0.5, plus +1.0 end
+        // compensation = 1.5.
         final pixels = await renderEdgeWithJunction(
           start: const Offset(20, 32.5),
           end: const Offset(44, 32.5),
           lineStyle: BorderLineStyle.solid,
+          width: 3.0,
           endJunctionPerpA: const BorderStyle(
-            width: 1.0,
-            lineStyle: BorderLineStyle.double,
+            width: 2.0,
+            lineStyle: BorderLineStyle.solid,
           ),
         );
 
-        // Extension at end: 3/2 = 1.5 → line extends to x=44+1.5=45.5
-        expect(isNonWhite(pixelAt(pixels, 45, 32)), isTrue,
-            reason: 'Line should extend right due to double perpendicular');
+        // Extension at end: (2-1)/2 = 0.5, +1.0 end compensation = 1.5
+        // Line extends to x=44+1.5=45.5 (butt cap → last pixel x=44)
+        // The extended pixel should be non-white.
+        expect(isNonWhite(pixelAt(pixels, 44, 32)), isTrue,
+            reason: 'Line should extend right due to thinner perpendicular');
       });
 
       test('double border inner sub-line spans full edge length', () async {

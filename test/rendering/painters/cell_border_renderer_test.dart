@@ -719,6 +719,293 @@ void main() {
       });
     });
 
+    group('border priority at junctions', () {
+      test('thick top + thin left, same color — no overshoot', () async {
+        // Cell (2,2): thick W3 top/bottom, thin W1 left/right
+        data.setStyle(
+          const CellCoordinate(2, 2),
+          const CellStyle(
+            borders: CellBorders(
+              top: BorderStyle(
+                color: Color(0xFF000000),
+                lineStyle: BorderLineStyle.solid,
+                width: 3.0,
+              ),
+              bottom: BorderStyle(
+                color: Color(0xFF000000),
+                lineStyle: BorderLineStyle.solid,
+                width: 3.0,
+              ),
+              left: BorderStyle(
+                color: Color(0xFF000000),
+                lineStyle: BorderLineStyle.solid,
+                width: 1.0,
+              ),
+              right: BorderStyle(
+                color: Color(0xFF000000),
+                lineStyle: BorderLineStyle.solid,
+                width: 1.0,
+              ),
+            ),
+          ),
+        );
+
+        final pixels = await renderBorders(data);
+
+        // Cell (2,2): bounds left=40, top=40, right=60, bottom=60
+        // Top border W3 at y=40.5, fills y=39,40,41
+        // Left border W1 at x=40.5, fills x=40
+        //
+        // The thick top border should cover pixel (40,39).
+        expect(isNonWhite(pixelAt(pixels, 40, 39)), isTrue,
+            reason: 'Thick top border should cover pixel (40,39)');
+        // The thin left border should NOT extend into thick top's zone (y=39).
+        expect(isWhite(pixelAt(pixels, 39, 40)), isTrue,
+            reason:
+                'Thin left should not extend up into thick top zone at (39,40)');
+      });
+
+      test('thick top + thin left, different colors — thick color preserved',
+          () async {
+        // Cell (2,2): thick W3 red top, thin W1 blue left
+        data.setStyle(
+          const CellCoordinate(2, 2),
+          const CellStyle(
+            borders: CellBorders(
+              top: BorderStyle(
+                color: Color(0xFFFF0000),
+                lineStyle: BorderLineStyle.solid,
+                width: 3.0,
+              ),
+              left: BorderStyle(
+                color: Color(0xFF0000FF),
+                lineStyle: BorderLineStyle.solid,
+                width: 1.0,
+              ),
+            ),
+          ),
+        );
+
+        final pixels = await renderBorders(data);
+
+        // Cell (2,2): bounds left=40, top=40, right=60, bottom=60
+        // Top W3 at y=40.5: fills y=39,40,41 — red
+        // Left W1 at x=40.5: fills x=40 — blue
+        //
+        // Pixel (40,39) belongs to thick red top border's stroke zone.
+        // The thin blue left border should NOT extend up and overwrite it.
+        expect(isColor(pixelAt(pixels, 40, 39), const Color(0xFFFF0000)), isTrue,
+            reason:
+                'Thick red top pixel at (40,39) should be RED, not overwritten by blue left');
+        // Junction corner at (40,40) should be covered (both borders paint here).
+        expect(isNonWhite(pixelAt(pixels, 40, 40)), isTrue,
+            reason: 'Junction corner (40,40) should be covered');
+      });
+
+      test('thick left + thin top, different colors — thick color preserved',
+          () async {
+        // Cell (2,2): thin W1 red top, thick W3 blue left
+        data.setStyle(
+          const CellCoordinate(2, 2),
+          const CellStyle(
+            borders: CellBorders(
+              top: BorderStyle(
+                color: Color(0xFFFF0000),
+                lineStyle: BorderLineStyle.solid,
+                width: 1.0,
+              ),
+              left: BorderStyle(
+                color: Color(0xFF0000FF),
+                lineStyle: BorderLineStyle.solid,
+                width: 3.0,
+              ),
+            ),
+          ),
+        );
+
+        final pixels = await renderBorders(data);
+
+        // Cell (2,2): bounds left=40, top=40, right=60, bottom=60
+        // Left W3 at x=40.5: fills x=39,40,41 — blue
+        // Top W1 at y=40.5: fills y=40 — red
+        //
+        // Pixel (39,40) belongs to thick blue left border's stroke zone.
+        // The thin red top border should NOT extend left and overwrite it.
+        expect(isColor(pixelAt(pixels, 39, 40), const Color(0xFF0000FF)), isTrue,
+            reason:
+                'Thick blue left pixel at (39,40) should be BLUE, not overwritten by red top');
+      });
+
+      test('equal-width different colors — both present, no gaps', () async {
+        // Cell (2,2): W2 red top, W2 blue left
+        data.setStyle(
+          const CellCoordinate(2, 2),
+          const CellStyle(
+            borders: CellBorders(
+              top: BorderStyle(
+                color: Color(0xFFFF0000),
+                lineStyle: BorderLineStyle.solid,
+                width: 2.0,
+              ),
+              left: BorderStyle(
+                color: Color(0xFF0000FF),
+                lineStyle: BorderLineStyle.solid,
+                width: 2.0,
+              ),
+            ),
+          ),
+        );
+
+        final pixels = await renderBorders(data);
+
+        // Cell (2,2): bounds left=40, top=40, right=60, bottom=60
+        // Top W2 at y=40.5: fills y=40,41
+        // Left W2 at x=40.5: fills x=40,41
+        // The 2x2 corner block at (40,40)-(41,41) should all be non-white.
+        for (var x = 40; x <= 41; x++) {
+          for (var y = 40; y <= 41; y++) {
+            expect(isNonWhite(pixelAt(pixels, x, y)), isTrue,
+                reason:
+                    'Equal-width corner pixel ($x,$y) should be filled — no gaps');
+          }
+        }
+      });
+
+      test('double top + thick left — double outer sub-line preserved',
+          () async {
+        // Cell (2,2): double W=1 red top, solid W=3 blue left
+        data.setStyle(
+          const CellCoordinate(2, 2),
+          const CellStyle(
+            borders: CellBorders(
+              top: BorderStyle(
+                color: Color(0xFFFF0000),
+                lineStyle: BorderLineStyle.double,
+                width: 1.0,
+              ),
+              left: BorderStyle(
+                color: Color(0xFF0000FF),
+                lineStyle: BorderLineStyle.solid,
+                width: 3.0,
+              ),
+            ),
+          ),
+        );
+
+        final pixels = await renderBorders(data);
+
+        // Cell (2,2): bounds left=40, top=40, right=60, bottom=60
+        // Double top at y=40.5: outer sub-line at y=39, inner at y=41
+        // Thick left W=3 at x=40.5: fills x=39,40,41
+        //
+        // The double border has higher priority than thick solid.
+        // Pixel at (40,39) is the double's outer sub-line — should be RED.
+        expect(isColor(pixelAt(pixels, 40, 39), const Color(0xFFFF0000)), isTrue,
+            reason:
+                'Double outer sub-line at (40,39) should be RED, not overwritten by thick left');
+        // Junction area at (40,40) should be covered.
+        expect(isNonWhite(pixelAt(pixels, 40, 40)), isTrue,
+            reason: 'Junction pixel (40,40) should be covered');
+      });
+
+      test('double top + thick left — double inner sub-line preserved',
+          () async {
+        // Same setup as above — double paints in a later pass than thick,
+        // so the inner sub-line at y=41 should also be RED.
+        data.setStyle(
+          const CellCoordinate(2, 2),
+          const CellStyle(
+            borders: CellBorders(
+              top: BorderStyle(
+                color: Color(0xFFFF0000),
+                lineStyle: BorderLineStyle.double,
+                width: 1.0,
+              ),
+              left: BorderStyle(
+                color: Color(0xFF0000FF),
+                lineStyle: BorderLineStyle.solid,
+                width: 3.0,
+              ),
+            ),
+          ),
+        );
+
+        final pixels = await renderBorders(data);
+
+        // Inner sub-line of double top at y=41, within the thick left's
+        // stroke zone (x=39..41). Because double paints after thick in
+        // multi-pass, the RED inner sub-line should be preserved.
+        expect(isColor(pixelAt(pixels, 40, 41), const Color(0xFFFF0000)), isTrue,
+            reason:
+                'Double inner sub-line at (40,41) should be RED (multi-pass)');
+      });
+
+      test('double left + thick top — double outer sub-line preserved',
+          () async {
+        // Cell (2,2): solid W=3 red top, double W=1 blue left
+        data.setStyle(
+          const CellCoordinate(2, 2),
+          const CellStyle(
+            borders: CellBorders(
+              top: BorderStyle(
+                color: Color(0xFFFF0000),
+                lineStyle: BorderLineStyle.solid,
+                width: 3.0,
+              ),
+              left: BorderStyle(
+                color: Color(0xFF0000FF),
+                lineStyle: BorderLineStyle.double,
+                width: 1.0,
+              ),
+            ),
+          ),
+        );
+
+        final pixels = await renderBorders(data);
+
+        // Double left at x=40.5: outer sub-line at x=39, inner at x=41
+        // Thick top W=3 at y=40.5: fills y=39,40,41
+        //
+        // The double border has higher priority. Pixel at (39,40) is the
+        // double's outer sub-line zone — should be BLUE.
+        expect(isColor(pixelAt(pixels, 39, 40), const Color(0xFF0000FF)), isTrue,
+            reason:
+                'Double outer sub-line at (39,40) should be BLUE, not overwritten by thick top');
+      });
+
+      test('double + normal — double preserved', () async {
+        // Cell (2,2): double W=1 red top, solid W=1 blue left
+        data.setStyle(
+          const CellCoordinate(2, 2),
+          const CellStyle(
+            borders: CellBorders(
+              top: BorderStyle(
+                color: Color(0xFFFF0000),
+                lineStyle: BorderLineStyle.double,
+                width: 1.0,
+              ),
+              left: BorderStyle(
+                color: Color(0xFF0000FF),
+                lineStyle: BorderLineStyle.solid,
+                width: 1.0,
+              ),
+            ),
+          ),
+        );
+
+        final pixels = await renderBorders(data);
+
+        // Double top at y=40.5: outer sub-line at y=39
+        // Normal left W=1 at x=40.5: fills x=40
+        //
+        // Double has higher priority than normal solid.
+        // Pixel at (40,39) is the double's outer sub-line — should be RED.
+        expect(isColor(pixelAt(pixels, 40, 39), const Color(0xFFFF0000)), isTrue,
+            reason:
+                'Double outer sub-line at (40,39) should be RED, not overwritten by normal left');
+      });
+    });
+
     group('widthScale', () {
       test('widthScale > 1.0 makes borders thicker', () async {
         final layoutSolver = LayoutSolver(

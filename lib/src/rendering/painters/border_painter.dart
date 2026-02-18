@@ -49,10 +49,12 @@ class BorderPainter {
     //     Add 1.0 to compensate when there IS a perpendicular border to meet.
     final effectiveStartExt = startJunctionPerpA != null ||
             startJunctionPerpB != null
-        ? _extensionFromJunction(startJunctionPerpA, startJunctionPerpB, width)
+        ? _extensionFromJunction(
+            startJunctionPerpA, startJunctionPerpB, width, lineStyle)
         : startExt;
     final rawEndExt = endJunctionPerpA != null || endJunctionPerpB != null
-        ? _extensionFromJunction(endJunctionPerpA, endJunctionPerpB, width)
+        ? _extensionFromJunction(
+            endJunctionPerpA, endJunctionPerpB, width, lineStyle)
         : null;
     final effectiveEndExt =
         rawEndExt != null ? (rawEndExt > 0 ? rawEndExt + 1.0 : 0.0) : endExt;
@@ -98,9 +100,13 @@ class BorderPainter {
 
   /// Computes extension distance from perpendicular junction borders.
   ///
-  /// Rules (from BORDERS.md):
+  /// Rules:
   /// - THICK or DOUBLE perpendicular → extend by half (visualWidth - 1) so
   ///   this edge fills through the junction area without overshooting.
+  /// - Perpendicular has strictly greater raw [width] than this edge →
+  ///   suppress extension (the wider border's stroke covers the junction).
+  ///   Raw width is used (not visual width) so that a double border's
+  ///   rendering spread doesn't make it "win" over a genuinely thicker solid.
   /// - THIN perpendicular (width=1) → no extension needed (0px).
   /// - NONE → no extension.
   ///
@@ -110,14 +116,25 @@ class BorderPainter {
     BorderStyle? perpA,
     BorderStyle? perpB,
     double thisWidth,
+    BorderLineStyle thisLineStyle,
   ) {
-    final extA = _singlePerpExtension(perpA, thisWidth);
-    final extB = _singlePerpExtension(perpB, thisWidth);
+    final extA = _singlePerpExtension(perpA, thisWidth, thisLineStyle);
+    final extB = _singlePerpExtension(perpB, thisWidth, thisLineStyle);
     return extA > extB ? extA : extB;
   }
 
-  static double _singlePerpExtension(BorderStyle? perp, double thisWidth) {
+  static double _singlePerpExtension(
+      BorderStyle? perp, double thisWidth, BorderLineStyle thisLineStyle) {
     if (perp == null || perp.isNone) return 0.0;
+
+    // Suppress when perpendicular has strictly higher junction priority.
+    // Priority: lineStyle index first (double > solid > dashed > dotted),
+    // then raw width within the same style.
+    if (perp.lineStyle.index > thisLineStyle.index) return 0.0;
+    if (perp.lineStyle.index == thisLineStyle.index &&
+        perp.width > thisWidth) {
+      return 0.0;
+    }
 
     final perpVisualWidth = perp.lineStyle == BorderLineStyle.double
         ? perp.width * 3.0
