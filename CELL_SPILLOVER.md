@@ -52,35 +52,33 @@
 | Wrapped + fixed row | Any | On | N/A | Fixed | Wraps, clipped at bottom |
 | Shrink to fit | Any | Off | N/A | Any | Font shrinks, no overflow |
 
-## Implementation Pointers for Claude Code (openpyxl / xlsxwriter)
+## Implementation
 
-**Key properties per cell to track:**
-- `alignment.wrap_text` (bool)
-- `alignment.shrink_to_fit` (bool)
-- `alignment.horizontal` (`'left'`, `'right'`, `'center'`, `'justify'`)
-- `alignment.vertical` (`'top'`, `'center'`, `'bottom'`)
-- Column width (in character units) and row height (in points)
-- Whether the cell is part of a merged range
+### Status
 
-**Rendering algorithm (if you're building a visual preview or layout engine):**
+| Feature | Status |
+|---------|--------|
+| Left-aligned text spills right | Done |
+| Right-aligned text spills left | Done |
+| Center-aligned text spills both | Done |
+| Stops at non-empty cell | Done |
+| Stops at merged cell region | Done |
+| Stops at sheet edge | Done |
+| Wrap-text suppresses spillover | Done |
+| Number/date/duration/boolean → `######` | Done |
+| Merged cell source spills from merge edge | Done |
+| Tile expansion zone (cross-tile spillover) | Done |
+| Frozen pane spillover | Done |
+| Shrink-to-fit | Not implemented (separate feature) |
+| Vertical spillover | N/A (matches Excel — never spills vertically) |
 
-1. **Measure text width** — use font metrics (font name, size, bold/italic) to compute pixel width of the string. Account for number formats (a date or currency may render differently from the raw value).
+### Key Classes
 
-2. **Check shrink-to-fit first** — if enabled, iteratively reduce font size until text fits cell width. Done.
+- **`SpilloverCalculator`** (`lib/src/core/geometry/spillover_calculator.dart`) — Pure utility that computes `SpilloverExtent` (start/end column, total width, hash-fill flag). No rendering dependencies.
+- **`TilePainter._renderCellContent()`** — Uses `SpilloverCalculator` for non-wrap cells: measures unconstrained text, computes spillover, paints with expanded clip rect or `######`.
+- **`FrozenLayer._paintCellContent()`** — Same logic as `TilePainter` but converts between zoomed screen coordinates and worksheet coordinates.
 
-3. **Check wrap-text** — if enabled, word-wrap the text at cell width boundaries. Compute the number of lines. Multiply by line height to get required row height. If row height is auto, expand it. If fixed, clip.
+### Cross-References
 
-4. **Horizontal overflow** (wrap text OFF, shrink to fit OFF):
-   - Compute how many pixels the text exceeds the cell width.
-   - Based on alignment, determine overflow direction (left-align → right, right-align → left, center → both).
-   - Walk adjacent cells in the overflow direction. For each empty cell, "consume" its width. Stop when you run out of excess width or hit a non-empty cell.
-   - Render the text clipped at whatever boundary you reached.
-
-5. **Gotchas:**
-   - Merged cells: use the combined width of all merged columns as the "cell width."
-   - Numbers and dates that don't fit show `######` instead of overflowing — this is a special case for numeric/date-formatted cells only.
-   - Rich text (mixed formatting within a cell) complicates width measurement significantly.
-   - Column widths in Excel are in "character width" units (based on the default font's `0` character), not pixels. The conversion is roughly `pixel_width = (char_width * 7 + 5)` for the default Calibri 11pt, but varies by font.
-   - Row heights are in points (1 point = 1/72 inch = ~1.333 pixels at 96 DPI).
-
-6. **Testing tip:** Create a reference Excel file with all overflow scenarios, open it in Excel, screenshot it, and compare against your rendering output pixel-by-pixel.
+- [Cell Merging](CELL_MERGING.md) — Spillover stops at merged cell boundaries; merged sources spill from the merge edge.
+- [Architecture](ARCHITECTURE.md) — Tile-based rendering pipeline that spillover integrates with.

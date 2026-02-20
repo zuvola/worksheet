@@ -771,13 +771,27 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
       }
     }
 
+    // For non-wrap cells with expanded bounds, use the expanded rect for
+    // Positioned and SizedBox so the EditableText can actually fill the
+    // expanded area. The ConstrainedBox alone isn't enough — the parent
+    // tight constraints from Positioned.fromRect would clamp it.
+    final Rect positionedRect;
+    final double sizedBoxWidth;
+    if (widget.expandedBounds != null && !widget.wrapText) {
+      positionedRect = widget.expandedBounds!;
+      sizedBoxWidth = widget.expandedBounds!.width / zoom;
+    } else {
+      positionedRect = widget.cellBounds;
+      sizedBoxWidth = widget.cellBounds.width / zoom;
+    }
+
     return Positioned.fromRect(
-      rect: widget.cellBounds,
+      rect: positionedRect,
       child: Transform.scale(
         scale: zoom,
         alignment: Alignment.topLeft,
         child: SizedBox(
-          width: widget.cellBounds.width / zoom,
+          width: sizedBoxWidth,
           height: widget.cellBounds.height / zoom,
           child: ColoredBox(
             color: widget.backgroundColor ?? const Color(0x00000000),

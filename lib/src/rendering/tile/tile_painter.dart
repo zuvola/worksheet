@@ -5,6 +5,7 @@ import 'package:flutter/painting.dart' hide BorderStyle;
 import '../../core/data/merged_cell_registry.dart';
 import '../../core/data/worksheet_data.dart';
 import '../../core/geometry/layout_solver.dart';
+import '../../core/geometry/spillover_calculator.dart';
 import '../../core/geometry/zoom_transformer.dart';
 import '../../core/models/cell_coordinate.dart';
 import '../../core/models/cell_range.dart';
@@ -159,13 +160,20 @@ class TilePainter implements TileRenderer {
     final startCol = cellRange.startColumn.clamp(0, maxCol);
     final endCol = cellRange.endColumn.clamp(0, maxCol);
 
+    // Expand column range so cells just outside the tile whose text spills
+    // into the tile are rendered (content only, no background).
+    const maxSpillColumns = 10;
+    final expandedStartCol = (startCol - maxSpillColumns).clamp(0, maxCol);
+    final expandedEndCol = (endCol + maxSpillColumns).clamp(0, maxCol);
+
     // Track which merged anchors we've already rendered in this tile,
     // so we don't render them multiple times.
     final renderedAnchors = <CellCoordinate>{};
 
     for (var row = startRow; row <= endRow; row++) {
-      for (var col = startCol; col <= endCol; col++) {
+      for (var col = expandedStartCol; col <= expandedEndCol; col++) {
         final coord = CellCoordinate(row, col);
+        final isExpansionZone = col < startCol || col > endCol;
 
         // For merged cells, resolve to the anchor so that every tile
         // overlapping the merge renders the anchor's content.
@@ -178,6 +186,9 @@ class TilePainter implements TileRenderer {
           renderedAnchors.add(renderCoord);
         }
 
+        // In the expansion zone, only process cells with values (for spillover).
+        if (isExpansionZone && data.getCell(renderCoord) == null) continue;
+
         final cellBounds = layoutSolver.getCellBounds(renderCoord);
 
         // Convert to tile-local coordinates
@@ -188,19 +199,23 @@ class TilePainter implements TileRenderer {
           cellBounds.height,
         );
 
-        // Skip if cell is outside tile bounds
-        if (!_boundsIntersect(localBounds, tileLocalRect)) {
-          continue;
+        // Skip background for expansion zone cells — their background
+        // belongs to their own tile.
+        if (!isExpansionZone) {
+          // Skip if cell is outside tile bounds
+          if (!_boundsIntersect(localBounds, tileLocalRect)) {
+            continue;
+          }
+
+          // For merged cells that cross tile boundaries, clip to tile bounds
+          final clippedBounds = region != null
+              ? localBounds.intersect(tileLocalRect)
+              : localBounds;
+
+          // Render cell background (use clipped bounds for painting area)
+          final style = data.getStyle(renderCoord);
+          _renderCellBackground(canvas, clippedBounds, style);
         }
-
-        // For merged cells that cross tile boundaries, clip to tile bounds
-        final clippedBounds = region != null
-            ? localBounds.intersect(tileLocalRect)
-            : localBounds;
-
-        // Render cell background (use clipped bounds for painting area)
-        final style = data.getStyle(renderCoord);
-        _renderCellBackground(canvas, clippedBounds, style);
 
         // Render cell content (skip the cell being edited — the overlay
         // TextField renders its text instead).
@@ -209,6 +224,7 @@ class TilePainter implements TileRenderer {
         if (shouldRenderText && editingRange?.contains(renderCoord) != true) {
           final value = data.getCell(renderCoord);
           if (value != null) {
+            final style = data.getStyle(renderCoord);
             final format = data.getFormat(renderCoord);
             if (region != null) {
               // Clip merged cell content to tile boundary
@@ -216,12 +232,14 @@ class TilePainter implements TileRenderer {
               canvas.clipRect(tileLocalRect);
               _renderCellContent(
                   canvas, localBounds, value, style, zoomBucket, format,
-                  textPainters, coord: renderCoord);
+                  textPainters, tileLocalRect: tileLocalRect,
+                  coord: renderCoord);
               canvas.restore();
             } else {
               _renderCellContent(
                   canvas, localBounds, value, style, zoomBucket, format,
-                  textPainters, coord: renderCoord);
+                  textPainters, tileLocalRect: tileLocalRect,
+                  coord: renderCoord);
             }
           }
         }
@@ -282,10 +300,12 @@ class TilePainter implements TileRenderer {
     ZoomBucket zoomBucket,
     CellFormat? format,
     List<TextPainter> textPainters, {
+    ui.Rect? tileLocalRect,
     CellCoordinate? coord,
   }) {
     final mergedStyle = CellStyle.defaultStyle.merge(style);
     final availableWidth = bounds.width - (cellPadding * 2);
+    final wrapText = mergedStyle.wrapText == true;
     final CellFormatResult? formatResult;
     final String text;
     if (format != null) {
@@ -313,36 +333,144 @@ class TilePainter implements TileRenderer {
       textSpan = TextSpan(text: text, style: baseTextStyle);
     }
 
+    // For non-wrap cells, attempt spillover before falling back to ellipsis.
+    if (!wrapText) {
+      // Measure unconstrained text width
+      final unconstrained = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+        textAlign: _toTextAlign(
+            mergedStyle.textAlignment ??
+                CellStyle.implicitAlignment(value.type)),
+        maxLines: 1,
+      )..layout();
+      final textWidth = unconstrained.width;
+
+      if (textWidth <= availableWidth || availableWidth <= 0) {
+        // Text fits — paint normally clipped to cell bounds.
+        final offset =
+            _calculateTextOffset(bounds, unconstrained, mergedStyle, value);
+        canvas.save();
+        canvas.clipRect(bounds);
+        unconstrained.paint(canvas, offset);
+        canvas.restore();
+        textPainters.add(unconstrained);
+        return;
+      }
+
+      // Text overflows — compute spillover.
+      final alignment = mergedStyle.textAlignment ??
+          CellStyle.implicitAlignment(value.type);
+      final maxCol = layoutSolver.columnCount - 1;
+
+      final extent = SpilloverCalculator.compute(
+        row: coord?.row ?? 0,
+        column: coord?.column ?? 0,
+        textWidth: textWidth,
+        cellWidth: bounds.width,
+        cellPadding: cellPadding,
+        alignment: alignment,
+        valueType: value.type,
+        wrapText: false,
+        data: data,
+        layoutSolver: layoutSolver,
+        mergedCells: mergedCells,
+        maxColumn: maxCol,
+      );
+
+      if (extent.showHashFill) {
+        // Numeric/date/duration/boolean overflow → paint ######
+        unconstrained.dispose();
+        final hashPainter = TextPainter(
+          text: TextSpan(text: '######', style: baseTextStyle),
+          textDirection: TextDirection.ltr,
+          maxLines: 1,
+        )..layout(maxWidth: availableWidth > 0 ? availableWidth : 0.0);
+        final offset =
+            _calculateTextOffset(bounds, hashPainter, mergedStyle, value);
+        canvas.save();
+        canvas.clipRect(bounds);
+        hashPainter.paint(canvas, offset);
+        canvas.restore();
+        textPainters.add(hashPainter);
+        return;
+      }
+
+      if (extent.hasSpillover) {
+        // Compute spill bounds in tile-local coordinates.
+        final spillLeft =
+            layoutSolver.getColumnLeft(extent.startColumn) - _tileBoundsLeft(bounds, coord);
+        final spillBounds = ui.Rect.fromLTWH(
+          spillLeft,
+          bounds.top,
+          extent.totalWidth,
+          bounds.height,
+        );
+
+        // Clip to intersection of spill bounds and tile rect.
+        final clipRect = tileLocalRect != null
+            ? spillBounds.intersect(tileLocalRect)
+            : spillBounds;
+
+        // Re-layout unconstrained text within the full spill width for
+        // correct TextAlign positioning.
+        unconstrained.dispose();
+        final spillPainter = TextPainter(
+          text: textSpan,
+          textDirection: TextDirection.ltr,
+          textAlign: _toTextAlign(alignment),
+          maxLines: 1,
+        )..layout(
+            minWidth: extent.totalWidth - 2 * cellPadding,
+            maxWidth: extent.totalWidth - 2 * cellPadding,
+          );
+        final offset =
+            _calculateTextOffset(spillBounds, spillPainter, mergedStyle, value);
+        canvas.save();
+        canvas.clipRect(clipRect);
+        spillPainter.paint(canvas, offset);
+        canvas.restore();
+        textPainters.add(spillPainter);
+        return;
+      }
+
+      // Blocked — fall through to ellipsis rendering.
+      unconstrained.dispose();
+    }
+
+    // Wrapped text or blocked non-wrap: render with ellipsis / wrapping.
     final textPainter = TextPainter(
       text: textSpan,
       textDirection: TextDirection.ltr,
       textAlign: _toTextAlign(
           mergedStyle.textAlignment ?? CellStyle.implicitAlignment(value.type)),
-      maxLines: mergedStyle.wrapText == true ? null : 1,
-      ellipsis: mergedStyle.wrapText == true ? null : '\u2026',
+      maxLines: wrapText ? null : 1,
+      ellipsis: wrapText ? null : '\u2026',
     );
 
-    // Layout text within available width.
-    // For wrapped text, set minWidth = maxWidth so TextPainter spans the full
-    // cell width — this lets textAlign (center/right) align each line correctly.
     final layoutWidth = availableWidth > 0 ? availableWidth : 0.0;
     textPainter.layout(
-      minWidth: mergedStyle.wrapText == true ? layoutWidth : 0,
+      minWidth: wrapText ? layoutWidth : 0,
       maxWidth: layoutWidth,
     );
 
-    // Calculate position based on alignment
     final offset = _calculateTextOffset(bounds, textPainter, mergedStyle, value);
 
-    // Clip to cell bounds and paint
     canvas.save();
     canvas.clipRect(bounds);
     textPainter.paint(canvas, offset);
     canvas.restore();
 
-    // Defer disposal — the PictureRecorder may reference the native Paragraph
-    // until endRecording() finalizes the picture.
     textPainters.add(textPainter);
+  }
+
+  /// Computes the tile-local left offset for the given cell bounds and coord.
+  /// For cells in the expansion zone, [bounds.left] is already tile-local.
+  double _tileBoundsLeft(ui.Rect bounds, CellCoordinate? coord) {
+    if (coord == null) return 0;
+    // bounds.left is already tile-local (cellBounds.left - tileBounds.left),
+    // so we recover tileBounds.left as cellBounds.left - bounds.left.
+    return layoutSolver.getCellBounds(coord).left - bounds.left;
   }
 
   Color _getBaseTextColor(CellValue value) {

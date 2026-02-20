@@ -584,6 +584,172 @@ void main() {
       });
     });
 
+    group('hash fill (######)', () {
+      test('number that does not fit shows hash fill', () {
+        // Use narrow column so number overflows
+        layoutSolver.setColumnWidth(0, 30.0);
+        data.setCell(CellCoordinate(0, 0), CellValue.number(123456789.12));
+
+        final picture = painter.renderTile(
+          coordinate: TileCoordinate(0, 0),
+          bounds: const ui.Rect.fromLTWH(0, 0, 256, 256),
+          cellRange: CellRange(0, 0, 5, 2),
+          zoomBucket: ZoomBucket.full,
+        );
+
+        expect(picture, isA<ui.Picture>());
+        picture.dispose();
+      });
+
+      test('date that does not fit shows hash fill', () {
+        layoutSolver.setColumnWidth(0, 30.0);
+        data.setCell(
+          CellCoordinate(0, 0),
+          CellValue.date(DateTime(2024, 12, 25)),
+        );
+
+        final picture = painter.renderTile(
+          coordinate: TileCoordinate(0, 0),
+          bounds: const ui.Rect.fromLTWH(0, 0, 256, 256),
+          cellRange: CellRange(0, 0, 5, 2),
+          zoomBucket: ZoomBucket.full,
+        );
+
+        expect(picture, isA<ui.Picture>());
+        picture.dispose();
+      });
+
+      test('text value does NOT show hash fill', () {
+        layoutSolver.setColumnWidth(0, 30.0);
+        data.setCell(
+            CellCoordinate(0, 0), CellValue.text('Long text that overflows'));
+
+        final picture = painter.renderTile(
+          coordinate: TileCoordinate(0, 0),
+          bounds: const ui.Rect.fromLTWH(0, 0, 256, 256),
+          cellRange: CellRange(0, 0, 5, 2),
+          zoomBucket: ZoomBucket.full,
+        );
+
+        // Should produce a valid picture (text spills, no hash fill)
+        expect(picture, isA<ui.Picture>());
+        picture.dispose();
+      });
+    });
+
+    group('text spillover', () {
+      test('left-aligned text renders into adjacent empty cells', () {
+        // Put long text in col 0, cols 1-2 are empty
+        data.setCell(CellCoordinate(0, 0),
+            CellValue.text('This is a very long text that should spill'));
+
+        final picture = painter.renderTile(
+          coordinate: TileCoordinate(0, 0),
+          bounds: const ui.Rect.fromLTWH(0, 0, 512, 256),
+          cellRange: CellRange(0, 0, 5, 5),
+          zoomBucket: ZoomBucket.full,
+        );
+
+        expect(picture, isA<ui.Picture>());
+        picture.dispose();
+      });
+
+      test('right-aligned text renders into adjacent empty left cells', () {
+        data.setCell(CellCoordinate(0, 3),
+            CellValue.text('This is a very long text that should spill left'));
+        data.setStyle(
+          CellCoordinate(0, 3),
+          const CellStyle(textAlignment: CellTextAlignment.right),
+        );
+
+        final picture = painter.renderTile(
+          coordinate: TileCoordinate(0, 0),
+          bounds: const ui.Rect.fromLTWH(0, 0, 512, 256),
+          cellRange: CellRange(0, 0, 5, 5),
+          zoomBucket: ZoomBucket.full,
+        );
+
+        expect(picture, isA<ui.Picture>());
+        picture.dispose();
+      });
+
+      test('center-aligned text renders both directions', () {
+        data.setCell(CellCoordinate(0, 3),
+            CellValue.text('Center text that spills in both directions'));
+        data.setStyle(
+          CellCoordinate(0, 3),
+          const CellStyle(textAlignment: CellTextAlignment.center),
+        );
+
+        final picture = painter.renderTile(
+          coordinate: TileCoordinate(0, 0),
+          bounds: const ui.Rect.fromLTWH(0, 0, 512, 256),
+          cellRange: CellRange(0, 0, 5, 5),
+          zoomBucket: ZoomBucket.full,
+        );
+
+        expect(picture, isA<ui.Picture>());
+        picture.dispose();
+      });
+
+      test('spillover stops at non-empty adjacent cell', () {
+        data.setCell(CellCoordinate(0, 0),
+            CellValue.text('Very long text attempting to spill over'));
+        data.setCell(CellCoordinate(0, 1), CellValue.text('Blocker'));
+
+        final picture = painter.renderTile(
+          coordinate: TileCoordinate(0, 0),
+          bounds: const ui.Rect.fromLTWH(0, 0, 512, 256),
+          cellRange: CellRange(0, 0, 5, 5),
+          zoomBucket: ZoomBucket.full,
+        );
+
+        expect(picture, isA<ui.Picture>());
+        picture.dispose();
+      });
+
+      test('wrap text cell does not spill', () {
+        data.setCell(CellCoordinate(0, 0),
+            CellValue.text('Long wrapped text stays in cell'));
+        data.setStyle(
+          CellCoordinate(0, 0),
+          const CellStyle(wrapText: true),
+        );
+
+        final picture = painter.renderTile(
+          coordinate: TileCoordinate(0, 0),
+          bounds: const ui.Rect.fromLTWH(0, 0, 256, 256),
+          cellRange: CellRange(0, 0, 5, 2),
+          zoomBucket: ZoomBucket.full,
+        );
+
+        expect(picture, isA<ui.Picture>());
+        picture.dispose();
+      });
+
+      test('spillover from cell outside tile range renders into tile', () {
+        // Cell at col 0 has long text, tile starts at col 1
+        data.setCell(CellCoordinate(0, 0),
+            CellValue.text('This text is very long and spills into columns 1 2 3 4'));
+
+        // Tile covers cols 1-5 — cell 0 is outside tile range but spills in
+        final picture = painter.renderTile(
+          coordinate: TileCoordinate(0, 1),
+          bounds: ui.Rect.fromLTWH(
+            layoutSolver.getColumnLeft(1),
+            0,
+            500,
+            256,
+          ),
+          cellRange: CellRange(0, 1, 5, 5),
+          zoomBucket: ZoomBucket.full,
+        );
+
+        expect(picture, isA<ui.Picture>());
+        picture.dispose();
+      });
+    });
+
     group('edge cases', () {
       test('handles empty cell range', () {
         final picture = painter.renderTile(

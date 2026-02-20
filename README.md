@@ -296,6 +296,7 @@ for (var row = 0; row < 50000; row++) {
 | [Mobile Interaction](MOBILE_INTERACTION.md) | Touch gestures, selection handles, mobile mode |
 | [Mouse Cursors](MOUSE_CURSOR.md) | Desktop cursor behavior and hit zones |
 | [Cell Merging Reference](CELL_MERGING.md) | Merge types, data rules, restrictions |
+| [Cell Spillover](CELL_SPILLOVER.md) | Text overflow into adjacent empty cells |
 
 ---
 

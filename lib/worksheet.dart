@@ -23,6 +23,7 @@ export 'src/core/models/freeze_config.dart';
 export 'src/core/geometry/editing_bounds_calculator.dart';
 export 'src/core/geometry/span_list.dart';
 export 'src/core/geometry/layout_solver.dart';
+export 'src/core/geometry/spillover_calculator.dart';
 export 'src/core/geometry/visible_range_calculator.dart';
 export 'src/core/geometry/zoom_transformer.dart';
 

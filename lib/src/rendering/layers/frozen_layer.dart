@@ -4,6 +4,7 @@ import '../../core/data/merged_cell_registry.dart';
 import '../../core/data/worksheet_data.dart';
 import '../../core/models/cell_range.dart';
 import '../../core/geometry/layout_solver.dart';
+import '../../core/geometry/spillover_calculator.dart';
 import '../../core/models/cell_coordinate.dart';
 import '../../core/models/cell_format.dart';
 import '../../core/models/cell_style.dart';
@@ -488,10 +489,12 @@ class FrozenLayer extends RenderLayer {
     double zoom,
     CellFormat? format, {
     CellCoordinate? coord,
+    Rect? regionClipRect,
   }) {
     final mergedStyle = CellStyle.defaultStyle.merge(style);
     final padding = cellPadding * zoom;
     final availableWidth = bounds.width - (padding * 2);
+    final wrapText = mergedStyle.wrapText == true;
     final CellFormatResult? formatResult;
     final String text;
     if (format != null) {
@@ -538,7 +541,119 @@ class FrozenLayer extends RenderLayer {
       textSpan = TextSpan(text: text, style: baseTextStyle);
     }
 
-    final wrapText = mergedStyle.wrapText == true;
+    // For non-wrap cells, attempt spillover before falling back to ellipsis.
+    if (!wrapText) {
+      final unconstrained = TextPainter(
+        text: textSpan,
+        textDirection: TextDirection.ltr,
+        textAlign: _toTextAlign(
+            mergedStyle.textAlignment ??
+                CellStyle.implicitAlignment(value.type)),
+        maxLines: 1,
+      )..layout();
+      final textWidth = unconstrained.width;
+
+      if (textWidth <= availableWidth || availableWidth <= 0) {
+        // Text fits — paint normally.
+        final offset =
+            _calculateTextOffset(bounds, unconstrained, mergedStyle, padding, value);
+        canvas.save();
+        canvas.clipRect(bounds);
+        unconstrained.paint(canvas, offset);
+        canvas.restore();
+        unconstrained.dispose();
+        return;
+      }
+
+      // Text overflows — compute spillover using worksheet coordinates.
+      final alignment = mergedStyle.textAlignment ??
+          CellStyle.implicitAlignment(value.type);
+      final maxCol = layoutSolver.columnCount - 1;
+      // Convert zoomed text width to worksheet coordinates for the calculator.
+      final textWidthWs = textWidth / zoom;
+      final cellWidthWs = bounds.width / zoom;
+
+      final extent = SpilloverCalculator.compute(
+        row: coord?.row ?? 0,
+        column: coord?.column ?? 0,
+        textWidth: textWidthWs,
+        cellWidth: cellWidthWs,
+        cellPadding: cellPadding,
+        alignment: alignment,
+        valueType: value.type,
+        wrapText: false,
+        data: data,
+        layoutSolver: layoutSolver,
+        mergedCells: mergedCells,
+        maxColumn: maxCol,
+      );
+
+      if (extent.showHashFill) {
+        unconstrained.dispose();
+        final hashPainter = TextPainter(
+          text: TextSpan(text: '######', style: baseTextStyle),
+          textDirection: TextDirection.ltr,
+          maxLines: 1,
+        )..layout(maxWidth: availableWidth > 0 ? availableWidth : 0.0);
+        final offset =
+            _calculateTextOffset(bounds, hashPainter, mergedStyle, padding, value);
+        canvas.save();
+        canvas.clipRect(bounds);
+        hashPainter.paint(canvas, offset);
+        canvas.restore();
+        hashPainter.dispose();
+        return;
+      }
+
+      if (extent.hasSpillover) {
+        // Compute spill bounds in screen coordinates.
+        // We need to figure out where the spill columns are on screen.
+        // bounds is already in screen coords for this cell; we derive the
+        // spill bounds relative to bounds by using worksheet column positions.
+        final cellWsLeft = layoutSolver.getColumnLeft(coord?.column ?? 0);
+        final spillWsLeft = layoutSolver.getColumnLeft(extent.startColumn);
+        final spillScreenLeft =
+            bounds.left + (spillWsLeft - cellWsLeft) * zoom;
+        final spillScreenWidth = extent.totalWidth * zoom;
+
+        final spillBounds = Rect.fromLTWH(
+          spillScreenLeft,
+          bounds.top,
+          spillScreenWidth,
+          bounds.height,
+        );
+
+        // Clip to the frozen region clip rect if provided, otherwise spill bounds.
+        final clipRect = regionClipRect != null
+            ? spillBounds.intersect(regionClipRect)
+            : spillBounds;
+
+        unconstrained.dispose();
+        final spillPadding = cellPadding * zoom;
+        final spillPainter = TextPainter(
+          text: textSpan,
+          textDirection: TextDirection.ltr,
+          textAlign: _toTextAlign(alignment),
+          maxLines: 1,
+        )..layout(
+            minWidth: spillScreenWidth - 2 * spillPadding,
+            maxWidth: spillScreenWidth - 2 * spillPadding,
+          );
+        final offset =
+            _calculateTextOffset(spillBounds, spillPainter, mergedStyle, padding, value);
+        canvas.save();
+        canvas.clipRect(clipRect);
+        spillPainter.paint(canvas, offset);
+        canvas.restore();
+        spillPainter.dispose();
+        return;
+      }
+
+      // Blocked — fall through to ellipsis rendering.
+      unconstrained.dispose();
+    }
+
+    // Wrapped text or blocked non-wrap: render with ellipsis / wrapping.
     final textPainter = TextPainter(
       text: textSpan,
       textDirection: TextDirection.ltr,
@@ -548,19 +663,14 @@ class FrozenLayer extends RenderLayer {
       ellipsis: wrapText ? null : '\u2026',
     );
 
-    // Layout text.
-    // For wrapped text, set minWidth = maxWidth so TextPainter spans the full
-    // cell width — this lets textAlign (center/right) align each line correctly.
     final layoutWidth = availableWidth > 0 ? availableWidth : 0.0;
     textPainter.layout(
       minWidth: wrapText ? layoutWidth : 0,
       maxWidth: layoutWidth,
     );
 
-    // Calculate position
     final offset = _calculateTextOffset(bounds, textPainter, mergedStyle, padding, value);
 
-    // Paint
     canvas.save();
     canvas.clipRect(bounds);
     textPainter.paint(canvas, offset);

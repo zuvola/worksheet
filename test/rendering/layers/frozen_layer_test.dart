@@ -6,6 +6,7 @@ import 'package:worksheet/src/core/geometry/layout_solver.dart';
 import 'package:worksheet/src/core/geometry/span_list.dart';
 import 'package:worksheet/src/core/models/cell_coordinate.dart';
 import 'package:worksheet/src/core/models/cell_format.dart';
+import 'package:worksheet/src/core/models/cell_style.dart';
 import 'package:worksheet/src/core/models/cell_value.dart';
 import 'package:worksheet/src/core/models/freeze_config.dart';
 import 'package:worksheet/src/rendering/layers/frozen_layer.dart';
@@ -272,6 +273,141 @@ void main() {
       expect(() => frozenLayer.paint(context), returnsNormally);
 
       recorder.endRecording();
+    });
+
+    group('hash fill (######)', () {
+      test('number that does not fit in frozen cell shows hash fill', () {
+        // Narrow columns so number overflows
+        final narrowColumns = SpanList(defaultSize: 30.0, count: 26);
+        final narrowLayout = LayoutSolver(
+          rows: SpanList(defaultSize: 24.0, count: 100),
+          columns: narrowColumns,
+        );
+
+        data.setCell(
+            const CellCoordinate(0, 0), CellValue.number(123456789.12));
+
+        frozenLayer = FrozenLayer(
+          freezeConfig: const FreezeConfig(frozenRows: 1, frozenColumns: 1),
+          data: data,
+          layoutSolver: narrowLayout,
+        );
+
+        final recorder = PictureRecorder();
+        final canvas = Canvas(recorder);
+
+        final context = LayerPaintContext(
+          canvas: canvas,
+          viewportSize: const Size(800, 600),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+
+        expect(() => frozenLayer.paint(context), returnsNormally);
+        recorder.endRecording();
+      });
+    });
+
+    group('text spillover', () {
+      test('frozen row text spills into adjacent empty cells', () {
+        data.setCell(const CellCoordinate(0, 0),
+            const CellValue.text('Very long text that spills across cells'));
+
+        frozenLayer = FrozenLayer(
+          freezeConfig: const FreezeConfig(frozenRows: 1),
+          data: data,
+          layoutSolver: layoutSolver,
+        );
+
+        final recorder = PictureRecorder();
+        final canvas = Canvas(recorder);
+
+        final context = LayerPaintContext(
+          canvas: canvas,
+          viewportSize: const Size(800, 600),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+
+        expect(() => frozenLayer.paint(context), returnsNormally);
+        recorder.endRecording();
+      });
+
+      test('frozen column text spills right into empty cells', () {
+        data.setCell(const CellCoordinate(2, 0),
+            const CellValue.text('Long frozen column text spillover'));
+
+        frozenLayer = FrozenLayer(
+          freezeConfig: const FreezeConfig(frozenColumns: 1),
+          data: data,
+          layoutSolver: layoutSolver,
+        );
+
+        final recorder = PictureRecorder();
+        final canvas = Canvas(recorder);
+
+        final context = LayerPaintContext(
+          canvas: canvas,
+          viewportSize: const Size(800, 600),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+
+        expect(() => frozenLayer.paint(context), returnsNormally);
+        recorder.endRecording();
+      });
+
+      test('right-aligned frozen cell spills left', () {
+        data.setCell(const CellCoordinate(0, 2),
+            const CellValue.text('Right-aligned spilling left in frozen row'));
+        data.setStyle(
+          const CellCoordinate(0, 2),
+          const CellStyle(textAlignment: CellTextAlignment.right),
+        );
+
+        frozenLayer = FrozenLayer(
+          freezeConfig: const FreezeConfig(frozenRows: 1),
+          data: data,
+          layoutSolver: layoutSolver,
+        );
+
+        final recorder = PictureRecorder();
+        final canvas = Canvas(recorder);
+
+        final context = LayerPaintContext(
+          canvas: canvas,
+          viewportSize: const Size(800, 600),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+
+        expect(() => frozenLayer.paint(context), returnsNormally);
+        recorder.endRecording();
+      });
+
+      test('frozen spillover with zoom renders without error', () {
+        data.setCell(const CellCoordinate(0, 0),
+            const CellValue.text('Zoomed spillover text in frozen row'));
+
+        frozenLayer = FrozenLayer(
+          freezeConfig: const FreezeConfig(frozenRows: 1, frozenColumns: 1),
+          data: data,
+          layoutSolver: layoutSolver,
+        );
+
+        final recorder = PictureRecorder();
+        final canvas = Canvas(recorder);
+
+        final context = LayerPaintContext(
+          canvas: canvas,
+          viewportSize: const Size(800, 600),
+          scrollOffset: Offset.zero,
+          zoom: 0.75,
+        );
+
+        expect(() => frozenLayer.paint(context), returnsNormally);
+        recorder.endRecording();
+      });
     });
   });
 }
