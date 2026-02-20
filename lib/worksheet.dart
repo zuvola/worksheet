@@ -3,6 +3,9 @@
 /// Supports 10%-400% zoom with GPU-optimized tile-based rendering.
 library;
 
+// A1 cell reference parsing (re-exported for custom FormulaReferenceAdjuster)
+export 'package:a1/a1.dart' show A1, A1Range, A1Reference;
+
 // Date parsing (re-exported so consumers don't need a direct any_date dependency)
 export 'package:any_date/any_date.dart' show AnyDate, DateParserInfo;
 
@@ -26,6 +29,7 @@ export 'src/core/geometry/zoom_transformer.dart';
 // Core Data
 export 'src/core/data/data_change_event.dart';
 export 'src/core/data/fill_pattern_detector.dart';
+export 'src/core/data/formula_reference_adjuster.dart';
 export 'src/core/data/merged_cell_registry.dart';
 export 'src/core/data/worksheet_data.dart';
 export 'src/core/data/sparse_worksheet_data.dart';

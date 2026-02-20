@@ -110,6 +110,10 @@ class Cell {
     return value!.displayValue;
   }
 
+  /// Returns a copy of this cell with the given [value].
+  Cell copyWithValue(CellValue? value) =>
+      Cell(value: value, style: style, format: format, richText: richText);
+
   /// Returns a copy of this cell with the given [format].
   Cell copyWithFormat(CellFormat? format) =>
       Cell(value: value, style: style, format: format, richText: richText);

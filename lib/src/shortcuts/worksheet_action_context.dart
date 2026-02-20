@@ -1,3 +1,4 @@
+import '../core/data/formula_reference_adjuster.dart';
 import '../core/data/worksheet_data.dart';
 import '../core/models/cell_coordinate.dart';
 import '../interaction/clipboard/clipboard_handler.dart';
@@ -38,4 +39,9 @@ abstract class WorksheetActionContext {
 
   /// The edit controller, or null if editing is managed externally.
   EditController? get editController => null;
+
+  /// The formula reference adjuster for fill operations, or null to copy
+  /// formulas verbatim. Defaults to [defaultFormulaReferenceAdjuster].
+  FormulaReferenceAdjuster? get formulaReferenceAdjuster =>
+      defaultFormulaReferenceAdjuster;
 }

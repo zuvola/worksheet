@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart' hide BorderStyle;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:worksheet/src/core/data/formula_reference_adjuster.dart';
 import 'package:worksheet/src/core/data/sparse_worksheet_data.dart';
 import 'package:worksheet/src/core/data/worksheet_data.dart';
 import 'package:worksheet/src/core/models/cell_coordinate.dart';
@@ -33,6 +34,9 @@ class MockWorksheetActionContext implements WorksheetActionContext {
   final void Function(CellCoordinate)? onEditCell;
   @override
   final EditController? editController;
+  @override
+  FormulaReferenceAdjuster? formulaReferenceAdjuster =
+      defaultFormulaReferenceAdjuster;
 
   int ensureSelectionVisibleCount = 0;
   int invalidateAndRebuildCount = 0;
@@ -46,6 +50,7 @@ class MockWorksheetActionContext implements WorksheetActionContext {
     this.readOnly = false,
     this.onEditCell,
     this.editController,
+    this.formulaReferenceAdjuster = defaultFormulaReferenceAdjuster,
   });
 
   @override
@@ -525,6 +530,55 @@ void main() {
         const CellRange(2, 0, 2, 1),
       );
     });
+
+    test('adjusts formula references when filling down', () {
+      data.setCell(
+        const CellCoordinate(0, 1),
+        const CellValue.formula('=B1+C1'),
+      );
+      selectionController.selectRange(const CellRange(0, 1, 2, 1));
+
+      final action = FillDownAction(ctx);
+      action.invoke(const FillDownIntent());
+
+      expect(
+        data.getCell(const CellCoordinate(1, 1))?.rawValue,
+        '=B2+C2',
+      );
+      expect(
+        data.getCell(const CellCoordinate(2, 1))?.rawValue,
+        '=B3+C3',
+      );
+    });
+
+    test('preserves absolute references when filling down', () {
+      data.setCell(
+        const CellCoordinate(0, 0),
+        const CellValue.formula('=\$B\$1'),
+      );
+      selectionController.selectRange(const CellRange(0, 0, 2, 0));
+
+      final action = FillDownAction(ctx);
+      action.invoke(const FillDownIntent());
+
+      expect(data.getCell(const CellCoordinate(1, 0))?.rawValue, '=\$B\$1');
+      expect(data.getCell(const CellCoordinate(2, 0))?.rawValue, '=\$B\$1');
+    });
+
+    test('copies formulas verbatim when adjuster is null', () {
+      ctx.formulaReferenceAdjuster = null;
+      data.setCell(
+        const CellCoordinate(0, 0),
+        const CellValue.formula('=A1'),
+      );
+      selectionController.selectRange(const CellRange(0, 0, 1, 0));
+
+      final action = FillDownAction(ctx);
+      action.invoke(const FillDownIntent());
+
+      // Without adjuster, formula is copied verbatim
+      expect(data.getCell(const CellCoordinate(1, 0))?.rawValue, '=A1');
+    });
   });
 
   group('FillRightAction', () {
@@ -578,6 +632,20 @@ void main() {
         data.mergedCells.getRegion(const CellCoordinate(0, 2))?.range,
         const CellRange(0, 2, 1, 2),
       );
+    });
+
+    test('adjusts formula references when filling right', () {
+      data.setCell(
+        const CellCoordinate(0, 0),
+        const CellValue.formula('=A1'),
+      );
+      selectionController.selectRange(const CellRange(0, 0, 0, 2));
+
+      final action = FillRightAction(ctx);
+      action.invoke(const FillRightIntent());
+
+      expect(data.getCell(const CellCoordinate(0, 1))?.rawValue, '=B1');
+      expect(data.getCell(const CellCoordinate(0, 2))?.rawValue, '=C1');
     });
   });
 

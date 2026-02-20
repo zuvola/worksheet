@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.1.0] - 2026-02-20
+
+### Added
+- `FormulaReferenceAdjuster` callback API — fill down (Ctrl+D), fill right (Ctrl+R), and drag-to-fill now adjust relative cell references automatically (e.g. `=A1+B1` filled down becomes `=A2+B2`)
+- `Worksheet.formulaReferenceAdjuster` parameter (defaults to `defaultFormulaReferenceAdjuster`; set to `null` for legacy verbatim-copy behavior)
+- `Cell.copyWithValue()` method
+- Re-exports `A1`, `A1Range`, `A1Reference` from the `a1` package for custom adjuster implementations
+
+### Dependencies
+- Added `a1: ^2.2.0` for A1-style cell reference parsing
+
 ## [3.0.2] - 2026-02-18
 
 ### Fixed

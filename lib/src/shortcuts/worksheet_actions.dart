@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../core/models/cell_coordinate.dart';
 import '../core/models/cell_range.dart';
 import '../core/models/cell_style.dart';
+import '../core/models/cell_value.dart';
 import 'worksheet_action_context.dart';
 import 'worksheet_intents.dart';
 
@@ -261,11 +262,22 @@ class FillDownAction extends Action<FillDownIntent> {
   Object? invoke(FillDownIntent intent) {
     final range = _context.selectionController.selectedRange;
     if (range == null || range.rowCount < 2) return null;
+    final adjuster = _context.formulaReferenceAdjuster;
     for (int col = range.startColumn; col <= range.endColumn; col++) {
-      _context.worksheetData.fillRange(
-        CellCoordinate(range.startRow, col),
-        CellRange(range.startRow + 1, col, range.endRow, col),
-      );
+      final source = CellCoordinate(range.startRow, col);
+      final target = CellRange(range.startRow + 1, col, range.endRow, col);
+      if (adjuster != null) {
+        _context.worksheetData.fillRange(source, target, (coord, sourceCell) {
+          if (sourceCell == null) return null;
+          final value = sourceCell.value;
+          if (value == null || !value.isFormula) return sourceCell;
+          final rowDelta = coord.row - source.row;
+          final adjusted = adjuster(value.rawValue as String, rowDelta, 0);
+          return sourceCell.copyWithValue(CellValue.formula(adjusted));
+        });
+      } else {
+        _context.worksheetData.fillRange(source, target);
+      }
     }
     _context.worksheetData.replicateMerges(
       sourceRange: CellRange(
@@ -296,11 +308,22 @@ class FillRightAction extends Action<FillRightIntent> {
   Object? invoke(FillRightIntent intent) {
     final range = _context.selectionController.selectedRange;
     if (range == null || range.columnCount < 2) return null;
+    final adjuster = _context.formulaReferenceAdjuster;
     for (int row = range.startRow; row <= range.endRow; row++) {
-      _context.worksheetData.fillRange(
-        CellCoordinate(row, range.startColumn),
-        CellRange(row, range.startColumn + 1, row, range.endColumn),
-      );
+      final source = CellCoordinate(row, range.startColumn);
+      final target = CellRange(row, range.startColumn + 1, row, range.endColumn);
+      if (adjuster != null) {
+        _context.worksheetData.fillRange(source, target, (coord, sourceCell) {
+          if (sourceCell == null) return null;
+          final value = sourceCell.value;
+          if (value == null || !value.isFormula) return sourceCell;
+          final colDelta = coord.column - source.column;
+          final adjusted = adjuster(value.rawValue as String, 0, colDelta);
+          return sourceCell.copyWithValue(CellValue.formula(adjusted));
+        });
+      } else {
+        _context.worksheetData.fillRange(source, target);
+      }
     }
     _context.worksheetData.replicateMerges(
       sourceRange: CellRange(

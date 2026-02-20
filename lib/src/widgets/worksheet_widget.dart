@@ -26,6 +26,7 @@ import '../interaction/gestures/scale_handler.dart';
 import '../interaction/hit_testing/hit_test_result.dart';
 import '../interaction/hit_testing/hit_tester.dart';
 import '../shortcuts/default_worksheet_shortcuts.dart';
+import '../core/data/formula_reference_adjuster.dart';
 import '../shortcuts/worksheet_action_context.dart';
 import '../shortcuts/worksheet_actions.dart';
 import '../shortcuts/worksheet_intents.dart';
@@ -168,6 +169,16 @@ class Worksheet extends StatefulWidget {
   /// a custom [Action].
   final Map<Type, Action<Intent>>? actions;
 
+  /// Adjusts cell references in formulas during fill operations.
+  ///
+  /// When non-null, fill down (Ctrl+D), fill right (Ctrl+R), and drag-to-fill
+  /// adjust relative references by the fill offset. For example, `=A1+B1`
+  /// filled down one row becomes `=A2+B2`.
+  ///
+  /// Set to `null` to copy formulas verbatim (legacy behavior).
+  /// Defaults to [defaultFormulaReferenceAdjuster].
+  final FormulaReferenceAdjuster? formulaReferenceAdjuster;
+
   /// Controls whether mobile interaction mode is enabled.
   ///
   /// When `true`, enables touch-friendly interactions:
@@ -206,6 +217,7 @@ class Worksheet extends StatefulWidget {
     this.scrollbarConfig,
     this.shortcuts,
     this.actions,
+    this.formulaReferenceAdjuster = defaultFormulaReferenceAdjuster,
     this.mobileMode,
   });
 
@@ -344,6 +356,10 @@ class _WorksheetState extends State<Worksheet>
 
   @override
   EditController? get editController => widget.editController;
+
+  @override
+  FormulaReferenceAdjuster? get formulaReferenceAdjuster =>
+      widget.formulaReferenceAdjuster;
 
   @override
   void ensureSelectionVisible() => _ensureSelectionVisible();
@@ -644,6 +660,7 @@ class _WorksheetState extends State<Worksheet>
               final filledRange =
                   widget.data.smartFill(sourceRange, destination);
               if (filledRange != null) {
+                _adjustSmartFillFormulas(sourceRange, filledRange);
                 _controller.selectionController.selectRange(filledRange);
               }
               _selectionLayer.fillPreviewRange = null;
@@ -696,6 +713,74 @@ class _WorksheetState extends State<Worksheet>
         );
       },
     );
+  }
+
+  /// Adjusts formula references in cells filled by smartFill.
+  void _adjustSmartFillFormulas(CellRange sourceRange, CellRange filledRange) {
+    final adjuster = widget.formulaReferenceAdjuster;
+    if (adjuster == null) return;
+
+    // Determine fill direction and compute the target-only area
+    final bool vertical =
+        filledRange.startRow != sourceRange.startRow ||
+        filledRange.endRow != sourceRange.endRow;
+
+    widget.data.batchUpdate((batch) {
+      if (vertical) {
+        final sourceHeight = sourceRange.rowCount;
+        for (int row = filledRange.startRow; row <= filledRange.endRow; row++) {
+          if (row >= sourceRange.startRow && row <= sourceRange.endRow) continue;
+          for (int col = filledRange.startColumn;
+              col <= filledRange.endColumn;
+              col++) {
+            final coord = CellCoordinate(row, col);
+            final value = widget.data.getCell(coord);
+            if (value == null || !value.isFormula) continue;
+            // Find the cyclic source row
+            final offset = row < sourceRange.startRow
+                ? sourceRange.endRow - row
+                : row - sourceRange.startRow;
+            final sourceRow =
+                sourceRange.startRow + (offset % sourceHeight);
+            final rowDelta = row - sourceRow;
+            final adjusted = adjuster(
+              value.rawValue as String,
+              rowDelta,
+              0,
+            );
+            batch.setCell(coord, CellValue.formula(adjusted));
+          }
+        }
+      } else {
+        final sourceWidth = sourceRange.columnCount;
+        for (int col = filledRange.startColumn;
+            col <= filledRange.endColumn;
+            col++) {
+          if (col >= sourceRange.startColumn && col <= sourceRange.endColumn) {
+            continue;
+          }
+          for (int row = filledRange.startRow;
+              row <= filledRange.endRow;
+              row++) {
+            final coord = CellCoordinate(row, col);
+            final value = widget.data.getCell(coord);
+            if (value == null || !value.isFormula) continue;
+            final offset = col < sourceRange.startColumn
+                ? sourceRange.endColumn - col
+                : col - sourceRange.startColumn;
+            final sourceCol =
+                sourceRange.startColumn + (offset % sourceWidth);
+            final colDelta = col - sourceCol;
+            final adjusted = adjuster(
+              value.rawValue as String,
+              0,
+              colDelta,
+            );
+            batch.setCell(coord, CellValue.formula(adjusted));
+          }
+        }
+      }
+    });
   }
 
   /// Performs a move operation: copies source cells to destination, clears source.
