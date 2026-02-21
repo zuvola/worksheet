@@ -193,7 +193,7 @@ final data = SparseWorksheetData(rowCount: 100, columnCount: 10, cells: {
 data.mergeCells(CellRange(0, 0, 0, 3));
 ```
 
-Inline editing supports Ctrl+B/I/U for formatting and Alt+Enter for newlines in wrap-enabled cells. When building an external toolbar, call `editController.requestEditorFocus()` after each action to keep focus in the editor (see [Cookbook: Formatting Toolbar](COOKBOOK.md#formatting-toolbar-with-editcontroller)).
+Inline editing supports Ctrl+B/I/U for formatting and Alt+Enter for newlines in wrap-enabled cells. When building an external toolbar, call `editController.requestEditorFocus()` after each action to keep focus in the editor (see [Cookbook: Formatting Toolbar](docs/COOKBOOK.md#formatting-toolbar-with-editcontroller)).
 
 ## Style Your Data
 
@@ -287,18 +287,18 @@ for (var row = 0; row < 50000; row++) {
 
 | Guide | Description |
 |-------|-------------|
-| [Getting Started](GETTING_STARTED.md) | Installation, basic setup, enabling editing |
-| [Cookbook](COOKBOOK.md) | Practical recipes for common tasks |
-| [Performance](PERFORMANCE.md) | Tile cache tuning, large dataset strategies |
-| [Theming](THEMING.md) | Colors, fonts, headers, selection styles |
-| [Testing](TESTING.md) | Unit tests, widget tests, benchmarks |
-| [API Reference](API.md) | Quick reference for all classes and methods |
-| [Architecture](ARCHITECTURE.md) | Deep dive into the rendering pipeline |
-| [Mobile Interaction](MOBILE_INTERACTION.md) | Touch gestures, selection handles, mobile mode |
-| [Mouse Cursors](MOUSE_CURSOR.md) | Desktop cursor behavior and hit zones |
-| [Cell Merging Reference](CELL_MERGING.md) | Merge types, data rules, restrictions |
-| [Cell Spillover](CELL_SPILLOVER.md) | Text overflow into adjacent empty cells |
-| [Cell Referencing](CELL_REFERENCING.md) | Formula cell reference editing behavior |
+| [Getting Started](docs/GETTING_STARTED.md) | Installation, basic setup, enabling editing |
+| [Cookbook](docs/COOKBOOK.md) | Practical recipes for common tasks |
+| [Performance](docs/PERFORMANCE.md) | Tile cache tuning, large dataset strategies |
+| [Theming](docs/THEMING.md) | Colors, fonts, headers, selection styles |
+| [Testing](docs/TESTING.md) | Unit tests, widget tests, benchmarks |
+| [API Reference](docs/API.md) | Quick reference for all classes and methods |
+| [Architecture](docs/ARCHITECTURE.md) | Deep dive into the rendering pipeline |
+| [Mobile Interaction](docs/MOBILE_INTERACTION.md) | Touch gestures, selection handles, mobile mode |
+| [Mouse Cursors](docs/MOUSE_CURSOR.md) | Desktop cursor behavior and hit zones |
+| [Cell Merging Reference](docs/CELL_MERGING.md) | Merge types, data rules, restrictions |
+| [Cell Spillover](docs/CELL_SPILLOVER.md) | Text overflow into adjacent empty cells |
+| [Cell Referencing](docs/CELL_REFERENCING.md) | Formula cell reference editing behavior |
 
 ---
 
