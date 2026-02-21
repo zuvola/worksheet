@@ -147,13 +147,16 @@ void main() {
   });
 
   group('accept', () {
-    test('returns selected function and hides', () {
+    test('returns selected function and token, then hides', () {
       controller.onTextChanged('=SU', 3);
       controller.selectNext(); // SUMIF
 
       final accepted = controller.accept();
       expect(accepted, isNotNull);
-      expect(accepted!.name, 'SUMIF');
+      expect(accepted!.function.name, 'SUMIF');
+      expect(accepted.token.text, 'SU');
+      expect(accepted.token.start, 1);
+      expect(accepted.token.end, 3);
       expect(controller.isVisible, isFalse);
     });
 
@@ -165,7 +168,7 @@ void main() {
     test('returns first item when no navigation', () {
       controller.onTextChanged('=SU', 3);
       final accepted = controller.accept();
-      expect(accepted!.name, 'SUM');
+      expect(accepted!.function.name, 'SUM');
     });
   });
 

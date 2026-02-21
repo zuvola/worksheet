@@ -91,17 +91,18 @@ class AutocompleteController extends ChangeNotifier {
 
   /// Accepts the currently selected function.
   ///
-  /// Returns the selected [FormulaFunction] and hides the dropdown.
-  /// Returns `null` if the dropdown is not visible.
-  FormulaFunction? accept() {
-    if (!_isVisible || _matches.isEmpty) return null;
+  /// Returns the selected [FormulaFunction] and the [AutocompleteToken]
+  /// that was being matched. Returns `null` if the dropdown is not visible.
+  ({FormulaFunction function, AutocompleteToken token})? accept() {
+    if (!_isVisible || _matches.isEmpty || _currentToken == null) return null;
     final fn = _matches[_selectedIndex];
+    final token = _currentToken!;
     _isVisible = false;
     _matches = const [];
     _currentToken = null;
     _selectedIndex = 0;
     notifyListeners();
-    return fn;
+    return (function: fn, token: token);
   }
 
   /// Dismisses the dropdown without accepting.

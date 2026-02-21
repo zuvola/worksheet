@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
 
 import '../core/formula/formula_autocomplete_config.dart';
+import '../core/formula/formula_function_tokenizer.dart';
 import '../core/formula/formula_reference_config.dart';
 import '../core/formula/formula_reference_inserter.dart';
 import '../core/models/cell_coordinate.dart';
@@ -128,9 +129,11 @@ class CellEditorOverlay extends StatefulWidget {
 
   /// Called when an autocomplete suggestion is accepted.
   ///
-  /// Receives the accepted [FormulaFunction]. The caller is responsible
-  /// for inserting the function name and opening parenthesis into the text.
-  final void Function(FormulaFunction fn)? onAutocompleteAccept;
+  /// Receives the accepted [FormulaFunction] and the [AutocompleteToken]
+  /// that was being matched. The caller is responsible for inserting the
+  /// function name and opening parenthesis into the text.
+  final void Function(FormulaFunction fn, AutocompleteToken token)?
+      onAutocompleteAccept;
 
   /// Minimum width for the editor.
   static const double minWidth = 60.0;
@@ -735,9 +738,10 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
       if (event.logicalKey == LogicalKeyboardKey.tab ||
           event.logicalKey == LogicalKeyboardKey.enter ||
           event.logicalKey == LogicalKeyboardKey.numpadEnter) {
-        final fn = ac.accept();
-        if (fn != null) {
-          widget.onAutocompleteAccept?.call(fn);
+        final result = ac.accept();
+        if (result != null) {
+          widget.onAutocompleteAccept
+              ?.call(result.function, result.token);
         }
         return KeyEventResult.handled;
       }

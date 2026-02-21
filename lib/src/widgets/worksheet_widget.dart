@@ -31,6 +31,7 @@ import '../shortcuts/worksheet_action_context.dart';
 import '../shortcuts/worksheet_actions.dart';
 import '../shortcuts/worksheet_intents.dart';
 import '../core/formula/formula_autocomplete_config.dart';
+import '../core/formula/formula_function_tokenizer.dart';
 import '../core/formula/formula_reference_config.dart';
 import '../core/formula/formula_reference_inserter.dart';
 import '../interaction/controllers/autocomplete_controller.dart';
@@ -205,6 +206,16 @@ class Worksheet extends StatefulWidget {
   /// Set to `null` (default) to disable formula autocomplete.
   final FormulaAutocompleteConfig? formulaAutocompleteConfig;
 
+  /// Called when an autocomplete suggestion is accepted.
+  ///
+  /// Receives the accepted [FormulaFunction]. Use this to show an argument
+  /// tooltip, log analytics, or perform any custom action when the user
+  /// selects a function from the dropdown.
+  ///
+  /// The function name and opening parenthesis are inserted into the formula
+  /// automatically — this callback is for additional side effects.
+  final void Function(FormulaFunction fn)? onAutocompleteAccept;
+
   /// Controls whether mobile interaction mode is enabled.
   ///
   /// When `true`, enables touch-friendly interactions:
@@ -246,6 +257,7 @@ class Worksheet extends StatefulWidget {
     this.formulaReferenceAdjuster = defaultFormulaReferenceAdjuster,
     this.formulaReferenceConfig = const FormulaReferenceConfig(),
     this.formulaAutocompleteConfig,
+    this.onAutocompleteAccept,
     this.mobileMode,
   });
 
@@ -1602,13 +1614,9 @@ class _WorksheetState extends State<Worksheet>
 
   /// Handles autocomplete acceptance: replaces the current token with
   /// the function name and opening parenthesis, then updates the editor.
-  void _onAutocompleteAccept(FormulaFunction fn) {
+  void _onAutocompleteAccept(FormulaFunction fn, AutocompleteToken token) {
     final ec = widget.editController;
-    final ac = _autocompleteController;
-    if (ec == null || ac == null) return;
-
-    final token = ac.currentToken;
-    if (token == null) return;
+    if (ec == null) return;
 
     final formula = ec.currentText;
     final before = formula.substring(0, token.start);
@@ -1622,6 +1630,9 @@ class _WorksheetState extends State<Worksheet>
       text: newText,
       selection: TextSelection.collapsed(offset: newCursor),
     );
+
+    // Notify consumer if a callback is provided.
+    widget.onAutocompleteAccept?.call(fn);
   }
 
   /// Handles commit from the internal CellEditorOverlay.
@@ -3108,8 +3119,13 @@ class _WorksheetState extends State<Worksheet>
                                 maxVisibleItems:
                                     ac.config.maxVisibleItems,
                                 onSelect: (fn) {
-                                  ac.accept();
-                                  _onAutocompleteAccept(fn);
+                                  final result = ac.accept();
+                                  if (result != null) {
+                                    _onAutocompleteAccept(
+                                      result.function,
+                                      result.token,
+                                    );
+                                  }
                                 },
                               ),
                             );

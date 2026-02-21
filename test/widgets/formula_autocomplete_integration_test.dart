@@ -86,8 +86,8 @@ void main() {
       expect(controller.selectedIndex, 1);
 
       // Accept
-      final fn = controller.accept();
-      expect(fn?.name, 'SUMIF');
+      final result = controller.accept();
+      expect(result?.function.name, 'SUMIF');
       expect(controller.isVisible, isFalse);
     });
 
