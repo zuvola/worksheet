@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.3.0] - 2026-02-21
+
+### Added
+- **Formula function autocomplete** — typing function names in formula mode (`=SU`) shows a dropdown with matching suggestions; arrow keys navigate, Tab/Enter accept (inserts `FN(`), Escape dismisses
+- `FormulaAutocompleteConfig` — configurable function list, maxVisibleItems, minChars, and custom matcher (set `formulaAutocompleteConfig` on `Worksheet`; default `null` disables autocomplete)
+- `FormulaFunction` — data class for function name, signature, and optional description
+- `AutocompleteController` — manages dropdown state (visibility, matches, selection, accept/dismiss)
+- `AutocompleteDropdown` — renders function suggestions with bold prefix highlighting and muted signatures
+- `FormulaFunctionTokenizer` — extracts alphabetic function name token at cursor position
+- `FormulaFunctionMatcher` — case-insensitive prefix matching with alphabetical sorting
+- `Worksheet.onAutocompleteAccept` callback — notified when a function is accepted from the dropdown
+
 ## [3.2.0] - 2026-02-21
 
 ### Added

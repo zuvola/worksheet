@@ -271,6 +271,7 @@ for (var row = 0; row < 50000; row++) {
 - **Keyboard navigation**: Arrow keys, Tab, Enter, Home/End, clipboard, and more — fully customizable via Flutter's Shortcuts/Actions
 - **Automatic type detection**: Numbers, booleans, dates, and formulas detected from text input via `CellValue.parse()`
 - **Formula cell referencing**: Click cells to insert A1 references, drag for ranges, arrow keys to insert/move refs, F4 for absolute/relative cycling, color-coded borders with marching ants
+- **Formula autocomplete**: Dropdown suggestions for function names while typing formulas, with keyboard navigation and customizable function list
 - **Resize support**: Drag column/row borders to resize
 - **Mobile support**: Touch gestures, selection handles, pinch-to-zoom, configurable via `mobileMode`
 - **Theming**: Full control over colors, fonts, headers — built-in light and dark mode presets
@@ -309,7 +310,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  worksheet: ^2.4.0
+  worksheet: ^3.3.0
 ```
 
 Then run:

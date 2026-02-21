@@ -2006,6 +2006,26 @@ FormulaAutocompleteConfig(
 | Escape | Dismiss dropdown (stays in edit mode) |
 | Any letter / Backspace | Re-filter suggestions |
 
+### Handling Acceptance
+
+The widget automatically inserts the function name and opening parenthesis (e.g., `SUM(`) into the formula. Use `onAutocompleteAccept` if you need to react to the acceptance — for example, to log analytics, show an argument tooltip, or trigger custom UI:
+
+```dart
+Worksheet(
+  data: data,
+  editController: editController,
+  rowCount: 1000,
+  columnCount: 26,
+  formulaAutocompleteConfig: const FormulaAutocompleteConfig(
+    functions: myFunctions,
+  ),
+  onAutocompleteAccept: (fn) {
+    print('User accepted: ${fn.name}');
+    // Show argument tooltip, log analytics, etc.
+  },
+)
+```
+
 ### How It Works
 
 1. `FormulaFunctionTokenizer` extracts the alphabetic token at the cursor
