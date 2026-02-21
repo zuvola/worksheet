@@ -21,14 +21,16 @@ All SLAs are enforced by `expect()` assertions in `test/benchmarks/`. CI fails a
 | `selection_benchmark` | selectRange (Excel-scale) | < 1ms |
 | `selection_benchmark` | clearRange (Excel-scale) | < 200ms |
 | `selection_benchmark` | Clipboard serialize (Excel-scale) | < 500ms |
-| `scalability_benchmark` | SpanList setSize (10K spans) | < 1ms avg |
-| `scalability_benchmark` | SpanList setSize (100K spans) | < 10ms avg |
-| `scalability_benchmark` | SpanList setSize (1M spans) | < 50ms avg |
+| `scalability_benchmark` | SpanList setSize (10K spans) | < 0.1ms avg |
+| `scalability_benchmark` | SpanList setSize (100K spans) | < 0.1ms avg |
+| `scalability_benchmark` | SpanList setSize (1M spans) | < 1ms avg |
 | `scalability_benchmark` | SpanList construction (1M) | < 100ms avg |
+| `scalability_benchmark` | SpanList positionAt (1M, 10K lookups) | < 5ms |
+| `scalability_benchmark` | SpanList indexAtPosition (1M, 10K lookups) | < 10ms |
 | `scalability_benchmark` | MergedCellRegistry query (100 merges) | < 0.5ms avg |
 | `scalability_benchmark` | MergedCellRegistry query (1K merges) | < 5ms avg |
 | `scalability_benchmark` | MergedCellRegistry query (10K merges) | < 50ms avg |
-| `scalability_benchmark` | LayoutSolver 1000 repeated lookups | < 5ms total |
+| `scalability_benchmark` | LayoutSolver 1000 repeated lookups | < 1ms total |
 | `scalability_benchmark` | LayoutSolver per-frame (sequential scroll) | < 50µs avg |
 
 ### Running Benchmarks

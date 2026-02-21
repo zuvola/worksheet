@@ -2,14 +2,26 @@
 
 This document tracks known technical debt, architectural bottlenecks, and suggested optimizations for the Worksheet Widget project.
 
-## 1. Data Management
+## 1. Core Layout & Geometry
+
+### SpanList Performance (Scalability) — RESOLVED
+- **Resolution:** Replaced cumulative array with a **Fenwick Tree (Binary Indexed Tree)**. `setSize()` is now O(log N) instead of O(N).
+- **Benchmark results:** setSize at 1M spans: ~0.001ms (was ~26ms — **26,000x improvement**). Read paths (`positionAt`, `indexAtPosition`) remain O(log N) with negligible overhead (~170ns per call at 1M spans).
+- **SLAs tightened:** 10K < 0.1ms, 100K < 0.1ms, 1M < 1ms. New read-path benchmarks: positionAt 10K@1M < 5ms, indexAtPosition 10K@1M < 10ms.
+
+### LayoutSolver Caching — RESOLVED
+- **Resolution:** Added last-result memoization for `getVisibleRows`/`getVisibleColumns`. Repeated calls with identical arguments return cached results at near-zero cost. Cache invalidated automatically by `setRowHeight`/`setColumnWidth`.
+- **Benchmark results:** 1000 repeated identical lookups: 0.064ms total (was < 1ms uncached).
+- **SLA tightened:** Repeated lookups < 1ms (was < 5ms).
+
+## 2. Data Management
 
 ### Change Notification Thrashing
 - **Current State:** Batch updates emit a single `range` event, but individual `setCell` calls emit many individual events.
 - **Impact:** Redundant tile invalidations.
 - **Suggestion:** Ensure all multi-cell operations (like Paste or Fill) strictly use `batchUpdate`. Consider debouncing change events at the `WorksheetData` level.
 
-## 2. Rendering Pipeline
+## 3. Rendering Pipeline
 
 ### TilePainter Optimization
 - **Current State:**
@@ -28,7 +40,7 @@ This document tracks known technical debt, architectural bottlenecks, and sugges
 - **Impact:** Visible "white flashes" or checkerboarding during very fast scrolling.
 - **Suggestion:** Implement the prefetching logic in `TileManager` to render tiles 1-2 rings outside the viewport in a background microtask.
 
-## 3. Interaction & UX
+## 4. Interaction & UX
 
 ### God Object: WorksheetGestureHandler
 - **Current State:** `WorksheetGestureHandler` handles too many responsibilities (tap, double-tap, drag, resize, selection, scrolling coordination).
@@ -44,7 +56,7 @@ This document tracks known technical debt, architectural bottlenecks, and sugges
 - **Impact:** Inconsistent behavior between keyboard and mouse interactions.
 - **Suggestion:** Fully migrate all interaction logic to the `Actions`/`Intents` system.
 
-## 4. Missing Core Features
+## 5. Missing Core Features
 
 ### Formula Evaluation Integration (worksheet_formula)
 - **Current State:** `CellValue.formula` exists, but there is no integration with the external `worksheet_formula` engine.
@@ -63,7 +75,7 @@ This document tracks known technical debt, architectural bottlenecks, and sugges
 - **Current State:** No built-in support for undoing edits or formatting changes.
 - **Suggestion:** Implement a **Command Pattern** for all `WorksheetData` modifications and maintain a `CommandHistory`.
 
-## 5. Testing & Quality
+## 6. Testing & Quality
 
 ### Golden Test Coverage
 - **Current State:** Limited golden tests for complex rendering states (merges + spillover + borders).

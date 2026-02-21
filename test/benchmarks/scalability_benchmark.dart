@@ -10,14 +10,14 @@ import 'package:worksheet/src/core/models/cell_range.dart';
 /// Benchmark tests for scalability of core data structures.
 ///
 /// Covers three TECH_DEBT items:
-/// - SpanList._rebuildCumulative scalability (O(N) rebuild on resize)
+/// - SpanList Fenwick tree scalability (O(log N) update on resize)
 /// - MergedCellRegistry.regionsInRange scalability (O(N_merges) linear scan)
-/// - LayoutSolver visible range repeated calculations (binary search per call)
+/// - LayoutSolver visible range caching (zero-cost cache hits)
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('SpanList._rebuildCumulative scalability', () {
-    test('setSize at 10K spans completes in < 1ms', () {
+  group('SpanList Fenwick tree scalability', () {
+    test('setSize at 10K spans completes in < 0.1ms', () {
       final spans = SpanList(defaultSize: 24.0, count: 10000);
 
       // Warm up
@@ -37,11 +37,11 @@ void main() {
       // ignore: avoid_print
       print('SpanList setSize (10K): ${avg.toStringAsFixed(3)}ms avg');
 
-      expect(avg, lessThan(1.0),
+      expect(avg, lessThan(0.1),
           reason: 'setSize at 10K spans took ${avg.toStringAsFixed(3)}ms avg');
     });
 
-    test('setSize at 100K spans completes in < 10ms', () {
+    test('setSize at 100K spans completes in < 0.1ms', () {
       final spans = SpanList(defaultSize: 24.0, count: 100000);
 
       // Warm up
@@ -61,12 +61,12 @@ void main() {
       // ignore: avoid_print
       print('SpanList setSize (100K): ${avg.toStringAsFixed(3)}ms avg');
 
-      expect(avg, lessThan(10.0),
+      expect(avg, lessThan(0.1),
           reason:
               'setSize at 100K spans took ${avg.toStringAsFixed(3)}ms avg');
     });
 
-    test('setSize at 1M spans completes in < 50ms', () {
+    test('setSize at 1M spans completes in < 1ms', () {
       final spans = SpanList(defaultSize: 24.0, count: 1000000);
 
       // Warm up
@@ -86,7 +86,7 @@ void main() {
       // ignore: avoid_print
       print('SpanList setSize (1M): ${avg.toStringAsFixed(3)}ms avg');
 
-      expect(avg, lessThan(50.0),
+      expect(avg, lessThan(1.0),
           reason: 'setSize at 1M spans took ${avg.toStringAsFixed(3)}ms avg');
     });
 
@@ -106,6 +106,64 @@ void main() {
       expect(avg, lessThan(100.0),
           reason:
               'Construction at 1M spans took ${avg.toStringAsFixed(3)}ms avg');
+    });
+
+    test('positionAt at 1M spans: 10K lookups < 5ms', () {
+      final spans = SpanList(defaultSize: 24.0, count: 1000000);
+
+      // Add some variable sizes
+      for (int i = 0; i < 1000; i++) {
+        spans.setSize(i * 1000, 48.0);
+      }
+
+      // Warm up
+      for (int i = 0; i < 100; i++) {
+        spans.positionAt(i * 10000);
+      }
+
+      final sw = Stopwatch()..start();
+      for (int i = 0; i < 10000; i++) {
+        spans.positionAt(i * 100);
+      }
+      sw.stop();
+
+      final totalMs = sw.elapsedMicroseconds / 1000.0;
+      // ignore: avoid_print
+      print('positionAt (1M, 10K lookups): ${totalMs.toStringAsFixed(3)}ms');
+
+      expect(totalMs, lessThan(5.0),
+          reason: '10K positionAt lookups took ${totalMs.toStringAsFixed(3)}ms');
+    });
+
+    test('indexAtPosition at 1M spans: 10K lookups < 10ms', () {
+      final spans = SpanList(defaultSize: 24.0, count: 1000000);
+
+      // Add some variable sizes
+      for (int i = 0; i < 1000; i++) {
+        spans.setSize(i * 1000, 48.0);
+      }
+
+      final total = spans.totalSize;
+
+      // Warm up
+      for (int i = 0; i < 100; i++) {
+        spans.indexAtPosition(total * i / 100);
+      }
+
+      final sw = Stopwatch()..start();
+      for (int i = 0; i < 10000; i++) {
+        spans.indexAtPosition(total * i / 10000);
+      }
+      sw.stop();
+
+      final totalMs = sw.elapsedMicroseconds / 1000.0;
+      // ignore: avoid_print
+      print(
+          'indexAtPosition (1M, 10K lookups): ${totalMs.toStringAsFixed(3)}ms');
+
+      expect(totalMs, lessThan(10.0),
+          reason:
+              '10K indexAtPosition lookups took ${totalMs.toStringAsFixed(3)}ms');
     });
   });
 
@@ -205,7 +263,7 @@ void main() {
     });
   });
 
-  group('LayoutSolver visible range repeated calculations', () {
+  group('LayoutSolver visible range caching', () {
     late LayoutSolver solver;
 
     setUp(() {
@@ -223,7 +281,7 @@ void main() {
       solver = LayoutSolver(rows: rows, columns: columns);
     });
 
-    test('1000 repeated identical lookups complete in < 5ms total', () {
+    test('1000 repeated identical lookups complete in < 1ms total', () {
       const scrollY = 5000.0;
       const scrollX = 2000.0;
       const viewportHeight = 800.0;
@@ -248,8 +306,8 @@ void main() {
       print('1000 repeated lookups: ${totalMs.toStringAsFixed(3)}ms total '
           '(${perCallUs.toStringAsFixed(3)}us per call)');
 
-      // Binary search is fast enough without caching for repeated calls
-      expect(totalMs, lessThan(5.0),
+      // Cache hits are near-zero cost
+      expect(totalMs, lessThan(1.0),
           reason:
               '1000 repeated lookups took ${totalMs.toStringAsFixed(3)}ms');
     });
@@ -281,7 +339,7 @@ void main() {
       // ignore: avoid_print
       print('Sequential scroll: ${avgUs.toStringAsFixed(1)}us avg per frame');
 
-      // Binary search is O(log N) — fast enough without caching
+      // Fenwick tree O(log N) lookups — fast enough for sequential scrolling
       expect(avgUs, lessThan(50),
           reason:
               'Per-frame visible range took ${avgUs.toStringAsFixed(1)}us avg');

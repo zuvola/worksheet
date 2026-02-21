@@ -268,7 +268,7 @@ for (var row = 0; row < 50000; row++) {
 | Hit test | < 100µs |
 | Visible range calc | < 2ms |
 | Selection (Excel-scale) | < 1ms |
-| SpanList rebuild (100K) | < 10ms |
+| SpanList setSize (100K) | < 0.1ms |
 
 ### Built for Real Apps
 

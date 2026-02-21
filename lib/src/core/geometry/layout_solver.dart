@@ -19,6 +19,16 @@ class LayoutSolver {
   /// Optional merged cell registry for merge-aware layout.
   MergedCellRegistry? mergedCells;
 
+  // Row visible range cache
+  double? _cachedRowStart;
+  double? _cachedRowHeight;
+  SpanRange? _cachedRowResult;
+
+  // Column visible range cache
+  double? _cachedColStart;
+  double? _cachedColWidth;
+  SpanRange? _cachedColResult;
+
   /// Creates a layout solver with the given row and column span lists.
   LayoutSolver({
     required SpanList rows,
@@ -132,25 +142,49 @@ class LayoutSolver {
   /// Sets the height of the given [row].
   void setRowHeight(int row, double height) {
     _rows.setSize(row, height);
+    _cachedRowStart = null;
+    _cachedRowResult = null;
   }
 
   /// Sets the width of the given [column].
   void setColumnWidth(int column, double width) {
     _columns.setSize(column, width);
+    _cachedColStart = null;
+    _cachedColResult = null;
   }
 
   /// Returns the range of visible rows for a viewport.
   ///
+  /// Results are memoized — repeated calls with the same arguments return
+  /// the cached result at zero cost. Cache is invalidated by [setRowHeight].
+  ///
   /// [startY] is the top of the viewport, [height] is the viewport height.
   SpanRange getVisibleRows(double startY, double height) {
-    return _rows.getRange(startY, startY + height);
+    if (startY == _cachedRowStart && height == _cachedRowHeight) {
+      return _cachedRowResult!;
+    }
+    final result = _rows.getRange(startY, startY + height);
+    _cachedRowStart = startY;
+    _cachedRowHeight = height;
+    _cachedRowResult = result;
+    return result;
   }
 
   /// Returns the range of visible columns for a viewport.
   ///
+  /// Results are memoized — repeated calls with the same arguments return
+  /// the cached result at zero cost. Cache is invalidated by [setColumnWidth].
+  ///
   /// [startX] is the left of the viewport, [width] is the viewport width.
   SpanRange getVisibleColumns(double startX, double width) {
-    return _columns.getRange(startX, startX + width);
+    if (startX == _cachedColStart && width == _cachedColWidth) {
+      return _cachedColResult!;
+    }
+    final result = _columns.getRange(startX, startX + width);
+    _cachedColStart = startX;
+    _cachedColWidth = width;
+    _cachedColResult = result;
+    return result;
   }
 
   /// Returns the bounds of a cell range.
