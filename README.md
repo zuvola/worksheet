@@ -7,7 +7,7 @@
 
 A Flutter widget that brings Excel-like spreadsheet functionality to your app.
 
-![Worksheet Screenshot](docs/images/worksheet_screenshot.png)
+![Worksheet Screenshot](doc/images/worksheet_screenshot.png)
 
 Display and edit tabular data with smooth scrolling, pinch-to-zoom, and cell selection - all running at 60fps even with hundreds of thousands of rows.
 
@@ -193,7 +193,7 @@ final data = SparseWorksheetData(rowCount: 100, columnCount: 10, cells: {
 data.mergeCells(CellRange(0, 0, 0, 3));
 ```
 
-Inline editing supports Ctrl+B/I/U for formatting and Alt+Enter for newlines in wrap-enabled cells. When building an external toolbar, call `editController.requestEditorFocus()` after each action to keep focus in the editor (see [Cookbook: Formatting Toolbar](docs/COOKBOOK.md#formatting-toolbar-with-editcontroller)).
+Inline editing supports Ctrl+B/I/U for formatting and Alt+Enter for newlines in wrap-enabled cells. When building an external toolbar, call `editController.requestEditorFocus()` after each action to keep focus in the editor (see [Cookbook: Formatting Toolbar](doc/COOKBOOK.md#formatting-toolbar-with-editcontroller)).
 
 ## Style Your Data
 
@@ -288,19 +288,19 @@ for (var row = 0; row < 50000; row++) {
 
 | Guide | Description |
 |-------|-------------|
-| [Getting Started](docs/GETTING_STARTED.md) | Installation, basic setup, enabling editing |
-| [Cookbook](docs/COOKBOOK.md) | Practical recipes for common tasks |
-| [Performance](docs/PERFORMANCE.md) | Tile cache tuning, large dataset strategies |
-| [Theming](docs/THEMING.md) | Colors, fonts, headers, selection styles |
-| [Testing](docs/TESTING.md) | Unit tests, widget tests, benchmarks |
-| [API Reference](docs/API.md) | Quick reference for all classes and methods |
-| [Architecture](docs/ARCHITECTURE.md) | Deep dive into the rendering pipeline |
-| [Mobile Interaction](docs/MOBILE_INTERACTION.md) | Touch gestures, selection handles, mobile mode |
-| [Mouse Cursors](docs/MOUSE_CURSOR.md) | Desktop cursor behavior and hit zones |
-| [Cell Merging Reference](docs/CELL_MERGING.md) | Merge types, data rules, restrictions |
-| [Cell Spillover](docs/CELL_SPILLOVER.md) | Text overflow into adjacent empty cells |
-| [Cell Referencing](docs/CELL_REFERENCING.md) | Formula cell reference editing behavior |
-| [Formula Autocomplete](docs/AUTOCOMPLETE.md) | Function name autocomplete dropdown spec |
+| [Getting Started](doc/GETTING_STARTED.md) | Installation, basic setup, enabling editing |
+| [Cookbook](doc/COOKBOOK.md) | Practical recipes for common tasks |
+| [Performance](doc/PERFORMANCE.md) | Tile cache tuning, large dataset strategies |
+| [Theming](doc/THEMING.md) | Colors, fonts, headers, selection styles |
+| [Testing](doc/TESTING.md) | Unit tests, widget tests, benchmarks |
+| [API Reference](doc/API.md) | Quick reference for all classes and methods |
+| [Architecture](doc/ARCHITECTURE.md) | Deep dive into the rendering pipeline |
+| [Mobile Interaction](doc/MOBILE_INTERACTION.md) | Touch gestures, selection handles, mobile mode |
+| [Mouse Cursors](doc/MOUSE_CURSOR.md) | Desktop cursor behavior and hit zones |
+| [Cell Merging Reference](doc/CELL_MERGING.md) | Merge types, data rules, restrictions |
+| [Cell Spillover](doc/CELL_SPILLOVER.md) | Text overflow into adjacent empty cells |
+| [Cell Referencing](doc/CELL_REFERENCING.md) | Formula cell reference editing behavior |
+| [Formula Autocomplete](doc/AUTOCOMPLETE.md) | Function name autocomplete dropdown spec |
 
 ---
 
