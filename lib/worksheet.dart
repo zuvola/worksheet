@@ -36,6 +36,9 @@ export 'src/core/data/worksheet_data.dart';
 export 'src/core/data/sparse_worksheet_data.dart';
 
 // Core Formula
+export 'src/core/formula/formula_autocomplete_config.dart';
+export 'src/core/formula/formula_function_matcher.dart';
+export 'src/core/formula/formula_function_tokenizer.dart';
 export 'src/core/formula/formula_reference_config.dart';
 export 'src/core/formula/formula_reference_inserter.dart';
 export 'src/core/formula/formula_tokenizer.dart';
@@ -56,6 +59,7 @@ export 'src/scrolling/worksheet_viewport.dart';
 export 'src/scrolling/worksheet_scroll_delegate.dart';
 
 // Interaction - Controllers
+export 'src/interaction/controllers/autocomplete_controller.dart';
 export 'src/interaction/controllers/zoom_controller.dart';
 export 'src/interaction/controllers/selection_controller.dart';
 export 'src/interaction/controllers/edit_controller.dart';
@@ -86,6 +90,7 @@ export 'src/rendering/layers/header_layer.dart';
 export 'src/rendering/layers/frozen_layer.dart';
 
 // Widgets
+export 'src/widgets/autocomplete_dropdown.dart';
 export 'src/widgets/worksheet_widget.dart';
 export 'src/widgets/worksheet_controller.dart';
 export 'src/widgets/worksheet_scrollbar_config.dart';

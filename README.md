@@ -299,6 +299,7 @@ for (var row = 0; row < 50000; row++) {
 | [Cell Merging Reference](docs/CELL_MERGING.md) | Merge types, data rules, restrictions |
 | [Cell Spillover](docs/CELL_SPILLOVER.md) | Text overflow into adjacent empty cells |
 | [Cell Referencing](docs/CELL_REFERENCING.md) | Formula cell reference editing behavior |
+| [Formula Autocomplete](docs/AUTOCOMPLETE.md) | Function name autocomplete dropdown spec |
 
 ---
 
@@ -425,6 +426,7 @@ The `example/` directory contains several demos you can run individually:
 | `wrap_text.dart` | Text wrapping and vertical alignment |
 | `darklight.dart` | Light and dark theme switching |
 | `mobile.dart` | Mobile-optimized layout |
+| `autocomplete.dart` | Formula function autocomplete dropdown |
 
 Most examples are single-file targets run from the `example/` directory. Standalone examples that need their own dependencies (like `rich_text/` which uses `google_fonts`) are separate Flutter projects:
 

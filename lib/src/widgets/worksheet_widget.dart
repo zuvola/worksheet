@@ -30,8 +30,11 @@ import '../core/data/formula_reference_adjuster.dart';
 import '../shortcuts/worksheet_action_context.dart';
 import '../shortcuts/worksheet_actions.dart';
 import '../shortcuts/worksheet_intents.dart';
+import '../core/formula/formula_autocomplete_config.dart';
 import '../core/formula/formula_reference_config.dart';
 import '../core/formula/formula_reference_inserter.dart';
+import '../interaction/controllers/autocomplete_controller.dart';
+import '../widgets/autocomplete_dropdown.dart';
 import '../rendering/layers/formula_reference_layer.dart';
 import '../rendering/layers/header_layer.dart';
 import '../rendering/layers/render_layer.dart';
@@ -193,6 +196,15 @@ class Worksheet extends StatefulWidget {
   /// Defaults to `const FormulaReferenceConfig()`.
   final FormulaReferenceConfig? formulaReferenceConfig;
 
+  /// Configuration for formula function autocomplete.
+  ///
+  /// When non-null, enables autocomplete suggestions when typing function
+  /// names in formula mode (cells starting with `=`). Users provide their
+  /// own function list; the package does not bundle built-in functions.
+  ///
+  /// Set to `null` (default) to disable formula autocomplete.
+  final FormulaAutocompleteConfig? formulaAutocompleteConfig;
+
   /// Controls whether mobile interaction mode is enabled.
   ///
   /// When `true`, enables touch-friendly interactions:
@@ -233,6 +245,7 @@ class Worksheet extends StatefulWidget {
     this.actions,
     this.formulaReferenceAdjuster = defaultFormulaReferenceAdjuster,
     this.formulaReferenceConfig = const FormulaReferenceConfig(),
+    this.formulaAutocompleteConfig,
     this.mobileMode,
   });
 
@@ -277,6 +290,9 @@ class _WorksheetState extends State<Worksheet>
 
   bool _initialized = false;
 
+  /// Controller for formula autocomplete, created when config is non-null.
+  AutocompleteController? _autocompleteController;
+
   /// Whether mobile interaction mode is active.
   ///
   /// Resolved from [Worksheet.mobileMode]: explicit override if set,
@@ -308,6 +324,7 @@ class _WorksheetState extends State<Worksheet>
   Rect? _editingExpandedScreenBounds; // screen coords, header-adjusted
   double? _editingVerticalOffset; // fixed vertical offset for wrap-text cells
   double? _editingContentAreaWidth; // viewport width minus row header
+  double? _editingContentAreaHeight; // viewport height minus col header
 
   // Formula reference editing state
   FormulaReferenceLayer? _formulaRefLayer;
@@ -509,6 +526,12 @@ class _WorksheetState extends State<Worksheet>
     if (widget.formatLocale != null) {
       widget.editController?.locale = widget.formatLocale!;
     }
+
+    // Create autocomplete controller when config is provided
+    _autocompleteController?.dispose();
+    _autocompleteController = widget.formulaAutocompleteConfig != null
+        ? AutocompleteController(config: widget.formulaAutocompleteConfig!)
+        : null;
 
     // Subscribe to data change events for external mutations
     _dataSubscription?.cancel();
@@ -1269,7 +1292,10 @@ class _WorksheetState extends State<Worksheet>
     _editingExpandedScreenBounds = null;
     _editingVerticalOffset = null;
     _editingContentAreaWidth = null;
+    _editingContentAreaHeight = null;
     _cachedEditorOverlay = null;
+    // Dismiss autocomplete dropdown when editing ends.
+    _autocompleteController?.dismiss();
     // Clear formula reference highlights when editing ends.
     if (_formulaRefLayer != null) {
       _formulaRefLayer!.references = [];
@@ -1294,6 +1320,7 @@ class _WorksheetState extends State<Worksheet>
       }
       _editingVerticalOffset = null;
       _editingContentAreaWidth = null;
+      _editingContentAreaHeight = null;
       return;
     }
 
@@ -1445,11 +1472,14 @@ class _WorksheetState extends State<Worksheet>
     _editingExpandedBounds = expanded.bounds;
     _editingExpandedScreenBounds = adjustedExpandedBounds;
 
-    // Cache content area width for the overlay's right-edge clamping.
+    // Cache content area dimensions for the overlay's right-edge clamping
+    // and autocomplete dropdown flip-above logic.
     final size = context.size;
     if (size != null) {
       _editingContentAreaWidth = size.width -
           (theme.showHeaders ? theme.rowHeaderWidth * zoom : 0.0);
+      _editingContentAreaHeight = size.height -
+          (theme.showHeaders ? theme.columnHeaderHeight * zoom : 0.0);
     }
 
     // Update formula reference layer tokens.
@@ -1568,6 +1598,30 @@ class _WorksheetState extends State<Worksheet>
 
     final targetCell = anchor.offset(rowDelta, colDelta);
     _insertFormulaRef(ec, frc, targetCell);
+  }
+
+  /// Handles autocomplete acceptance: replaces the current token with
+  /// the function name and opening parenthesis, then updates the editor.
+  void _onAutocompleteAccept(FormulaFunction fn) {
+    final ec = widget.editController;
+    final ac = _autocompleteController;
+    if (ec == null || ac == null) return;
+
+    final token = ac.currentToken;
+    if (token == null) return;
+
+    final formula = ec.currentText;
+    final before = formula.substring(0, token.start);
+    final after = formula.substring(token.end);
+    final newText = '$before${fn.name}($after';
+    final newCursor = token.start + fn.name.length + 1;
+
+    ec.updateText(newText);
+    // Notify the rich text controller to update text + cursor.
+    ec.richTextController?.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newCursor),
+    );
   }
 
   /// Handles commit from the internal CellEditorOverlay.
@@ -1909,6 +1963,15 @@ class _WorksheetState extends State<Worksheet>
       widget.editController?.addListener(_onEditTextChanged);
     }
 
+    // Recreate autocomplete controller when config changes
+    if (widget.formulaAutocompleteConfig !=
+        oldWidget.formulaAutocompleteConfig) {
+      _autocompleteController?.dispose();
+      _autocompleteController = widget.formulaAutocompleteConfig != null
+          ? AutocompleteController(config: widget.formulaAutocompleteConfig!)
+          : null;
+    }
+
     if (widget.data != oldWidget.data && _initialized) {
       _dataSubscription?.cancel();
       // Remove listener before re-init (which adds it again)
@@ -1974,6 +2037,7 @@ class _WorksheetState extends State<Worksheet>
     }
     _formulaRefLayer?.dispose();
     _marchingAntsController?.dispose();
+    _autocompleteController?.dispose();
     _editorTriggerController.dispose();
     _editorFocusNode.dispose();
     _keyboardFocusNode.dispose();
@@ -2950,10 +3014,107 @@ class _WorksheetState extends State<Worksheet>
                                     null
                                 ? _onFormulaArrowKey
                                 : null,
+                            autocompleteController:
+                                _autocompleteController,
+                            onAutocompleteAccept:
+                                _autocompleteController != null
+                                    ? _onAutocompleteAccept
+                                    : null,
                           );
                           return _cachedEditorOverlay!;
                         },
                       ),
+                      // Autocomplete dropdown positioned below the editing cell.
+                      if (_autocompleteController != null)
+                        ListenableBuilder(
+                          listenable: _autocompleteController!,
+                          builder: (context, _) {
+                            final ac = _autocompleteController!;
+                            if (!ac.isVisible ||
+                                !widget.editController!.isEditing) {
+                              return const Positioned(
+                                left: 0,
+                                top: 0,
+                                child: SizedBox.shrink(),
+                              );
+                            }
+
+                            final cell =
+                                widget.editController!.editingCell;
+                            if (cell == null) {
+                              return const Positioned(
+                                left: 0,
+                                top: 0,
+                                child: SizedBox.shrink(),
+                              );
+                            }
+
+                            final bounds =
+                                _controller.getCellScreenBounds(cell);
+                            if (bounds == null) {
+                              return const Positioned(
+                                left: 0,
+                                top: 0,
+                                child: SizedBox.shrink(),
+                              );
+                            }
+
+                            final headerLeft = theme.showHeaders
+                                ? theme.rowHeaderWidth *
+                                    _controller.zoom
+                                : 0.0;
+                            final headerTop = theme.showHeaders
+                                ? theme.columnHeaderHeight *
+                                    _controller.zoom
+                                : 0.0;
+
+                            final adjustedBounds = bounds.shift(
+                              Offset(-headerLeft, -headerTop),
+                            );
+
+                            // Use cached content area height from
+                            // _onEditTextChanged for flip-above logic.
+                            final stackHeight =
+                                _editingContentAreaHeight ??
+                                    double.infinity;
+                            final dropdownHeight = (ac.matches.length <
+                                        ac.config.maxVisibleItems
+                                    ? ac.matches.length
+                                    : ac.config.maxVisibleItems) *
+                                AutocompleteDropdown.itemHeight;
+                            final spaceBelow =
+                                stackHeight - adjustedBounds.bottom;
+                            final flipAbove =
+                                spaceBelow < dropdownHeight + 4;
+
+                            final top = flipAbove
+                                ? null
+                                : adjustedBounds.bottom + 2;
+                            final bottom = flipAbove
+                                ? stackHeight -
+                                    adjustedBounds.top +
+                                    2
+                                : null;
+
+                            return Positioned(
+                              left: adjustedBounds.left,
+                              top: top,
+                              bottom: bottom,
+                              child: AutocompleteDropdown(
+                                matches: ac.matches,
+                                selectedIndex: ac.selectedIndex,
+                                prefix:
+                                    ac.currentToken?.text ?? '',
+                                maxVisibleItems:
+                                    ac.config.maxVisibleItems,
+                                onSelect: (fn) {
+                                  ac.accept();
+                                  _onAutocompleteAccept(fn);
+                                },
+                              ),
+                            );
+                          },
+                        ),
                     ],
                   ),
                 ),

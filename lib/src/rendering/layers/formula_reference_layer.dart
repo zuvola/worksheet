@@ -66,6 +66,23 @@ class FormulaReferenceLayer extends RenderLayer {
   }
 
   Rect? _getTokenBounds(FormulaToken token, double zoom, Offset scrollOffset) {
+    // Guard against out-of-bounds coordinates that can occur when the
+    // formula text is modified (e.g. by autocomplete insertion) and a
+    // repaint fires before the reference list is refreshed.
+    final maxRow = layoutSolver.rowCount - 1;
+    final maxCol = layoutSolver.columnCount - 1;
+    if (token.range != null) {
+      final r = token.range!;
+      if (r.startRow > maxRow || r.startColumn > maxCol ||
+          r.endRow > maxRow || r.endColumn > maxCol) {
+        return null;
+      }
+    } else {
+      if (token.cell.row > maxRow || token.cell.column > maxCol) {
+        return null;
+      }
+    }
+
     final Rect bounds;
     if (token.range != null) {
       final r = token.range!;

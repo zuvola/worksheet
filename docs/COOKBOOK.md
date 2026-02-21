@@ -23,6 +23,7 @@ Practical recipes for common worksheet tasks.
 17. [Locale-Aware Formatting](#locale-aware-formatting)
 18. [Multi-Select Resize](#multi-select-resize)
 19. [Mobile Mode](#mobile-mode)
+20. [Formula Autocomplete](#formula-autocomplete)
 
 ---
 
@@ -1943,3 +1944,75 @@ Worksheet(
 | **Long-press** | N/A | Drag-to-move cells |
 
 For the complete touch interaction reference, see [MOBILE_INTERACTION.md](MOBILE_INTERACTION.md). For desktop cursor behavior, see [MOUSE_CURSOR.md](MOUSE_CURSOR.md).
+
+---
+
+## Formula Autocomplete
+
+Show a dropdown of function suggestions when typing formulas (cells starting with `=`). The package does not bundle functions — you provide your own list.
+
+### Basic Setup
+
+```dart
+Worksheet(
+  data: data,
+  controller: controller,
+  editController: editController,
+  rowCount: 1000,
+  columnCount: 26,
+  formulaAutocompleteConfig: const FormulaAutocompleteConfig(
+    functions: [
+      FormulaFunction(
+        name: 'SUM',
+        signature: 'SUM(number1, [number2], ...)',
+        description: 'Adds all numbers in a range.',
+      ),
+      FormulaFunction(
+        name: 'AVERAGE',
+        signature: 'AVERAGE(number1, [number2], ...)',
+        description: 'Returns the arithmetic mean.',
+      ),
+      FormulaFunction(
+        name: 'IF',
+        signature: 'IF(condition, value_if_true, value_if_false)',
+        description: 'Returns one value if true, another if false.',
+      ),
+      // ... add more functions
+    ],
+  ),
+)
+```
+
+When a user types `=SU` in a cell, a dropdown appears suggesting `SUM`, `SUMIF`, `SUMPRODUCT`, etc. Arrow keys navigate, Tab/Enter accepts (inserts `SUM(`), Escape dismisses.
+
+### Customizing Behavior
+
+```dart
+FormulaAutocompleteConfig(
+  functions: myFunctions,
+  maxVisibleItems: 5,       // Show 5 items before scrolling (default: 8)
+  minChars: 2,              // Require 2 chars before showing (default: 1)
+  matches: (token, fn) =>   // Custom matcher: contains instead of prefix
+      fn.name.contains(token.toUpperCase()),
+)
+```
+
+### Keyboard Shortcuts (When Dropdown is Open)
+
+| Key | Action |
+|-----|--------|
+| Up/Down | Navigate suggestions |
+| Tab / Enter | Accept selected function (inserts `FN(`) |
+| Escape | Dismiss dropdown (stays in edit mode) |
+| Any letter / Backspace | Re-filter suggestions |
+
+### How It Works
+
+1. `FormulaFunctionTokenizer` extracts the alphabetic token at the cursor
+2. `FormulaFunctionMatcher` runs case-insensitive prefix matching
+3. `AutocompleteController` manages state (visibility, matches, selection)
+4. `AutocompleteDropdown` renders the suggestions below the editing cell
+
+The dropdown appears only in formula mode (text starts with `=`) and only for alphabetic tokens (not cell references like `A1`).
+
+See `example/autocomplete.dart` for a complete working example with ~20 sample functions.

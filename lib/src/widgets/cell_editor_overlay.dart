@@ -1,12 +1,14 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
 
+import '../core/formula/formula_autocomplete_config.dart';
 import '../core/formula/formula_reference_config.dart';
 import '../core/formula/formula_reference_inserter.dart';
 import '../core/models/cell_coordinate.dart';
 import '../core/models/cell_format.dart';
 import '../core/models/cell_style.dart';
 import '../core/models/cell_value.dart';
+import '../interaction/controllers/autocomplete_controller.dart';
 import '../interaction/controllers/edit_controller.dart';
 import '../interaction/controllers/rich_text_editing_controller.dart';
 import 'worksheet_theme.dart';
@@ -117,6 +119,19 @@ class CellEditorOverlay extends StatefulWidget {
   /// is clamped so it doesn't extend past the viewport right edge.
   final double? contentAreaWidth;
 
+  /// Controller for formula function autocomplete.
+  ///
+  /// When non-null, the editor intercepts Up/Down/Tab/Enter/Escape keys
+  /// when the dropdown is visible, and notifies the controller on text
+  /// and cursor changes.
+  final AutocompleteController? autocompleteController;
+
+  /// Called when an autocomplete suggestion is accepted.
+  ///
+  /// Receives the accepted [FormulaFunction]. The caller is responsible
+  /// for inserting the function name and opening parenthesis into the text.
+  final void Function(FormulaFunction fn)? onAutocompleteAccept;
+
   /// Minimum width for the editor.
   static const double minWidth = 60.0;
 
@@ -143,6 +158,8 @@ class CellEditorOverlay extends StatefulWidget {
     this.contentAreaWidth,
     this.formulaReferenceConfig,
     this.onFormulaArrowKey,
+    this.autocompleteController,
+    this.onAutocompleteAccept,
   });
 
   @override
@@ -182,6 +199,11 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
   /// overriding the restored selection with select-all (which happens on
   /// web when the text input connection is re-established after focus gain).
   TextSelection? _pendingSelectionRestore;
+
+  /// Tracks the last text value seen by [_onCursorChanged] so we only
+  /// notify the autocomplete controller for cursor-only changes (text
+  /// changes are handled by [_onTextChanged]).
+  String? _lastTextForCursor;
 
   @override
   void initState() {
@@ -228,6 +250,12 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
 
     // Handle initial selection based on trigger
     _focusNode.addListener(_onFocusChanged);
+
+    // Listen for cursor position changes (without text changes) so the
+    // autocomplete controller can re-evaluate the token at the cursor.
+    if (widget.autocompleteController != null) {
+      _textController.addListener(_onCursorChanged);
+    }
 
     // For type-to-edit, the platform text input connection may select all
     // text when focus is gained. Guard against this by listening for
@@ -282,6 +310,7 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
     _focusNode.removeListener(_onFocusChanged);
     _textController.removeListener(_onSelectionGuard);
     _textController.removeListener(_onRestorationGuard);
+    _textController.removeListener(_onCursorChanged);
     _textController.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -538,10 +567,37 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
     }
   }
 
+  /// Notifies the autocomplete controller when the cursor moves without
+  /// a text change (e.g. arrow keys within the editor, tapping a position).
+  void _onCursorChanged() {
+    final ac = widget.autocompleteController;
+    if (ac == null) return;
+    final text = _textController.text;
+    if (text == _lastTextForCursor) {
+      // Text didn't change — cursor-only move. Re-evaluate token.
+      final sel = _textController.selection;
+      if (sel.isValid && sel.isCollapsed) {
+        ac.onTextChanged(text, sel.baseOffset);
+      }
+    }
+    _lastTextForCursor = text;
+  }
+
   void _onTextChanged(String text) {
     _selfTextUpdate = true;
     widget.editController.updateText(text);
     _selfTextUpdate = false;
+
+    // Notify autocomplete controller of text + cursor change.
+    final ac = widget.autocompleteController;
+    if (ac != null) {
+      final sel = _textController.selection;
+      final offset = sel.isValid && sel.isCollapsed
+          ? sel.baseOffset
+          : text.length;
+      ac.onTextChanged(text, offset);
+      _lastTextForCursor = text;
+    }
   }
 
   List<TextSpan>? _extractRichText() {
@@ -660,6 +716,33 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
       if (HardwareKeyboard.instance.isShiftPressed &&
           event.logicalKey == LogicalKeyboardKey.keyS) {
         _textController.toggleStrikethrough();
+        return KeyEventResult.handled;
+      }
+    }
+
+    // Autocomplete key interception: when the dropdown is visible,
+    // Up/Down navigate, Tab/Enter accept, Escape dismisses.
+    final ac = widget.autocompleteController;
+    if (ac != null && ac.isVisible) {
+      if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+        ac.selectNext();
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+        ac.selectPrevious();
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.tab ||
+          event.logicalKey == LogicalKeyboardKey.enter ||
+          event.logicalKey == LogicalKeyboardKey.numpadEnter) {
+        final fn = ac.accept();
+        if (fn != null) {
+          widget.onAutocompleteAccept?.call(fn);
+        }
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.escape) {
+        ac.dismiss();
         return KeyEventResult.handled;
       }
     }
