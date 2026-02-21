@@ -184,50 +184,60 @@ class _MergeDemoState extends State<MergeDemo> {
         foregroundColor: Colors.white,
         title: const Text('Cell Merging Demo'),
         actions: [
-          _ToolbarButton(
-            icon: Icons.table_chart,
-            label: 'Merge All',
-            onPressed: _hasSelection ? _merge : null,
-            tooltip: 'Merge selected cells into one',
+          Flexible(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _ToolbarButton(
+                    icon: Icons.table_chart,
+                    label: 'Merge All',
+                    onPressed: _hasSelection ? _merge : null,
+                    tooltip: 'Merge selected cells into one',
+                  ),
+                  _ToolbarButton(
+                    icon: Icons.table_rows,
+                    label: 'Merge Rows',
+                    onPressed: _hasSelection ? _mergeHorizontally : null,
+                    tooltip: 'Merge each row separately',
+                  ),
+                  _ToolbarButton(
+                    icon: Icons.view_column,
+                    label: 'Merge Cols',
+                    onPressed: _hasSelection ? _mergeVertically : null,
+                    tooltip: 'Merge each column separately',
+                  ),
+                  _ToolbarButton(
+                    icon: Icons.grid_on,
+                    label: 'Unmerge',
+                    onPressed: _selectionHasMerge ? _unmerge : null,
+                    tooltip: 'Unmerge selected cells',
+                  ),
+                  const VerticalDivider(color: Colors.white38, width: 24),
+                  _ToolbarButton(
+                    icon: Icons.delete_sweep,
+                    label: 'Clear All',
+                    onPressed: _hasAnySelection ? _clearAll : null,
+                    tooltip: 'Clear values, styles, formats & unmerge',
+                  ),
+                  _ToolbarButton(
+                    icon: Icons.text_fields_outlined,
+                    label: 'Clear Values',
+                    onPressed: _hasAnySelection ? _clearValues : null,
+                    tooltip: 'Clear values only (keeps formatting & merges)',
+                  ),
+                  _ToolbarButton(
+                    icon: Icons.format_color_reset,
+                    label: 'Clear Formats',
+                    onPressed: _hasAnySelection ? _clearFormats : null,
+                    tooltip: 'Clear styles, formats & unmerge (keeps values)',
+                  ),
+                  const SizedBox(width: 16),
+                ],
+              ),
+            ),
           ),
-          _ToolbarButton(
-            icon: Icons.table_rows,
-            label: 'Merge Rows',
-            onPressed: _hasSelection ? _mergeHorizontally : null,
-            tooltip: 'Merge each row separately',
-          ),
-          _ToolbarButton(
-            icon: Icons.view_column,
-            label: 'Merge Cols',
-            onPressed: _hasSelection ? _mergeVertically : null,
-            tooltip: 'Merge each column separately',
-          ),
-          _ToolbarButton(
-            icon: Icons.grid_on,
-            label: 'Unmerge',
-            onPressed: _selectionHasMerge ? _unmerge : null,
-            tooltip: 'Unmerge selected cells',
-          ),
-          const VerticalDivider(color: Colors.white38, width: 24),
-          _ToolbarButton(
-            icon: Icons.delete_sweep,
-            label: 'Clear All',
-            onPressed: _hasAnySelection ? _clearAll : null,
-            tooltip: 'Clear values, styles, formats & unmerge',
-          ),
-          _ToolbarButton(
-            icon: Icons.text_fields_outlined,
-            label: 'Clear Values',
-            onPressed: _hasAnySelection ? _clearValues : null,
-            tooltip: 'Clear values only (keeps formatting & merges)',
-          ),
-          _ToolbarButton(
-            icon: Icons.format_color_reset,
-            label: 'Clear Formats',
-            onPressed: _hasAnySelection ? _clearFormats : null,
-            tooltip: 'Clear styles, formats & unmerge (keeps values)',
-          ),
-          const SizedBox(width: 16),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(28),

@@ -286,68 +286,78 @@ class _BorderDemoState extends State<BorderDemo> {
         foregroundColor: Colors.white,
         title: const Text('Border & Merge Demo'),
         actions: [
-          // Border group
-          _ToolbarButton(
-            icon: Icons.border_all,
-            label: 'All Borders',
-            onPressed: _hasAnySelection ? _allBorders : null,
-            tooltip: 'Apply thin borders on all sides of every cell',
+          Flexible(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Border group
+                  _ToolbarButton(
+                    icon: Icons.border_all,
+                    label: 'All Borders',
+                    onPressed: _hasAnySelection ? _allBorders : null,
+                    tooltip: 'Apply thin borders on all sides of every cell',
+                  ),
+                  _ToolbarButton(
+                    icon: Icons.border_outer,
+                    label: 'Outer',
+                    onPressed: _hasAnySelection ? _outerBorder : null,
+                    tooltip: 'Apply border only on the perimeter of selection',
+                  ),
+                  _ToolbarButton(
+                    icon: Icons.line_weight,
+                    label: 'Thick',
+                    onPressed: _hasAnySelection ? _thickBorders : null,
+                    tooltip: 'Apply thick (2px) borders on all sides',
+                  ),
+                  _ToolbarButton(
+                    icon: Icons.border_clear,
+                    label: 'No Border',
+                    onPressed: _hasAnySelection ? _noBorder : null,
+                    tooltip: 'Remove all borders from selected cells',
+                  ),
+                  const VerticalDivider(color: Colors.white38, width: 24),
+                  // Style group
+                  _ToolbarButton(
+                    icon: Icons.line_style,
+                    label: 'Dashed',
+                    onPressed: _hasAnySelection ? _dashedBorders : null,
+                    tooltip: 'Apply dashed borders on all sides',
+                  ),
+                  _ToolbarButton(
+                    icon: Icons.vertical_align_center,
+                    label: 'Double',
+                    onPressed: _hasAnySelection ? _doubleBorders : null,
+                    tooltip: 'Apply double-line borders on all sides',
+                  ),
+                  const VerticalDivider(color: Colors.white38, width: 24),
+                  // Merge group
+                  _ToolbarButton(
+                    icon: Icons.table_chart,
+                    label: 'Merge',
+                    onPressed: _hasSelection ? _merge : null,
+                    tooltip: 'Merge selected cells',
+                  ),
+                  _ToolbarButton(
+                    icon: Icons.grid_on,
+                    label: 'Unmerge',
+                    onPressed: _selectionHasMerge ? _unmerge : null,
+                    tooltip: 'Unmerge selected cells',
+                  ),
+                  const VerticalDivider(color: Colors.white38, width: 24),
+                  // Clear
+                  _ToolbarButton(
+                    icon: Icons.delete_sweep,
+                    label: 'Clear All',
+                    onPressed: _hasAnySelection ? _clearAll : null,
+                    tooltip: 'Clear values, styles, formats & unmerge',
+                  ),
+                  const SizedBox(width: 16),
+                ],
+              ),
+            ),
           ),
-          _ToolbarButton(
-            icon: Icons.border_outer,
-            label: 'Outer',
-            onPressed: _hasAnySelection ? _outerBorder : null,
-            tooltip: 'Apply border only on the perimeter of selection',
-          ),
-          _ToolbarButton(
-            icon: Icons.line_weight,
-            label: 'Thick',
-            onPressed: _hasAnySelection ? _thickBorders : null,
-            tooltip: 'Apply thick (2px) borders on all sides',
-          ),
-          _ToolbarButton(
-            icon: Icons.border_clear,
-            label: 'No Border',
-            onPressed: _hasAnySelection ? _noBorder : null,
-            tooltip: 'Remove all borders from selected cells',
-          ),
-          const VerticalDivider(color: Colors.white38, width: 24),
-          // Style group
-          _ToolbarButton(
-            icon: Icons.line_style,
-            label: 'Dashed',
-            onPressed: _hasAnySelection ? _dashedBorders : null,
-            tooltip: 'Apply dashed borders on all sides',
-          ),
-          _ToolbarButton(
-            icon: Icons.vertical_align_center,
-            label: 'Double',
-            onPressed: _hasAnySelection ? _doubleBorders : null,
-            tooltip: 'Apply double-line borders on all sides',
-          ),
-          const VerticalDivider(color: Colors.white38, width: 24),
-          // Merge group
-          _ToolbarButton(
-            icon: Icons.table_chart,
-            label: 'Merge',
-            onPressed: _hasSelection ? _merge : null,
-            tooltip: 'Merge selected cells',
-          ),
-          _ToolbarButton(
-            icon: Icons.grid_on,
-            label: 'Unmerge',
-            onPressed: _selectionHasMerge ? _unmerge : null,
-            tooltip: 'Unmerge selected cells',
-          ),
-          const VerticalDivider(color: Colors.white38, width: 24),
-          // Clear
-          _ToolbarButton(
-            icon: Icons.delete_sweep,
-            label: 'Clear All',
-            onPressed: _hasAnySelection ? _clearAll : null,
-            tooltip: 'Clear values, styles, formats & unmerge',
-          ),
-          const SizedBox(width: 16),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(28),

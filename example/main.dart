@@ -586,43 +586,53 @@ class _WorksheetExampleState extends State<WorksheetExample> {
         title: const Text('Worksheet Demo - Sales Data'),
         actions: [
           // Zoom slider with non-linear scale
-          ListenableBuilder(
-            listenable: _controller,
-            builder: (context, _) => Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text('10%', style: TextStyle(fontSize: 11)),
-                SizedBox(
-                  width: 180,
-                  child: Slider(
-                    value: zoomToSlider(_controller.zoom),
-                    onChanged: (value) {
-                      final zoom = sliderToZoom(value);
-                      _controller.setZoom(zoom);
+          Flexible(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ListenableBuilder(
+                    listenable: _controller,
+                    builder: (context, _) => Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('10%', style: TextStyle(fontSize: 11)),
+                        SizedBox(
+                          width: 180,
+                          child: Slider(
+                            value: zoomToSlider(_controller.zoom),
+                            onChanged: (value) {
+                              final zoom = sliderToZoom(value);
+                              _controller.setZoom(zoom);
+                              setState(() {});
+                            },
+                            divisions: 100,
+                          ),
+                        ),
+                        const Text('400%', style: TextStyle(fontSize: 11)),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 45,
+                          child: Text(
+                            '${(_controller.zoom * 100).round()}%',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.refresh),
+                    onPressed: () {
+                      _controller.resetZoom();
                       setState(() {});
                     },
-                    divisions: 100,
+                    tooltip: 'Reset to 100%',
                   ),
-                ),
-                const Text('400%', style: TextStyle(fontSize: 11)),
-                const SizedBox(width: 8),
-                SizedBox(
-                  width: 45,
-                  child: Text(
-                    '${(_controller.zoom * 100).round()}%',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              _controller.resetZoom();
-              setState(() {});
-            },
-            tooltip: 'Reset to 100%',
           ),
         ],
       ),
