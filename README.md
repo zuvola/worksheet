@@ -270,6 +270,7 @@ for (var row = 0; row < 50000; row++) {
 - **Multi-line text**: Word wrap with `wrapText` style, Alt+Enter for newlines
 - **Keyboard navigation**: Arrow keys, Tab, Enter, Home/End, clipboard, and more — fully customizable via Flutter's Shortcuts/Actions
 - **Automatic type detection**: Numbers, booleans, dates, and formulas detected from text input via `CellValue.parse()`
+- **Formula cell referencing**: Click cells to insert A1 references, drag for ranges, arrow keys to insert/move refs, F4 for absolute/relative cycling, color-coded borders with marching ants
 - **Resize support**: Drag column/row borders to resize
 - **Mobile support**: Touch gestures, selection handles, pinch-to-zoom, configurable via `mobileMode`
 - **Theming**: Full control over colors, fonts, headers — built-in light and dark mode presets
@@ -297,6 +298,7 @@ for (var row = 0; row < 50000; row++) {
 | [Mouse Cursors](MOUSE_CURSOR.md) | Desktop cursor behavior and hit zones |
 | [Cell Merging Reference](CELL_MERGING.md) | Merge types, data rules, restrictions |
 | [Cell Spillover](CELL_SPILLOVER.md) | Text overflow into adjacent empty cells |
+| [Cell Referencing](CELL_REFERENCING.md) | Formula cell reference editing behavior |
 
 ---
 
@@ -339,6 +341,7 @@ All shortcuts work out of the box. You can override or extend them via the `shor
 | Ctrl+B / Ctrl+I / Ctrl+U | Toggle bold / italic / underline (editing) |
 | Ctrl+Shift+S | Toggle strikethrough (editing) |
 | Delete / Backspace | Clear selected cells |
+| F4 | Cycle absolute/relative reference (formula editing) |
 | Ctrl+\ | Clear formatting (keep values) |
 
 ### Customizing Shortcuts

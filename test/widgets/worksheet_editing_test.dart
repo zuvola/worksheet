@@ -1,7 +1,9 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worksheet/src/core/data/sparse_worksheet_data.dart';
+import 'package:worksheet/src/core/formula/formula_reference_config.dart';
 import 'package:worksheet/src/core/models/cell_coordinate.dart';
 import 'package:worksheet/src/core/models/cell_style.dart';
 import 'package:worksheet/src/core/models/cell_value.dart';
@@ -761,6 +763,152 @@ void main() {
       // The edit should be committed
       expect(editController.isEditing, isFalse,
           reason: 'Tap outside editing area should commit edit');
+    });
+  });
+
+  group('Formula reference editing', () {
+    testWidgets(
+        'clicking a cell in formula mode inserts ref and Enter commits',
+        (tester) async {
+      await tester.pumpWidget(buildWorksheet(ec: editController));
+      selectCell(0, 0);
+      await tester.pump();
+
+      // Start editing by typing '='  — enters formula mode.
+      await tester.sendKeyEvent(LogicalKeyboardKey.equal);
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+
+      expect(editController.isEditing, isTrue);
+      expect(editController.currentText, '=');
+      expect(
+        editController.isFormulaMode(const FormulaReferenceConfig()),
+        isTrue,
+        reason: 'Should be in formula mode with text starting with =',
+      );
+
+      // Tap cell B2 (column 1, row 1) using pointer directly to ensure
+      // the Listener onPointerDown receives the event.
+      // Screen coords: x = 50 (header) + 100 (col 0) + 50 = 200,
+      //                y = 24 (header) + 24 (row 0) + 12 = 60
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+      await tester.sendEventToBinding(pointer.down(const Offset(200, 60)));
+      await tester.pump();
+      await tester.sendEventToBinding(pointer.up());
+      await tester.pump();
+
+      // Should still be editing with the ref inserted.
+      expect(editController.isEditing, isTrue,
+          reason: 'Formula mode tap should NOT commit. '
+              'text=${editController.currentText}');
+      expect(editController.currentText, contains('B2'));
+
+      // Now press Enter to commit.
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+
+      expect(editController.isEditing, isFalse,
+          reason: 'Enter should commit the formula');
+      // Data should contain the formula.
+      expect(
+        data.getCell(const CellCoordinate(0, 0))?.displayValue,
+        '=B2',
+      );
+    });
+
+    testWidgets(
+        'arrow keys insert cell references at operator boundary in formula mode',
+        (tester) async {
+      await tester.pumpWidget(buildWorksheet(ec: editController));
+      selectCell(2, 2); // C3
+      await tester.pump();
+
+      // Start editing by typing '='
+      await tester.sendKeyEvent(LogicalKeyboardKey.equal);
+      await tester.pump();
+      await tester.pump();
+
+      expect(editController.isEditing, isTrue);
+      expect(editController.currentText, '=');
+
+      // Press arrow-down: cursor is right after '=' (operator boundary)
+      // so it should insert a cell reference instead of committing.
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+
+      expect(editController.isEditing, isTrue,
+          reason: 'Arrow at operator boundary should not commit');
+      // Should have inserted a ref for the cell below the anchor (C3 → C4)
+      expect(editController.currentText, contains('C4'));
+    });
+
+    testWidgets(
+        'arrow keys at end of existing ref insert new ref in formula mode',
+        (tester) async {
+      await tester.pumpWidget(buildWorksheet(ec: editController));
+      selectCell(2, 2); // C3
+      await tester.pump();
+
+      // Start editing a formula with an existing ref.
+      // Type '=A1+' to set up a formula with cursor after operator.
+      await tester.sendKeyEvent(LogicalKeyboardKey.equal);
+      await tester.pump();
+      await tester.pump();
+
+      // Simulate typing 'A1+' by updating the text controller directly.
+      final rtc = editController.richTextController!;
+      rtc.value = const TextEditingValue(
+        text: '=A1+',
+        selection: TextSelection.collapsed(offset: 4),
+      );
+      editController.updateText('=A1+');
+      await tester.pump();
+
+      // Press arrow-right: cursor is after '+' (operator boundary)
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.pump();
+
+      expect(editController.isEditing, isTrue,
+          reason: 'Arrow at operator boundary should not commit');
+      // The ref inserted should be based on the selection anchor's neighbor
+      final text = editController.currentText;
+      expect(text, startsWith('=A1+'));
+      expect(text.length, greaterThan(4),
+          reason: 'A cell ref should have been inserted after +');
+    });
+
+    testWidgets(
+        'arrow keys within an existing ref move the reference in formula mode',
+        (tester) async {
+      await tester.pumpWidget(buildWorksheet(ec: editController));
+      selectCell(2, 2); // C3
+      await tester.pump();
+
+      // Start editing by typing '='
+      await tester.sendKeyEvent(LogicalKeyboardKey.equal);
+      await tester.pump();
+      await tester.pump();
+
+      // Set formula to '=A1' with cursor inside the ref (between A and 1).
+      final rtc = editController.richTextController!;
+      rtc.value = const TextEditingValue(
+        text: '=A1',
+        selection: TextSelection.collapsed(offset: 2), // between A and 1
+      );
+      editController.updateText('=A1');
+      await tester.pump();
+
+      // Press arrow-down: cursor is within ref 'A1' so should move/replace ref.
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+
+      expect(editController.isEditing, isTrue,
+          reason: 'Arrow within ref should not commit');
+      // The ref should have been updated (moved down from current anchor C3)
+      final text = editController.currentText;
+      expect(text, isNot(equals('=A1')),
+          reason: 'The reference should have been moved');
     });
   });
 }

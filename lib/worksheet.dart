@@ -35,6 +35,11 @@ export 'src/core/data/merged_cell_registry.dart';
 export 'src/core/data/worksheet_data.dart';
 export 'src/core/data/sparse_worksheet_data.dart';
 
+// Core Formula
+export 'src/core/formula/formula_reference_config.dart';
+export 'src/core/formula/formula_reference_inserter.dart';
+export 'src/core/formula/formula_tokenizer.dart';
+
 // Rendering - Tile System
 export 'src/rendering/tile/tile.dart';
 export 'src/rendering/tile/tile_cache.dart';
@@ -75,6 +80,7 @@ export 'src/rendering/painters/header_renderer.dart';
 
 // Rendering - Layers
 export 'src/rendering/layers/render_layer.dart';
+export 'src/rendering/layers/formula_reference_layer.dart';
 export 'src/rendering/layers/selection_layer.dart';
 export 'src/rendering/layers/header_layer.dart';
 export 'src/rendering/layers/frozen_layer.dart';

@@ -25,7 +25,7 @@ typedef FormulaReferenceAdjuster = String Function(
 /// - 0: full match
 /// - 1: sheet prefix (e.g. `Sheet1!` or `'My Sheet'!`)
 /// - 2: cell part (e.g. `$A$1` or `A1:B5`)
-final _refPattern = RegExp(
+final formulaRefPattern = RegExp(
   r"""(?:'(?:[^']|'')*'!\s*|[A-Za-z_]\w*!\s*)?"""
   r"""\$?[A-Za-z]{1,3}\$?\d+"""
   r"""(?::\$?[A-Za-z]{1,3}\$?\d+)?""",
@@ -69,7 +69,7 @@ String defaultFormulaReferenceAdjuster(
   final buffer = StringBuffer();
   int lastEnd = 0;
 
-  for (final match in _refPattern.allMatches(formula)) {
+  for (final match in formulaRefPattern.allMatches(formula)) {
     if (isInQuote(match.start, match.end)) continue;
 
     buffer.write(formula.substring(lastEnd, match.start));

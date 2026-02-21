@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2026-02-21
+
+### Added
+- **Formula cell reference editing** — clicking cells during formula editing inserts A1 references, dragging inserts ranges, arrow keys insert/move references, F4 cycles absolute/relative modes (`A1` → `$A$1` → `A$1` → `$A1` → `A1`)
+- `FormulaReferenceConfig` — configurable override API for formula mode detection, tokenization, and reference generation (enabled by default; set to `null` to disable)
+- `FormulaTokenizer` — parses formula strings into color-coded reference tokens with character offsets
+- `FormulaReferenceInserter` — insert/replace cell and range references at cursor position
+- `FormulaReferenceLayer` — renders colored borders on referenced cells with marching ants animation on the active reference
+- Color-coded visual feedback: each reference in the formula gets a distinct border color matching its position in the formula text
+
 ## [3.1.0] - 2026-02-20
 
 ### Added

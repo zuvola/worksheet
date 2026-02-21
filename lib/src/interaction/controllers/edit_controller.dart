@@ -1,6 +1,7 @@
 import 'package:any_date/any_date.dart';
 import 'package:flutter/widgets.dart';
 
+import '../../core/formula/formula_reference_config.dart';
 import '../../core/models/cell_coordinate.dart';
 import '../../core/models/cell_format.dart';
 import '../../core/models/cell_value.dart';
@@ -263,6 +264,42 @@ class EditController extends ChangeNotifier {
     if (_originalValue == null || newValue == null) return true;
 
     return _originalValue != newValue;
+  }
+
+  // -- Formula reference editing --
+
+  /// The index of the reference being actively manipulated (by pointer or
+  /// keyboard). `-1` means no active reference.
+  int activeReferenceIndex = -1;
+
+  /// Whether the current edit is in formula mode.
+  ///
+  /// Returns `true` when editing is in progress, [config] is non-null, and
+  /// the current text is recognized as a formula by the config.
+  bool isFormulaMode(FormulaReferenceConfig? config) {
+    if (config == null || !isEditing) return false;
+    return config.isFormulaMode(_currentText);
+  }
+
+  /// Inserts [text] at the current cursor position in the rich text
+  /// controller and updates [_currentText].
+  ///
+  /// No-op if not editing or no rich text controller is registered.
+  void insertAtCursor(String text) {
+    final controller = richTextController;
+    if (!isEditing || controller == null) return;
+
+    final sel = controller.selection;
+    final before = controller.text.substring(0, sel.start);
+    final after = controller.text.substring(sel.end);
+    final newText = '$before$text$after';
+    final newOffset = sel.start + text.length;
+
+    controller.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: newOffset),
+    );
+    updateText(newText);
   }
 
   // -- Rich text formatting convenience methods --

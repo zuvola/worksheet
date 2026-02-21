@@ -30,6 +30,9 @@ import '../core/data/formula_reference_adjuster.dart';
 import '../shortcuts/worksheet_action_context.dart';
 import '../shortcuts/worksheet_actions.dart';
 import '../shortcuts/worksheet_intents.dart';
+import '../core/formula/formula_reference_config.dart';
+import '../core/formula/formula_reference_inserter.dart';
+import '../rendering/layers/formula_reference_layer.dart';
 import '../rendering/layers/header_layer.dart';
 import '../rendering/layers/render_layer.dart';
 import '../rendering/layers/selection_layer.dart';
@@ -179,6 +182,17 @@ class Worksheet extends StatefulWidget {
   /// Defaults to [defaultFormulaReferenceAdjuster].
   final FormulaReferenceAdjuster? formulaReferenceAdjuster;
 
+  /// Configuration for formula cell reference editing.
+  ///
+  /// When non-null, enables Excel-style formula reference editing:
+  /// clicking cells inserts A1 references, dragging inserts ranges,
+  /// F4 cycles absolute/relative modes, and colored borders highlight
+  /// referenced cells.
+  ///
+  /// Set to `null` to disable formula reference editing.
+  /// Defaults to `const FormulaReferenceConfig()`.
+  final FormulaReferenceConfig? formulaReferenceConfig;
+
   /// Controls whether mobile interaction mode is enabled.
   ///
   /// When `true`, enables touch-friendly interactions:
@@ -218,6 +232,7 @@ class Worksheet extends StatefulWidget {
     this.shortcuts,
     this.actions,
     this.formulaReferenceAdjuster = defaultFormulaReferenceAdjuster,
+    this.formulaReferenceConfig = const FormulaReferenceConfig(),
     this.mobileMode,
   });
 
@@ -226,6 +241,7 @@ class Worksheet extends StatefulWidget {
 }
 
 class _WorksheetState extends State<Worksheet>
+    with TickerProviderStateMixin
     implements WorksheetActionContext {
   late WorksheetController _controller;
   bool _ownsController = false;
@@ -292,6 +308,12 @@ class _WorksheetState extends State<Worksheet>
   Rect? _editingExpandedScreenBounds; // screen coords, header-adjusted
   double? _editingVerticalOffset; // fixed vertical offset for wrap-text cells
   double? _editingContentAreaWidth; // viewport width minus row header
+
+  // Formula reference editing state
+  FormulaReferenceLayer? _formulaRefLayer;
+  AnimationController? _marchingAntsController;
+  bool _formulaDragging = false;
+  CellCoordinate? _formulaDragStart;
 
   // Cached CellEditorOverlay widget to prevent force-rebuilds on every
   // keystroke. Returning the identical widget instance from the
@@ -519,6 +541,8 @@ class _WorksheetState extends State<Worksheet>
       showSelectionHandles: _isMobileMode,
     );
 
+    _initFormulaRefLayer();
+
     _headerLayer = HeaderLayer(
       renderer: _headerRenderer,
       selectionController: _controller.selectionController,
@@ -534,6 +558,31 @@ class _WorksheetState extends State<Worksheet>
       },
       onNeedsPaint: () => setState(() {}),
     );
+  }
+
+  void _initFormulaRefLayer() {
+    _formulaRefLayer?.dispose();
+    _marchingAntsController?.dispose();
+    _marchingAntsController = null;
+    _formulaRefLayer = null;
+
+    if (widget.formulaReferenceConfig != null) {
+      _formulaRefLayer = FormulaReferenceLayer(
+        layoutSolver: _layoutSolver,
+        onNeedsPaint: () => setState(() {}),
+      );
+
+      _marchingAntsController = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: 1000),
+      )..addListener(() {
+          final layer = _formulaRefLayer;
+          if (layer != null && layer.activeIndex >= 0) {
+            layer.animationValue = _marchingAntsController!.value;
+            layer.markNeedsPaint();
+          }
+        });
+    }
   }
 
   void _ensureInitialized(WorksheetThemeData theme, double devicePixelRatio) {
@@ -1221,6 +1270,14 @@ class _WorksheetState extends State<Worksheet>
     _editingVerticalOffset = null;
     _editingContentAreaWidth = null;
     _cachedEditorOverlay = null;
+    // Clear formula reference highlights when editing ends.
+    if (_formulaRefLayer != null) {
+      _formulaRefLayer!.references = [];
+      _formulaRefLayer!.activeIndex = -1;
+      _formulaRefLayer!.markNeedsPaint();
+    }
+    _formulaDragging = false;
+    _formulaDragStart = null;
   }
 
   /// Recomputes expanded editing bounds when the edit text changes.
@@ -1395,9 +1452,122 @@ class _WorksheetState extends State<Worksheet>
           (theme.showHeaders ? theme.rowHeaderWidth * zoom : 0.0);
     }
 
+    // Update formula reference layer tokens.
+    _updateFormulaReferences(ec);
+
     if (boundsChanged) {
       setState(() {});
     }
+  }
+
+  /// Updates the formula reference layer with current formula tokens.
+  void _updateFormulaReferences(EditController ec) {
+    final layer = _formulaRefLayer;
+    if (layer == null) return;
+
+    final frc = widget.formulaReferenceConfig;
+    if (frc != null && ec.isFormulaMode(frc)) {
+      final tokens = frc.tokenize(ec.currentText);
+      layer.references = tokens;
+      layer.activeIndex = ec.activeReferenceIndex;
+
+      // Start marching ants if there's an active reference.
+      if (ec.activeReferenceIndex >= 0) {
+        _marchingAntsController?.repeat();
+      } else {
+        _marchingAntsController?.stop();
+        layer.animationValue = 0;
+      }
+
+      layer.markNeedsPaint();
+    } else {
+      if (layer.references.isNotEmpty) {
+        layer.references = [];
+        layer.activeIndex = -1;
+        _marchingAntsController?.stop();
+        layer.markNeedsPaint();
+      }
+    }
+  }
+
+  /// Inserts a single cell reference into the formula being edited.
+  void _insertFormulaRef(
+    EditController ec,
+    FormulaReferenceConfig frc,
+    CellCoordinate cell,
+  ) {
+    final controller = ec.richTextController;
+    if (controller == null) return;
+
+    final formula = controller.text;
+    final cursorOffset = controller.selection.baseOffset;
+    final tokens = frc.tokenize(formula);
+
+    final result = FormulaReferenceInserter.insertCellRef(
+      formula: formula,
+      cursorOffset: cursorOffset,
+      cell: cell,
+      tokens: tokens,
+      cellToRef: frc.cellToRef,
+    );
+
+    controller.value = TextEditingValue(
+      text: result.text,
+      selection: TextSelection.collapsed(offset: result.cursorOffset),
+    );
+    ec.updateText(result.text);
+  }
+
+  /// Inserts a range reference into the formula being edited.
+  void _insertFormulaRangeRef(
+    EditController ec,
+    FormulaReferenceConfig frc,
+    CellCoordinate start,
+    CellCoordinate end,
+  ) {
+    final controller = ec.richTextController;
+    if (controller == null) return;
+
+    final formula = controller.text;
+    final cursorOffset = controller.selection.baseOffset;
+    final tokens = frc.tokenize(formula);
+
+    final result = FormulaReferenceInserter.insertRangeRef(
+      formula: formula,
+      cursorOffset: cursorOffset,
+      start: start,
+      end: end,
+      tokens: tokens,
+      rangeToRef: frc.rangeToRef,
+    );
+
+    controller.value = TextEditingValue(
+      text: result.text,
+      selection: TextSelection.collapsed(offset: result.cursorOffset),
+    );
+    ec.updateText(result.text);
+  }
+
+  /// Handles arrow key press in formula mode by inserting a cell reference
+  /// for the cell adjacent to the current selection anchor in the arrow
+  /// direction.
+  void _onFormulaArrowKey(LogicalKeyboardKey key, bool shift) {
+    final ec = widget.editController;
+    final frc = widget.formulaReferenceConfig;
+    if (ec == null || frc == null) return;
+
+    final anchor = _controller.selectionController.anchor;
+    if (anchor == null) return;
+
+    int rowDelta = 0;
+    int colDelta = 0;
+    if (key == LogicalKeyboardKey.arrowUp) rowDelta = -1;
+    if (key == LogicalKeyboardKey.arrowDown) rowDelta = 1;
+    if (key == LogicalKeyboardKey.arrowLeft) colDelta = -1;
+    if (key == LogicalKeyboardKey.arrowRight) colDelta = 1;
+
+    final targetCell = anchor.offset(rowDelta, colDelta);
+    _insertFormulaRef(ec, frc, targetCell);
   }
 
   /// Handles commit from the internal CellEditorOverlay.
@@ -1802,6 +1972,8 @@ class _WorksheetState extends State<Worksheet>
       _headerLayer.dispose();
       _tileManager.dispose();
     }
+    _formulaRefLayer?.dispose();
+    _marchingAntsController?.dispose();
     _editorTriggerController.dispose();
     _editorFocusNode.dispose();
     _keyboardFocusNode.dispose();
@@ -2000,6 +2172,30 @@ class _WorksheetState extends State<Worksheet>
                                     return; // tap inside editing area — hand off to TextField
                                   }
                                 }
+
+                                // Formula mode: insert cell reference instead
+                                // of committing.
+                                final frc = widget.formulaReferenceConfig;
+                                if (frc != null && ec.isFormulaMode(frc)) {
+                                  final hit = _hitTester.hitTest(
+                                    position: event.localPosition,
+                                    scrollOffset: Offset(
+                                      _controller.scrollX,
+                                      _controller.scrollY,
+                                    ),
+                                    zoom: _controller.zoom,
+                                    selectionRange: null,
+                                  );
+                                  if (hit.type == HitTestType.cell &&
+                                      hit.cell != null) {
+                                    _insertFormulaRef(ec, frc, hit.cell!);
+                                    ec.requestEditorFocus();
+                                    _formulaDragging = true;
+                                    _formulaDragStart = hit.cell;
+                                    return;
+                                  }
+                                }
+
                                 final richText = ec.richTextExtractor?.call();
                                 ec.commitEdit(
                                   onCommit: (cell, value, {CellFormat? detectedFormat}) {
@@ -2167,6 +2363,34 @@ class _WorksheetState extends State<Worksheet>
                                 return; // Don't process as drag
                               }
                             }
+                            // Formula drag-to-reference
+                            if (_formulaDragging &&
+                                event.buttons == kPrimaryButton) {
+                              final hit = _hitTester.hitTest(
+                                position: event.localPosition,
+                                scrollOffset: Offset(
+                                  _controller.scrollX,
+                                  _controller.scrollY,
+                                ),
+                                zoom: _controller.zoom,
+                                selectionRange: null,
+                              );
+                              if (hit.type == HitTestType.cell &&
+                                  hit.cell != null &&
+                                  _formulaDragStart != null) {
+                                final ec = widget.editController;
+                                final frc = widget.formulaReferenceConfig;
+                                if (ec != null && frc != null) {
+                                  _insertFormulaRangeRef(
+                                    ec,
+                                    frc,
+                                    _formulaDragStart!,
+                                    hit.cell!,
+                                  );
+                                }
+                              }
+                              return;
+                            }
                             // Only handle drag when primary button is held
                             if (event.buttons == kPrimaryButton &&
                                 !_pointerInScrollbarArea) {
@@ -2198,6 +2422,12 @@ class _WorksheetState extends State<Worksheet>
                     onPointerUp: widget.readOnly
                         ? null
                         : (event) {
+                            // End formula drag-to-reference
+                            if (_formulaDragging) {
+                              _formulaDragging = false;
+                              _formulaDragStart = null;
+                              return;
+                            }
                             // Clean up pointer tracking for pinch-to-zoom
                             if (_isMobileMode) {
                               _activePointers.remove(event.pointer);
@@ -2303,6 +2533,13 @@ class _WorksheetState extends State<Worksheet>
                                           details.localPosition)) {
                                     return;
                                   }
+                                }
+                                // In formula mode, cell taps insert references
+                                // (handled by Listener.onPointerDown) — don't
+                                // commit.
+                                final frc = widget.formulaReferenceConfig;
+                                if (frc != null && ec.isFormulaMode(frc)) {
+                                  return;
                                 }
                                 final richText = ec.richTextExtractor?.call();
                                 ec.commitEdit(
@@ -2510,6 +2747,36 @@ class _WorksheetState extends State<Worksheet>
                             child: _buildScrollableContent(theme),
                           ),
 
+                          // Formula reference layer (colored borders on
+                          // referenced cells, below selection layer).
+                          if (_formulaRefLayer != null &&
+                              _formulaRefLayer!.references.isNotEmpty)
+                            Positioned.fill(
+                              child: IgnorePointer(
+                                child: CustomPaint(
+                                  painter: _FormulaRefPainter(
+                                    layer: _formulaRefLayer!,
+                                    scrollOffset: Offset(
+                                      _controller.scrollX,
+                                      _controller.scrollY,
+                                    ),
+                                    zoom: _controller.zoom,
+                                    headerOffset: Offset(
+                                      theme.showHeaders
+                                          ? theme.rowHeaderWidth *
+                                              _controller.zoom
+                                          : 0.0,
+                                      theme.showHeaders
+                                          ? theme.columnHeaderHeight *
+                                              _controller.zoom
+                                          : 0.0,
+                                    ),
+                                    layoutVersion: _layoutVersion,
+                                  ),
+                                ),
+                              ),
+                            ),
+
                           // Selection layer (painted on top of content)
                           if (theme.showHeaders && _controller.hasSelection)
                             Positioned.fill(
@@ -2677,6 +2944,12 @@ class _WorksheetState extends State<Worksheet>
                             wrapText: isWrap,
                             restoreFocusTo: _keyboardFocusNode,
                             contentAreaWidth: contentAreaWidth,
+                            formulaReferenceConfig:
+                                widget.formulaReferenceConfig,
+                            onFormulaArrowKey: widget.formulaReferenceConfig !=
+                                    null
+                                ? _onFormulaArrowKey
+                                : null,
                           );
                           return _cachedEditorOverlay!;
                         },
@@ -2874,6 +3147,57 @@ double calcAutoScrollDelta(
     return lerpDouble(baseSpeed, maxSpeed, t)!;
   }
   return 0.0;
+}
+
+/// Custom painter for formula reference layer.
+class _FormulaRefPainter extends CustomPainter {
+  final FormulaReferenceLayer layer;
+  final Offset scrollOffset;
+  final double zoom;
+  final Offset headerOffset;
+  final int layoutVersion;
+
+  _FormulaRefPainter({
+    required this.layer,
+    required this.scrollOffset,
+    required this.zoom,
+    required this.headerOffset,
+    required this.layoutVersion,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.translate(headerOffset.dx, headerOffset.dy);
+    canvas.clipRect(
+      Rect.fromLTWH(
+        0,
+        0,
+        size.width - headerOffset.dx,
+        size.height - headerOffset.dy,
+      ),
+    );
+
+    layer.paint(
+      LayerPaintContext(
+        canvas: canvas,
+        viewportSize: size,
+        scrollOffset: scrollOffset,
+        zoom: zoom,
+      ),
+    );
+
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_FormulaRefPainter oldDelegate) {
+    return layer != oldDelegate.layer ||
+        scrollOffset != oldDelegate.scrollOffset ||
+        zoom != oldDelegate.zoom ||
+        headerOffset != oldDelegate.headerOffset ||
+        layoutVersion != oldDelegate.layoutVersion;
+  }
 }
 
 /// Custom painter for selection layer.

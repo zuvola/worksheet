@@ -1,6 +1,8 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
 
+import '../core/formula/formula_reference_config.dart';
+import '../core/formula/formula_reference_inserter.dart';
 import '../core/models/cell_coordinate.dart';
 import '../core/models/cell_format.dart';
 import '../core/models/cell_style.dart';
@@ -95,6 +97,17 @@ class CellEditorOverlay extends StatefulWidget {
   /// bounds instead of [cellBounds].
   final Rect? expandedBounds;
 
+  /// Configuration for formula cell reference editing.
+  ///
+  /// When non-null, enables F4 cycling and arrow key interception for
+  /// formula mode editing.
+  final FormulaReferenceConfig? formulaReferenceConfig;
+
+  /// Called when an arrow key is pressed in formula mode at an operator
+  /// boundary. The worksheet widget uses this to insert a cell reference
+  /// in the arrow direction.
+  final void Function(LogicalKeyboardKey key, bool shift)? onFormulaArrowKey;
+
   /// Focus node to restore when editing completes. If null, attempts to
   /// find the parent focus node automatically.
   final FocusNode? restoreFocusTo;
@@ -128,6 +141,8 @@ class CellEditorOverlay extends StatefulWidget {
     this.expandedBounds,
     this.restoreFocusTo,
     this.contentAreaWidth,
+    this.formulaReferenceConfig,
+    this.onFormulaArrowKey,
   });
 
   @override
@@ -586,6 +601,41 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
     widget.editController.updateText(newText);
   }
 
+  /// Returns true when the cursor is at an operator boundary in a formula.
+  ///
+  /// Returns true when an arrow key should be intercepted for formula
+  /// reference insertion/movement rather than committing the edit.
+  ///
+  /// Two cases:
+  /// 1. **Operator boundary** — the character before the cursor is an operator
+  ///    (`= + - * / ^ & < > ! ( , ;`) or the cursor is at position 0/1.
+  ///    Arrow key inserts a NEW reference.
+  /// 2. **Within a reference token** — the cursor is inside or at the end of
+  ///    an existing cell/range reference. Arrow key MOVES that reference.
+  bool _shouldInterceptArrowKey() {
+    final sel = _textController.selection;
+    if (!sel.isCollapsed) return false;
+    final text = _textController.text;
+    final offset = sel.baseOffset;
+
+    // Case 1: operator boundary
+    if (offset <= 0) return true;
+    if (offset == 1 && text.startsWith('=')) return true;
+    final charBefore = text[offset - 1];
+    if ('=+-*/^&<>!,(;'.contains(charBefore)) return true;
+
+    // Case 2: cursor within or at the end of a reference token
+    final frc = widget.formulaReferenceConfig;
+    if (frc != null) {
+      final tokens = frc.tokenize(text);
+      for (final token in tokens) {
+        if (offset >= token.start && offset <= token.end) return true;
+      }
+    }
+
+    return false;
+  }
+
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) {
       return KeyEventResult.ignored;
@@ -619,6 +669,32 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
       return KeyEventResult.handled;
     }
 
+    // F4: cycle absolute/relative reference mode in formula mode.
+    if (event.logicalKey == LogicalKeyboardKey.f4) {
+      final frc = widget.formulaReferenceConfig;
+      if (frc != null &&
+          widget.editController.isFormulaMode(frc)) {
+        final formula = _textController.text;
+        final cursorOffset = _textController.selection.baseOffset;
+        final tokens = frc.tokenize(formula);
+        final result = FormulaReferenceInserter.cycleAbsoluteRelative(
+          formula: formula,
+          cursorOffset: cursorOffset,
+          tokens: tokens,
+        );
+        if (result != null) {
+          _textController.value = TextEditingValue(
+            text: result.text,
+            selection: TextSelection.collapsed(
+              offset: result.cursorOffset,
+            ),
+          );
+          widget.editController.updateText(result.text);
+          return KeyEventResult.handled;
+        }
+      }
+    }
+
     // Alt+Enter inserts a newline when wrapText is enabled
     if (widget.wrapText &&
         (event.logicalKey == LogicalKeyboardKey.enter ||
@@ -639,6 +715,23 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
       final shift = HardwareKeyboard.instance.isShiftPressed;
       _commitAndNavigate(rowDelta: 0, columnDelta: shift ? -1 : 1);
       return KeyEventResult.handled;
+    }
+
+    // Arrow keys: in formula mode at an operator boundary, insert a cell
+    // reference via the callback instead of committing.
+    if (event.logicalKey == LogicalKeyboardKey.arrowDown ||
+        event.logicalKey == LogicalKeyboardKey.arrowUp ||
+        event.logicalKey == LogicalKeyboardKey.arrowLeft ||
+        event.logicalKey == LogicalKeyboardKey.arrowRight) {
+      final frc = widget.formulaReferenceConfig;
+      if (frc != null &&
+          widget.editController.isFormulaMode(frc) &&
+          widget.onFormulaArrowKey != null &&
+          _shouldInterceptArrowKey()) {
+        final shift = HardwareKeyboard.instance.isShiftPressed;
+        widget.onFormulaArrowKey!(event.logicalKey, shift);
+        return KeyEventResult.handled;
+      }
     }
 
     if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
