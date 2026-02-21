@@ -235,12 +235,7 @@ class ClearCellsAction extends Action<ClearCellsIntent> {
       if (_context.editController?.isEditing == true) {
         _context.editController?.richTextController?.clearFormatting();
       } else {
-        // Clear rich text spans from data
-        for (int r = range.startRow; r <= range.endRow; r++) {
-          for (int c = range.startColumn; c <= range.endColumn; c++) {
-            _context.worksheetData.setRichText(CellCoordinate(r, c), null);
-          }
-        }
+        _context.worksheetData.clearRichTextInRange(range);
       }
     }
 
@@ -564,6 +559,9 @@ class ToggleStrikethroughAction extends Action<ToggleStrikethroughIntent> {
 ///
 /// If all spans across all selected cells match [test], [remove] is applied;
 /// otherwise [apply] is applied to all spans.
+///
+/// Uses sparse iteration: only visits cells that have rich text or values,
+/// so this is O(populated_cells) not O(range_area).
 void _toggleOnSelection(
   WorksheetActionContext context, {
   required bool Function(TextStyle?) test,
@@ -573,45 +571,46 @@ void _toggleOnSelection(
   final range = context.selectionController.selectedRange;
   if (range == null) return;
 
-  // Check if ALL spans across ALL cells match
-  bool allMatch = true;
-  for (int r = range.startRow; allMatch && r <= range.endRow; r++) {
-    for (int c = range.startColumn; allMatch && c <= range.endColumn; c++) {
-      final coord = CellCoordinate(r, c);
-      final spans = _ensureSpans(context, coord);
-      if (spans.isEmpty) {
-        allMatch = false;
-        break;
-      }
-      if (!spans.every((s) => test(s.style))) allMatch = false;
+  // Collect all (coord, spans) pairs from populated cells only.
+  // Cells with explicit rich text come from getRichTextInRange;
+  // cells with only a value (no rich text) get auto-spans.
+  final entries = <MapEntry<CellCoordinate, List<TextSpan>>>[];
+  final richTextCoords = <CellCoordinate>{};
+
+  for (final entry in context.worksheetData.getRichTextInRange(range)) {
+    if (entry.value.isNotEmpty) {
+      entries.add(entry);
+      richTextCoords.add(entry.key);
     }
   }
 
-  // Apply or remove across all cells
-  for (int r = range.startRow; r <= range.endRow; r++) {
-    for (int c = range.startColumn; c <= range.endColumn; c++) {
-      final coord = CellCoordinate(r, c);
-      final spans = _ensureSpans(context, coord);
-      if (spans.isEmpty) continue;
-      final toggled = spans
-          .map((s) => TextSpan(
-                text: s.text,
-                style: allMatch ? remove(s.style) : apply(s.style),
-              ))
-          .toList();
-      context.worksheetData.setRichText(coord, toggled);
+  // Also include cells that have values but no rich text (auto-span).
+  for (final entry in context.worksheetData.getCellsInRange(range)) {
+    if (!richTextCoords.contains(entry.key)) {
+      final autoSpans = [TextSpan(text: entry.value.displayValue)];
+      entries.add(MapEntry(entry.key, autoSpans));
     }
   }
-}
 
-/// Returns existing rich text spans for [coord], or creates a single span
-/// from the cell's display value if no rich text exists.
-List<TextSpan> _ensureSpans(WorksheetActionContext context, CellCoordinate coord) {
-  final existing = context.worksheetData.getRichText(coord);
-  if (existing != null && existing.isNotEmpty) return existing;
-  final value = context.worksheetData.getCell(coord);
-  if (value == null) return [];
-  return [TextSpan(text: value.displayValue)];
+  if (entries.isEmpty) return;
+
+  // Check if ALL spans across ALL populated cells match
+  final allMatch = entries.every(
+    (e) => e.value.isNotEmpty && e.value.every((s) => test(s.style)),
+  );
+
+  // Apply or remove across populated cells only
+  for (final entry in entries) {
+    final spans = entry.value;
+    if (spans.isEmpty) continue;
+    final toggled = spans
+        .map((s) => TextSpan(
+              text: s.text,
+              style: allMatch ? remove(s.style) : apply(s.style),
+            ))
+        .toList();
+    context.worksheetData.setRichText(entry.key, toggled);
+  }
 }
 
 /// Unmerges all merge regions overlapping the current selection.
@@ -671,29 +670,59 @@ class SetCellStyleAction extends Action<SetCellStyleIntent> {
           )
         : null;
 
-    for (int row = range.startRow; row <= range.endRow; row++) {
-      for (int col = range.startColumn; col <= range.endColumn; col++) {
-        final coord = CellCoordinate(row, col);
-
-        // For merged cells, only the anchor gets borders.
-        var styleToApply = intent.style;
-        if (hasBorders) {
-          final region =
-              _context.worksheetData.mergedCells.getRegion(coord);
-          if (region != null && !region.isAnchor(coord)) {
-            styleToApply = noBordersStyle!;
-          }
+    // For large ranges, iterate only populated cells (sparse path).
+    if (range.cellCount > 1000000) {
+      _applyStyleSparse(range, intent.style, hasBorders, noBordersStyle);
+    } else {
+      for (int row = range.startRow; row <= range.endRow; row++) {
+        for (int col = range.startColumn; col <= range.endColumn; col++) {
+          final coord = CellCoordinate(row, col);
+          _applyStyleToCell(coord, intent.style, hasBorders, noBordersStyle);
         }
-
-        final current = _context.worksheetData.getStyle(coord);
-        final merged = current != null
-            ? current.merge(styleToApply)
-            : styleToApply;
-        _context.worksheetData.setStyle(coord, merged);
       }
     }
 
     _context.invalidateAndRebuild();
     return null;
+  }
+
+  void _applyStyleToCell(
+    CellCoordinate coord,
+    CellStyle style,
+    bool hasBorders,
+    CellStyle? noBordersStyle,
+  ) {
+    var styleToApply = style;
+    if (hasBorders) {
+      final region = _context.worksheetData.mergedCells.getRegion(coord);
+      if (region != null && !region.isAnchor(coord)) {
+        styleToApply = noBordersStyle!;
+      }
+    }
+    final current = _context.worksheetData.getStyle(coord);
+    final merged = current != null ? current.merge(styleToApply) : styleToApply;
+    _context.worksheetData.setStyle(coord, merged);
+  }
+
+  void _applyStyleSparse(
+    CellRange range,
+    CellStyle style,
+    bool hasBorders,
+    CellStyle? noBordersStyle,
+  ) {
+    final visited = <CellCoordinate>{};
+
+    // Apply to cells that already have styles
+    for (final entry in _context.worksheetData.getStylesInRange(range)) {
+      _applyStyleToCell(entry.key, style, hasBorders, noBordersStyle);
+      visited.add(entry.key);
+    }
+
+    // Apply to cells that have values but no style yet
+    for (final entry in _context.worksheetData.getCellsInRange(range)) {
+      if (!visited.contains(entry.key)) {
+        _applyStyleToCell(entry.key, style, hasBorders, noBordersStyle);
+      }
+    }
   }
 }

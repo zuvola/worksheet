@@ -386,6 +386,45 @@ class SparseWorksheetData implements WorksheetData {
   }
 
   @override
+  void clearRichTextInRange(CellRange range) {
+    _checkNotDisposed();
+    final toRemove = <CellCoordinate>[];
+    for (final coord in _richText.keys) {
+      if (range.contains(coord)) {
+        toRemove.add(coord);
+      }
+    }
+    for (final coord in toRemove) {
+      _richText.remove(coord);
+    }
+    if (toRemove.isNotEmpty) {
+      _changeController.add(DataChangeEvent.range(range));
+    }
+  }
+
+  @override
+  Iterable<MapEntry<CellCoordinate, List<TextSpan>>> getRichTextInRange(
+    CellRange range,
+  ) sync* {
+    for (final entry in _richText.entries) {
+      if (range.contains(entry.key)) {
+        yield entry;
+      }
+    }
+  }
+
+  @override
+  Iterable<MapEntry<CellCoordinate, CellStyle>> getStylesInRange(
+    CellRange range,
+  ) sync* {
+    for (final entry in _styles.entries) {
+      if (range.contains(entry.key)) {
+        yield entry;
+      }
+    }
+  }
+
+  @override
   MergedCellRegistry get mergedCells => _mergedCells;
 
   @override
@@ -975,6 +1014,11 @@ class _BatchImpl implements WorksheetDataBatch {
 
   @override
   void fillRangeWithCell(CellRange range, Cell? value) {
+    if (range.cellCount > 1000000) {
+      throw StateError(
+        'fillRangeWithCell: range too large (${range.cellCount} cells).',
+      );
+    }
     for (int row = range.startRow; row <= range.endRow; row++) {
       for (int col = range.startColumn; col <= range.endColumn; col++) {
         final coord = CellCoordinate(row, col);

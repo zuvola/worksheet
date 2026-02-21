@@ -70,6 +70,27 @@ abstract class WorksheetData {
   /// Clears all cells within [range].
   void clearRange(CellRange range);
 
+  /// Clears rich text spans for all cells within [range].
+  ///
+  /// Only affects cells that have rich text set. O(populated_cells).
+  void clearRichTextInRange(CellRange range) {}
+
+  /// Returns all cells with rich text within [range].
+  ///
+  /// Iterates only populated rich text entries. O(populated_cells).
+  Iterable<MapEntry<CellCoordinate, List<TextSpan>>> getRichTextInRange(
+    CellRange range,
+  ) =>
+      const [];
+
+  /// Returns all cells with styles within [range].
+  ///
+  /// Iterates only populated style entries. O(populated_cells).
+  Iterable<MapEntry<CellCoordinate, CellStyle>> getStylesInRange(
+    CellRange range,
+  ) =>
+      const [];
+
   /// Pattern fill from range to target cell - either override this or provide a generator
   ///
   /// Returns the full filled range (source + target, possibly expanded to

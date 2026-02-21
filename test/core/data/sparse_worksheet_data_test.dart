@@ -1850,5 +1850,102 @@ void main() {
         expect(result, CellRange(0, 0, 5, 0));
       });
     });
+
+    group('clearRichTextInRange', () {
+      test('clears rich text only within the given range', () {
+        data.setCell(CellCoordinate(0, 0), CellValue.text('A'));
+        data.setRichText(CellCoordinate(0, 0), [const TextSpan(text: 'A')]);
+        data.setCell(CellCoordinate(1, 1), CellValue.text('B'));
+        data.setRichText(CellCoordinate(1, 1), [const TextSpan(text: 'B')]);
+        data.setCell(CellCoordinate(5, 5), CellValue.text('C'));
+        data.setRichText(CellCoordinate(5, 5), [const TextSpan(text: 'C')]);
+
+        data.clearRichTextInRange(CellRange(0, 0, 2, 2));
+
+        expect(data.getRichText(CellCoordinate(0, 0)), isNull);
+        expect(data.getRichText(CellCoordinate(1, 1)), isNull);
+        expect(data.getRichText(CellCoordinate(5, 5)), isNotNull);
+      });
+
+      test('does not clear values or styles', () {
+        data.setCell(CellCoordinate(0, 0), CellValue.text('A'));
+        data.setStyle(CellCoordinate(0, 0), const CellStyle(backgroundColor: Color(0xFFFF0000)));
+        data.setRichText(CellCoordinate(0, 0), [const TextSpan(text: 'A')]);
+
+        data.clearRichTextInRange(CellRange(0, 0, 0, 0));
+
+        expect(data.getCell(CellCoordinate(0, 0)), CellValue.text('A'));
+        expect(data.getStyle(CellCoordinate(0, 0)), isNotNull);
+        expect(data.getRichText(CellCoordinate(0, 0)), isNull);
+      });
+
+      test('fires change event when rich text is cleared', () async {
+        data.setRichText(CellCoordinate(0, 0), [const TextSpan(text: 'A')]);
+
+        final events = <dynamic>[];
+        data.changes.listen(events.add);
+
+        data.clearRichTextInRange(CellRange(0, 0, 0, 0));
+
+        await Future<void>.delayed(Duration.zero);
+        expect(events, hasLength(1));
+      });
+
+      test('no event when no rich text in range', () async {
+        final events = <dynamic>[];
+        data.changes.listen(events.add);
+
+        data.clearRichTextInRange(CellRange(0, 0, 10, 10));
+
+        await Future<void>.delayed(Duration.zero);
+        expect(events, isEmpty);
+      });
+    });
+
+    group('getRichTextInRange', () {
+      test('returns only rich text entries within range', () {
+        data.setRichText(CellCoordinate(0, 0), [const TextSpan(text: 'A')]);
+        data.setRichText(CellCoordinate(1, 1), [const TextSpan(text: 'B')]);
+        data.setRichText(CellCoordinate(5, 5), [const TextSpan(text: 'C')]);
+
+        final result = data.getRichTextInRange(CellRange(0, 0, 2, 2)).toList();
+
+        expect(result, hasLength(2));
+        expect(result.map((e) => e.key).toSet(), {
+          CellCoordinate(0, 0),
+          CellCoordinate(1, 1),
+        });
+      });
+
+      test('returns empty when no rich text in range', () {
+        data.setRichText(CellCoordinate(5, 5), [const TextSpan(text: 'C')]);
+
+        final result = data.getRichTextInRange(CellRange(0, 0, 2, 2)).toList();
+        expect(result, isEmpty);
+      });
+    });
+
+    group('getStylesInRange', () {
+      test('returns only style entries within range', () {
+        data.setStyle(CellCoordinate(0, 0), const CellStyle(backgroundColor: Color(0xFFFF0000)));
+        data.setStyle(CellCoordinate(1, 1), const CellStyle(backgroundColor: Color(0xFF00FF00)));
+        data.setStyle(CellCoordinate(5, 5), const CellStyle(backgroundColor: Color(0xFF0000FF)));
+
+        final result = data.getStylesInRange(CellRange(0, 0, 2, 2)).toList();
+
+        expect(result, hasLength(2));
+        expect(result.map((e) => e.key).toSet(), {
+          CellCoordinate(0, 0),
+          CellCoordinate(1, 1),
+        });
+      });
+
+      test('returns empty when no styles in range', () {
+        data.setStyle(CellCoordinate(5, 5), const CellStyle(backgroundColor: Color(0xFF0000FF)));
+
+        final result = data.getStylesInRange(CellRange(0, 0, 2, 2)).toList();
+        expect(result, isEmpty);
+      });
+    });
   });
 }
