@@ -260,6 +260,15 @@ for (var row = 0; row < 50000; row++) {
 - **60fps scrolling**: Smooth even with 100K+ populated cells
 - **10%-400% zoom**: Pinch to zoom with automatic level-of-detail
 - **O(log n) lookups**: Binary search for row/column positions
+- **Benchmarked SLAs**: Automated performance assertions in CI — see [Performance Guide](doc/PERFORMANCE.md#benchmark-slas)
+
+| Operation | Target |
+|-----------|--------|
+| Tile render | < 8ms |
+| Hit test | < 100µs |
+| Visible range calc | < 2ms |
+| Selection (Excel-scale) | < 1ms |
+| SpanList rebuild (100K) | < 10ms |
 
 ### Built for Real Apps
 

@@ -127,6 +127,8 @@ const scrollFps = 60;        // Maintain 60fps while scrolling
 const zoomFps = 30;          // Acceptable during zoom animation
 const tileRenderMs = 8;      // Max time to render single tile
 const hitTestUs = 100;       // Max hit test latency
+const selectionMs = 200;     // Max action on Excel-scale selection
+const spanRebuild100kMs = 10; // Max SpanList rebuild at 100K items
 ```
 
 ## Critical Performance Rules
@@ -137,6 +139,7 @@ const hitTestUs = 100;       // Max hit test latency
 4. **Tile size = 256px** - Optimal GPU texture size
 5. **LRU cache tiles** - Max 100 tiles in memory
 6. **Prefetch 1 ring** - Tiles beyond viewport edge
+7. **Benchmark all O(N) paths** - Add test/benchmarks/ entry for any O(N) operation on user-scale data
 
 ## Commands
 ```bash
@@ -149,8 +152,11 @@ genhtml coverage/lcov.info -o coverage/html
 # Run specific test file
 flutter test test/core/span_list_test.dart
 
-# Performance profiling
-flutter run --profile --trace-skia
+# Run benchmark suite (enforces SLAs via assertions)
+flutter test test/benchmarks/
+
+# Run specific benchmark with detailed output
+flutter test test/benchmarks/scalability_benchmark.dart -r expanded
 ```
 
 ### Testing Tips
@@ -205,10 +211,12 @@ open coverage/html/index.html
 
 ### 4. Benchmarks
 ```bash
-# Run performance profiling
+# Run benchmark suite — all SLAs must pass
+flutter test test/benchmarks/
+
+# Optional: manual profiling for visual inspection
 flutter run --profile --trace-skia
 ```
-Confirm targets: scroll 60fps, zoom 30fps, tile render <8ms, hit test <100us.
 
 ### 5. Version & Changelog
 - Bump version in `pubspec.yaml` following [semver](https://semver.org/)
@@ -239,7 +247,7 @@ flutter pub publish
 - [ ] `flutter analyze` — zero issues
 - [ ] `flutter test` — all pass
 - [ ] `flutter test --coverage` — meets 80% minimum
-- [ ] Benchmarks reviewed
+- [ ] `flutter test test/benchmarks/` — all SLAs pass
 - [ ] `pubspec.yaml` version bumped
 - [ ] `CHANGELOG.md` updated
 - [ ] Committed and tagged `vX.Y.Z`

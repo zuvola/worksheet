@@ -2,6 +2,56 @@
 
 Optimization strategies for the worksheet widget, including tile caching, large dataset handling, and memory profiling.
 
+## Benchmark SLAs
+
+All SLAs are enforced by `expect()` assertions in `test/benchmarks/`. CI fails automatically on regression — no manual review needed.
+
+| Benchmark File | Operation | SLA |
+|---------------|-----------|-----|
+| `scroll_performance_benchmark` | Visible range calculation | < 2ms avg |
+| `scroll_performance_benchmark` | Cell bounds lookup | < 10µs avg |
+| `scroll_performance_benchmark` | Row/column position lookup | < 5µs avg |
+| `scroll_performance_benchmark` | Position → cell index | < 10µs avg |
+| `tile_render_benchmark` | Tile render (populated) | < 8ms avg |
+| `tile_render_benchmark` | Tile render (empty) | < 2ms avg |
+| `tile_render_benchmark` | Tile with borders | < 8ms avg |
+| `tile_render_benchmark` | Dense borders (worst case) | < 16ms avg |
+| `hit_test_benchmark` | Cell hit test | < 100µs avg |
+| `hit_test_benchmark` | Header hit test | < 50µs avg |
+| `selection_benchmark` | selectRange (Excel-scale) | < 1ms |
+| `selection_benchmark` | clearRange (Excel-scale) | < 200ms |
+| `selection_benchmark` | Clipboard serialize (Excel-scale) | < 500ms |
+| `scalability_benchmark` | SpanList setSize (10K spans) | < 1ms avg |
+| `scalability_benchmark` | SpanList setSize (100K spans) | < 10ms avg |
+| `scalability_benchmark` | SpanList setSize (1M spans) | < 50ms avg |
+| `scalability_benchmark` | SpanList construction (1M) | < 100ms avg |
+| `scalability_benchmark` | MergedCellRegistry query (100 merges) | < 0.5ms avg |
+| `scalability_benchmark` | MergedCellRegistry query (1K merges) | < 5ms avg |
+| `scalability_benchmark` | MergedCellRegistry query (10K merges) | < 50ms avg |
+| `scalability_benchmark` | LayoutSolver 1000 repeated lookups | < 5ms total |
+| `scalability_benchmark` | LayoutSolver per-frame (sequential scroll) | < 50µs avg |
+
+### Running Benchmarks
+
+```bash
+# Run all benchmarks (enforces SLAs via assertions)
+flutter test test/benchmarks/
+
+# Run specific benchmark with detailed output
+flutter test test/benchmarks/scalability_benchmark.dart -r expanded
+
+# Run all benchmarks with expanded timings
+flutter test test/benchmarks/ -r expanded
+```
+
+### SLA Design Principles
+
+- SLAs are set at ~5–10x typical local measurement to account for CI VM variance
+- Each benchmark uses `expect(measurement, lessThan(sla))` — exceeding an SLA = test failure = CI failure
+- New O(N) operations on user-scale data should get a benchmark entry to prevent regression
+
+---
+
 ## Understanding the Tile Cache
 
 The worksheet uses GPU-backed tile caching for high-performance rendering. Understanding how it works helps optimize your application.
