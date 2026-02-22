@@ -67,6 +67,7 @@ class TilePainter implements TileRenderer {
   late final Paint _backgroundPaint;
   late final Paint _cellBackgroundPaint;
   late final Paint _borderPaint;
+  late final Paint _gridlinePaint;
 
   /// Creates a tile painter.
   TilePainter({
@@ -88,6 +89,11 @@ class TilePainter implements TileRenderer {
     _cellBackgroundPaint = Paint()..style = PaintingStyle.fill;
 
     _borderPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..isAntiAlias = false;
+
+    _gridlinePaint = Paint()
+      ..color = gridlineColor
       ..style = PaintingStyle.stroke
       ..isAntiAlias = false;
   }
@@ -632,13 +638,8 @@ class TilePainter implements TileRenderer {
     // visible when scaled down
     final strokeWidth = _getGridlineStrokeWidth(zoomBucket);
 
-    final paint = Paint()
-      ..color = gridlineColor
-      ..strokeWidth = strokeWidth
-      ..style = PaintingStyle.stroke
-      ..isAntiAlias = false; // Crisp lines like Excel
-
-    canvas.drawPath(path, paint);
+    _gridlinePaint.strokeWidth = strokeWidth;
+    canvas.drawPath(path, _gridlinePaint);
   }
 
   /// Determines whether gridlines should be rendered at the given zoom level.

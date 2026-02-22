@@ -888,38 +888,70 @@ class _WorksheetState extends State<Worksheet>
   }
 
   /// Auto-fits a column to the widest content.
+  ///
+  /// Uses display-value deduplication and character-length filtering to avoid
+  /// O(N) TextPainter allocations. For a 50K-row column with 16 unique
+  /// customer names, this reduces measurements from 50K to ~16.
   void _autoFitColumn(int column) {
     final theme = _lastTheme;
     if (theme == null) return;
 
-    double maxWidth = 0.0;
+    final baseTextStyle = TextStyle(
+      fontSize: theme.fontSize,
+      fontFamily: theme.fontFamily,
+      package: WorksheetThemeData.resolveFontPackage(theme.fontFamily),
+    );
+
+    // Collect measurement candidates. Plain text is filtered to only the
+    // longest strings (by character count) since shorter strings are virtually
+    // always narrower in proportional fonts. Rich text is deduped by display
+    // value but kept regardless of length because styling affects width.
+    int maxCharLen = 0;
+    final plainCandidates = <String>{};
+    final richCandidates = <String, List<TextSpan>>{};
+
     final range = CellRange(0, column, widget.rowCount - 1, column);
     for (final entry in widget.data.getCellsInRange(range)) {
       final text = entry.value.displayValue;
       if (text.isEmpty) continue;
 
-      final baseTextStyle = TextStyle(
-        fontSize: theme.fontSize,
-        fontFamily: theme.fontFamily,
-        package: WorksheetThemeData.resolveFontPackage(theme.fontFamily),
-      );
-
-      // Use rich text spans if available for accurate measurement
       final richText = widget.data.getRichText(entry.key);
-      final TextSpan textSpan;
       if (richText != null && richText.isNotEmpty) {
-        textSpan = TextSpan(style: baseTextStyle, children: richText);
-      } else {
-        textSpan = TextSpan(text: text, style: baseTextStyle);
+        richCandidates.putIfAbsent(text, () => richText);
+        continue;
       }
 
+      if (text.length > maxCharLen) {
+        maxCharLen = text.length;
+        plainCandidates.clear();
+        plainCandidates.add(text);
+      } else if (text.length == maxCharLen) {
+        plainCandidates.add(text);
+      }
+    }
+
+    // Measure candidates
+    double maxWidth = 0.0;
+
+    // Plain text: measure unique values at max character length
+    int measured = 0;
+    for (final text in plainCandidates) {
       final tp = TextPainter(
-        text: textSpan,
+        text: TextSpan(text: text, style: baseTextStyle),
         textDirection: TextDirection.ltr,
       )..layout();
-      if (tp.width > maxWidth) {
-        maxWidth = tp.width;
-      }
+      if (tp.width > maxWidth) maxWidth = tp.width;
+      tp.dispose();
+      if (++measured >= 1000) break;
+    }
+
+    // Rich text: measure each unique display value
+    for (final entry in richCandidates.entries) {
+      final tp = TextPainter(
+        text: TextSpan(style: baseTextStyle, children: entry.value),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      if (tp.width > maxWidth) maxWidth = tp.width;
       tp.dispose();
     }
 
@@ -931,12 +963,6 @@ class _WorksheetState extends State<Worksheet>
       if (cellValue == null) continue;
       final text = cellValue.displayValue;
       if (text.isEmpty) continue;
-
-      final baseTextStyle = TextStyle(
-        fontSize: theme.fontSize,
-        fontFamily: theme.fontFamily,
-        package: WorksheetThemeData.resolveFontPackage(theme.fontFamily),
-      );
 
       final richText = widget.data.getRichText(anchor);
       final TextSpan textSpan;
@@ -1129,25 +1155,25 @@ class _WorksheetState extends State<Worksheet>
         col = nextCol;
       }
     } else {
-      // Scan forward to the next non-empty cell
-      while (true) {
-        if (row < 0 || row > maxRow || col < 0 || col > maxCol) {
-          // Reached the boundary without finding data
-          row = row.clamp(0, maxRow);
-          col = col.clamp(0, maxCol);
-          break;
+      // Jump to next populated cell using sparse lookup (avoids O(N) cell-by-cell scan)
+      if (rowDelta != 0) {
+        final nextRow = rowDelta > 0
+            ? widget.data.findNextPopulatedRow(col, row)
+            : widget.data.findPrevPopulatedRow(col, row);
+        if (nextRow != null) {
+          row = nextRow;
+        } else {
+          row = rowDelta > 0 ? maxRow : 0;
         }
-        if (widget.data.hasValue(CellCoordinate(row, col))) {
-          break;
+      } else if (colDelta != 0) {
+        final nextCol = colDelta > 0
+            ? widget.data.findNextPopulatedColumn(row, col)
+            : widget.data.findPrevPopulatedColumn(row, col);
+        if (nextCol != null) {
+          col = nextCol;
+        } else {
+          col = colDelta > 0 ? maxCol : 0;
         }
-        final nextRow = row + rowDelta;
-        final nextCol = col + colDelta;
-        if (nextRow < 0 || nextRow > maxRow || nextCol < 0 || nextCol > maxCol) {
-          // Hit the boundary — stay at boundary
-          break;
-        }
-        row = nextRow;
-        col = nextCol;
       }
     }
 

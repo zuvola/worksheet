@@ -152,6 +152,42 @@ abstract class WorksheetData {
     required bool vertical,
   }) {} // default no-op — test stubs inherit this
 
+  /// Finds the first row >= [fromRow] in [column] that has a value.
+  /// Returns null if no populated row exists in range.
+  int? findNextPopulatedRow(int column, int fromRow) {
+    for (var r = fromRow; r < rowCount; r++) {
+      if (hasValue(CellCoordinate(r, column))) return r;
+    }
+    return null;
+  }
+
+  /// Finds the last row <= [fromRow] in [column] that has a value.
+  /// Returns null if no populated row exists in range.
+  int? findPrevPopulatedRow(int column, int fromRow) {
+    for (var r = fromRow; r >= 0; r--) {
+      if (hasValue(CellCoordinate(r, column))) return r;
+    }
+    return null;
+  }
+
+  /// Finds the first column >= [fromColumn] in [row] that has a value.
+  /// Returns null if no populated column exists in range.
+  int? findNextPopulatedColumn(int row, int fromColumn) {
+    for (var c = fromColumn; c < columnCount; c++) {
+      if (hasValue(CellCoordinate(row, c))) return c;
+    }
+    return null;
+  }
+
+  /// Finds the last column <= [fromColumn] in [row] that has a value.
+  /// Returns null if no populated column exists in range.
+  int? findPrevPopulatedColumn(int row, int fromColumn) {
+    for (var c = fromColumn; c >= 0; c--) {
+      if (hasValue(CellCoordinate(row, c))) return c;
+    }
+    return null;
+  }
+
   /// Releases resources.
   void dispose();
 }

@@ -425,6 +425,62 @@ class SparseWorksheetData implements WorksheetData {
   }
 
   @override
+  int? findNextPopulatedRow(int column, int fromRow) {
+    int? best;
+    for (final coord in _values.keys) {
+      if (coord.column == column && coord.row >= fromRow) {
+        if (best == null || coord.row < best) {
+          best = coord.row;
+          if (best == fromRow) return best; // Can't find closer
+        }
+      }
+    }
+    return best;
+  }
+
+  @override
+  int? findPrevPopulatedRow(int column, int fromRow) {
+    int? best;
+    for (final coord in _values.keys) {
+      if (coord.column == column && coord.row <= fromRow) {
+        if (best == null || coord.row > best) {
+          best = coord.row;
+          if (best == fromRow) return best; // Can't find closer
+        }
+      }
+    }
+    return best;
+  }
+
+  @override
+  int? findNextPopulatedColumn(int row, int fromColumn) {
+    int? best;
+    for (final coord in _values.keys) {
+      if (coord.row == row && coord.column >= fromColumn) {
+        if (best == null || coord.column < best) {
+          best = coord.column;
+          if (best == fromColumn) return best; // Can't find closer
+        }
+      }
+    }
+    return best;
+  }
+
+  @override
+  int? findPrevPopulatedColumn(int row, int fromColumn) {
+    int? best;
+    for (final coord in _values.keys) {
+      if (coord.row == row && coord.column <= fromColumn) {
+        if (best == null || coord.column > best) {
+          best = coord.column;
+          if (best == fromColumn) return best; // Can't find closer
+        }
+      }
+    }
+    return best;
+  }
+
+  @override
   MergedCellRegistry get mergedCells => _mergedCells;
 
   @override

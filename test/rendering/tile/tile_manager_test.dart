@@ -48,7 +48,7 @@ void main() {
         rows: SpanList(count: 1000, defaultSize: 25.0),
         columns: SpanList(count: 100, defaultSize: 100.0),
       );
-      config = const TileConfig(tileSize: 256, maxCachedTiles: 10);
+      config = const TileConfig(tileSize: 256, maxCachedTiles: 10, prefetchRings: 0);
       renderer = TestTileRenderer();
       manager = TileManager(
         layoutSolver: layoutSolver,
@@ -515,6 +515,226 @@ void main() {
         for (final tile in tiles2) {
           expect(tile.isValid, isTrue);
         }
+      });
+    });
+
+    group('prefetching', () {
+      late LayoutSolver prefetchSolver;
+
+      setUp(() {
+        prefetchSolver = LayoutSolver(
+          rows: SpanList(count: 1000, defaultSize: 25.0),
+          columns: SpanList(count: 100, defaultSize: 100.0),
+        );
+      });
+
+      test('prefetchRings=1 fetches tiles beyond viewport', () {
+        final prefetchRenderer = TestTileRenderer();
+        final prefetchManager = TileManager(
+          layoutSolver: prefetchSolver,
+          config: const TileConfig(
+            tileSize: 256, maxCachedTiles: 50, prefetchRings: 1,
+          ),
+          renderer: prefetchRenderer,
+        );
+
+        // 1-tile viewport at (256,256) → with 1 ring prefetch, should get 3×3 = 9 tiles
+        final tiles = prefetchManager.getTilesForViewport(
+          viewport: const ui.Rect.fromLTWH(256, 256, 256, 256),
+          zoomBucket: ZoomBucket.full,
+        );
+
+        expect(tiles.length, 9);
+        prefetchManager.dispose();
+      });
+
+      test('prefetchRings=0 fetches only visible tiles', () {
+        final prefetchRenderer = TestTileRenderer();
+        final prefetchManager = TileManager(
+          layoutSolver: prefetchSolver,
+          config: const TileConfig(
+            tileSize: 256, maxCachedTiles: 50, prefetchRings: 0,
+          ),
+          renderer: prefetchRenderer,
+        );
+
+        // Same 1-tile viewport, no prefetch → 1 tile
+        final tiles = prefetchManager.getTilesForViewport(
+          viewport: const ui.Rect.fromLTWH(256, 256, 256, 256),
+          zoomBucket: ZoomBucket.full,
+        );
+
+        expect(tiles.length, 1);
+        prefetchManager.dispose();
+      });
+
+      test('prefetch at origin clamps to non-negative', () {
+        final prefetchRenderer = TestTileRenderer();
+        final prefetchManager = TileManager(
+          layoutSolver: prefetchSolver,
+          config: const TileConfig(
+            tileSize: 256, maxCachedTiles: 50, prefetchRings: 1,
+          ),
+          renderer: prefetchRenderer,
+        );
+
+        // Viewport at origin — prefetch inflates to negative coords
+        final tiles = prefetchManager.getTilesForViewport(
+          viewport: const ui.Rect.fromLTWH(0, 0, 256, 256),
+          zoomBucket: ZoomBucket.full,
+        );
+
+        // All tile coordinates should be non-negative
+        for (final tile in tiles) {
+          expect(tile.coordinate.row, greaterThanOrEqualTo(0));
+          expect(tile.coordinate.column, greaterThanOrEqualTo(0));
+        }
+
+        // Should get 2×2 = 4 tiles (origin + 1 ring, clamped at 0)
+        expect(tiles.length, 4);
+        prefetchManager.dispose();
+      });
+
+      test('prefetched tiles are cached', () {
+        final prefetchRenderer = TestTileRenderer();
+        final prefetchManager = TileManager(
+          layoutSolver: prefetchSolver,
+          config: const TileConfig(
+            tileSize: 256, maxCachedTiles: 50, prefetchRings: 1,
+          ),
+          renderer: prefetchRenderer,
+        );
+
+        prefetchManager.getTilesForViewport(
+          viewport: const ui.Rect.fromLTWH(256, 256, 256, 256),
+          zoomBucket: ZoomBucket.full,
+        );
+        final firstCallCount = prefetchRenderer.renderCallCount;
+
+        // Second call with same viewport — all tiles should be cached
+        prefetchManager.getTilesForViewport(
+          viewport: const ui.Rect.fromLTWH(256, 256, 256, 256),
+          zoomBucket: ZoomBucket.full,
+        );
+        expect(prefetchRenderer.renderCallCount, firstCallCount);
+        prefetchManager.dispose();
+      });
+
+      test('scrolling into prefetched area uses cache', () {
+        final prefetchRenderer = TestTileRenderer();
+        final prefetchManager = TileManager(
+          layoutSolver: prefetchSolver,
+          config: const TileConfig(
+            tileSize: 256, maxCachedTiles: 50, prefetchRings: 1,
+          ),
+          renderer: prefetchRenderer,
+        );
+
+        // Fetch at origin with 1 ring prefetch
+        prefetchManager.getTilesForViewport(
+          viewport: const ui.Rect.fromLTWH(0, 0, 256, 256),
+          zoomBucket: ZoomBucket.full,
+        );
+        final firstCallCount = prefetchRenderer.renderCallCount;
+
+        // Scroll one tile to the right — tile (0,1) should already be cached
+        prefetchManager.getTilesForViewport(
+          viewport: const ui.Rect.fromLTWH(256, 0, 256, 256),
+          zoomBucket: ZoomBucket.full,
+        );
+
+        // The now-visible tile (0,1) was prefetched, but we also prefetch
+        // a new ring around the new viewport. Only truly new tiles should render.
+        // Tile (0,0) was cached, tile (0,1) was prefetched, tile (0,2) is new.
+        // Row 1 tiles: (1,0) cached, (1,1) prefetched, (1,2) new.
+        // So only tiles in the new ring that weren't in the old ring should render.
+        expect(prefetchRenderer.renderCallCount, greaterThan(firstCallCount));
+
+        // But it should be LESS than rendering all tiles from scratch
+        // (some tiles were already cached from prefetch)
+        final newRenders = prefetchRenderer.renderCallCount - firstCallCount;
+        final totalTilesInSecondCall = 9; // 3×3 with prefetch
+        expect(newRenders, lessThan(totalTilesInSecondCall));
+        prefetchManager.dispose();
+      });
+    });
+
+    group('boundary tile clamping', () {
+      test('tile beyond content height gets minimal cell range', () {
+        // With 1000 rows × 25px = 25000px total height, tile size 256,
+        // the last tile row within content is floor(25000 / 256) = 97.
+        // Tile 98 starts at 98 * 256 = 25088 which is beyond totalHeight (25000).
+        final range = manager.getCellRangeForTile(
+          TileCoordinate(98, 0),
+          ZoomBucket.full,
+        );
+
+        // startRow should clamp to maxRow (999), not 0
+        expect(range.startRow, equals(999));
+        expect(range.endRow, equals(999));
+        // Should cover only 1 row, not the entire sheet
+        expect(range.endRow - range.startRow, lessThanOrEqualTo(1));
+      });
+
+      test('tile beyond content width gets minimal cell range', () {
+        // With 100 cols × 100px = 10000px total width, tile size 256,
+        // the last tile column within content is floor(10000 / 256) = 39.
+        // Tile 40 starts at 40 * 256 = 10240 which is beyond totalWidth (10000).
+        final range = manager.getCellRangeForTile(
+          TileCoordinate(0, 40),
+          ZoomBucket.full,
+        );
+
+        // startCol should clamp to maxCol (99), not 0
+        expect(range.startColumn, equals(99));
+        expect(range.endColumn, equals(99));
+        // Should cover only 1 column, not the entire sheet
+        expect(range.endColumn - range.startColumn, lessThanOrEqualTo(1));
+      });
+
+      test('tile at content boundary has correct range', () {
+        // Tile at the very last row of content
+        // totalHeight = 25000, last pixel position = 24999
+        // Tile row = floor(24999 / 256) = 97
+        final range = manager.getCellRangeForTile(
+          TileCoordinate(97, 0),
+          ZoomBucket.full,
+        );
+
+        // Should cover some rows near the end, not the entire sheet
+        expect(range.startRow, greaterThan(900));
+        expect(range.endRow, equals(999));
+        expect(range.endRow - range.startRow, lessThan(20));
+      });
+
+      test('tile at Excel scale beyond content does not freeze', () {
+        // Simulate Excel-scale: 1M+ rows
+        final excelSolver = LayoutSolver(
+          rows: SpanList(count: 1048576, defaultSize: 24.0),
+          columns: SpanList(count: 16384, defaultSize: 100.0),
+        );
+        final excelManager = TileManager(
+          layoutSolver: excelSolver,
+          config: config,
+          renderer: renderer,
+        );
+
+        // totalHeight = 1048576 * 24 = 25165824
+        // Tile at exactly totalHeight / 256 = 98304
+        final sw = Stopwatch()..start();
+        final range = excelManager.getCellRangeForTile(
+          TileCoordinate(98304, 0),
+          ZoomBucket.full,
+        );
+        sw.stop();
+
+        // Should be clamped to last row, not spanning entire sheet
+        expect(range.startRow, equals(1048575));
+        expect(range.endRow, equals(1048575));
+        // Should be instant (< 1ms), not 6+ seconds
+        expect(sw.elapsedMilliseconds, lessThan(10));
+
+        excelManager.dispose();
       });
     });
   });

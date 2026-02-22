@@ -51,7 +51,12 @@ class TileManager {
     required ui.Rect viewport,
     required ZoomBucket zoomBucket,
   }) {
-    final coordinates = getTileCoordinatesForViewport(viewport: viewport);
+    // Expand viewport by prefetch rings to warm cache ahead of scrolling
+    final prefetchViewport = config.prefetchRings > 0
+        ? viewport.inflate(config.prefetchRings * config.tileWidth)
+        : viewport;
+
+    final coordinates = getTileCoordinatesForViewport(viewport: prefetchViewport);
     final tiles = <Tile>[];
 
     for (final coord in coordinates) {
@@ -97,15 +102,18 @@ class TileManager {
     var endRow = layoutSolver.getRowAt(bounds.bottom - 0.001);
     var endCol = layoutSolver.getColumnAt(bounds.right - 0.001);
 
-    // Clamp to valid range: -1 means beyond content bounds
-    // If start is beyond bounds, clamp to last valid index
     final maxRow = layoutSolver.rowCount - 1;
     final maxCol = layoutSolver.columnCount - 1;
 
-    if (startRow < 0) startRow = 0;
-    if (startCol < 0) startCol = 0;
-
-    // If end is beyond bounds, clamp to max valid index
+    // getRowAt/getColumnAt return -1 for positions beyond content bounds.
+    // Distinguish "before content" (clamp to 0) from "after content"
+    // (clamp to max) using the position value.
+    if (startRow < 0) {
+      startRow = bounds.top >= layoutSolver.totalHeight ? maxRow : 0;
+    }
+    if (startCol < 0) {
+      startCol = bounds.left >= layoutSolver.totalWidth ? maxCol : 0;
+    }
     if (endRow < 0) endRow = maxRow;
     if (endCol < 0) endCol = maxCol;
 

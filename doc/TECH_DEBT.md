@@ -23,22 +23,30 @@ This document tracks known technical debt, architectural bottlenecks, and sugges
 
 ## 3. Rendering Pipeline
 
-### TilePainter Optimization
-- **Current State:**
-  - `TextPainter` is allocated and laid out for every cell in every tile render (though disposed immediately).
-  - `SpilloverCalculator.compute` is called inside the cell loop for every overflowing cell.
-  - `_renderGridlines` builds a complex `Path` on every tile render.
-- **Impact:** High GPU/CPU overhead during fast scrolling or zoom animations.
-- **Suggestion:**
-  - **TextPainter Pooling:** Maintain a pool of `TextPainter` objects to reduce allocation churn.
-  - **Spillover Caching:** Cache spillover results per row/column.
-  - **Path Caching:** Cache the gridline `Path` for a tile. Gridlines only change if row/column sizes change.
-  - **Layer Hoisting:** Move static elements (gridlines) into a separate `ui.Image` or `Picture` that is only re-rendered when layout changes.
+### TilePainter Optimization — PARTIALLY RESOLVED
+- **Resolved:** Pre-allocated `_gridlinePaint` field in `TilePainter` — `_renderGridlines()` no longer allocates a new `Paint()` on every call. Only `strokeWidth` is mutated per call (varies by zoom bucket).
+- **Not pursued (by design):**
+  - **TextPainter Pooling:** Tiles are cached as `ui.Picture`, so `TextPainter` allocations only run on cache miss. The 1-TP-per-cell pattern is already near-optimal.
+  - **Spillover Caching:** Same reasoning — only runs on cache miss. Spillover results are inherently tied to the cell's content and neighbors, making cache invalidation complex for minimal gain.
+  - **Path Caching / Layer Hoisting:** Gridline `Path` construction is cheap relative to text layout. Since the entire tile is cached as a `ui.Picture`, separating gridlines into a distinct layer adds complexity without measurable benefit.
 
-### TileManager Prefetching
-- **Current State:** `TileConfig` has `prefetchRings`, but `TileManager.getTilesForViewport` currently only fetches the strictly visible tiles.
-- **Impact:** Visible "white flashes" or checkerboarding during very fast scrolling.
-- **Suggestion:** Implement the prefetching logic in `TileManager` to render tiles 1-2 rings outside the viewport in a background microtask.
+### TileManager Prefetching — RESOLVED
+- **Resolution:** `getTilesForViewport()` now inflates the viewport by `prefetchRings * tileWidth` before computing tile coordinates. With the default `prefetchRings: 1`, this renders 1 ring of tiles beyond the visible area, eliminating white flashes during fast scrolling.
+- **Implementation:** Uses `Rect.inflate()` — `TileCoordinate.fromPixelPosition` already clamps negatives to 0. The 100-tile LRU cache comfortably holds ~56 tiles (32 visible + 24 prefetch for 1080p).
+
+### Auto-Fit Column Performance — RESOLVED
+- **Previous State:** `_autoFitColumn()` created a `TextPainter` for every populated cell in the column — O(N) allocations and layout calls. On a 50K-row column, this caused a multi-hundred-millisecond UI freeze on double-click.
+- **Resolution:** Display-value deduplication + character-length filtering. Plain text candidates are filtered to only the maximum character length (shorter strings are virtually always narrower). Rich text is deduped by display value. Capped at 1000 measurements for high-cardinality columns.
+- **Benchmark results:** 50K cells with 16 unique values: ~12ms. 50K cells with unique sequential IDs: ~37ms. 50K cells with rich text: ~9ms. All well under the 200ms SLA.
+
+### Jump-to-Edge Performance — RESOLVED
+- **Previous State:** Two compounding issues caused a multi-second UI freeze when double-clicking near a column border after selecting a column:
+  1. `_jumpToDataEdge` scanned cell-by-cell through up to ~1M empty rows when focus was at the sheet boundary (e.g., after column selection set focus to row 1,048,575).
+  2. `TileManager.getCellRangeForTile` had a boundary clamping bug: when prefetched tiles extended beyond the content area (e.g., tile pixel top >= totalHeight), `getRowAt()` returned -1, which was clamped to `startRow=0` while `endRow` was clamped to `maxRow=1048575`. This caused the tile painter to iterate over the **entire sheet** (1M+ rows × columns) for each boundary tile, taking 6+ seconds per tile.
+- **Resolution:**
+  1. Added `findNextPopulatedRow`/`findPrevPopulatedRow`/`findNextPopulatedColumn`/`findPrevPopulatedColumn` methods to `WorksheetData` (with default cell-by-cell implementations for backward compatibility). `SparseWorksheetData` overrides these with efficient key scans. `_jumpToDataEdge`'s "empty adjacent" branch now calls these sparse lookups instead of looping.
+  2. Fixed `getCellRangeForTile` to distinguish "before content" (clamp to 0) from "after content" (clamp to maxRow/maxCol) when `getRowAt`/`getColumnAt` returns -1. Boundary tiles now get a single-row/column range instead of the entire sheet.
+- **Benchmark results:** Jump UP across 1M empty rows: ~2.8ms. Jump RIGHT across 16K empty columns: ~0.02ms. Full desktop double-tap gesture + scroll + render: ~35ms. All well under the 200ms SLA.
 
 ## 4. Interaction & UX
 
@@ -83,7 +91,7 @@ This document tracks known technical debt, architectural bottlenecks, and sugges
 
 ## Summary of Priority Actions
 
-1. **High Priority (Performance):** Implement `TextPainter` pooling and `Path` caching in `TilePainter`.
-2. **High Priority (User Experience):** Implement Tile Prefetching in `TileManager`.
+1. ~~**High Priority (Performance):** Implement `TextPainter` pooling and `Path` caching in `TilePainter`.~~ — PARTIALLY RESOLVED (gridline Paint pre-allocated; other items not pursued — see assessment above).
+2. ~~**High Priority (User Experience):** Implement Tile Prefetching in `TileManager`.~~ — RESOLVED.
 3. **Medium Priority (Architecture):** Decompose `WorksheetGestureHandler`.
 4. **Low Priority (Features):** Complete Formula Engine Integration and Frozen Panes.

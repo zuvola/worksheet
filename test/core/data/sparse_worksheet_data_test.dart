@@ -1947,5 +1947,117 @@ void main() {
         expect(result, isEmpty);
       });
     });
+
+    group('sparse navigation', () {
+      group('findNextPopulatedRow', () {
+        test('finds nearest populated row forward', () {
+          data.setCell(CellCoordinate(10, 3), CellValue.text('A'));
+          data.setCell(CellCoordinate(50, 3), CellValue.text('B'));
+
+          expect(data.findNextPopulatedRow(3, 0), 10);
+          expect(data.findNextPopulatedRow(3, 11), 50);
+        });
+
+        test('returns fromRow when it is populated', () {
+          data.setCell(CellCoordinate(10, 3), CellValue.text('A'));
+
+          expect(data.findNextPopulatedRow(3, 10), 10);
+        });
+
+        test('returns null when no populated row exists', () {
+          expect(data.findNextPopulatedRow(3, 0), isNull);
+        });
+
+        test('returns null when all data is before fromRow', () {
+          data.setCell(CellCoordinate(5, 3), CellValue.text('A'));
+
+          expect(data.findNextPopulatedRow(3, 6), isNull);
+        });
+
+        test('ignores cells in other columns', () {
+          data.setCell(CellCoordinate(10, 5), CellValue.text('wrong col'));
+
+          expect(data.findNextPopulatedRow(3, 0), isNull);
+        });
+      });
+
+      group('findPrevPopulatedRow', () {
+        test('finds nearest populated row backward', () {
+          data.setCell(CellCoordinate(10, 3), CellValue.text('A'));
+          data.setCell(CellCoordinate(50, 3), CellValue.text('B'));
+
+          expect(data.findPrevPopulatedRow(3, 999), 50);
+          expect(data.findPrevPopulatedRow(3, 49), 10);
+        });
+
+        test('returns fromRow when it is populated', () {
+          data.setCell(CellCoordinate(50, 3), CellValue.text('A'));
+
+          expect(data.findPrevPopulatedRow(3, 50), 50);
+        });
+
+        test('returns null when no populated row exists', () {
+          expect(data.findPrevPopulatedRow(3, 999), isNull);
+        });
+
+        test('returns null when all data is after fromRow', () {
+          data.setCell(CellCoordinate(50, 3), CellValue.text('A'));
+
+          expect(data.findPrevPopulatedRow(3, 49), isNull);
+        });
+      });
+
+      group('findNextPopulatedColumn', () {
+        test('finds nearest populated column forward', () {
+          data.setCell(CellCoordinate(5, 10), CellValue.text('A'));
+          data.setCell(CellCoordinate(5, 50), CellValue.text('B'));
+
+          expect(data.findNextPopulatedColumn(5, 0), 10);
+          expect(data.findNextPopulatedColumn(5, 11), 50);
+        });
+
+        test('returns fromColumn when it is populated', () {
+          data.setCell(CellCoordinate(5, 10), CellValue.text('A'));
+
+          expect(data.findNextPopulatedColumn(5, 10), 10);
+        });
+
+        test('returns null when no populated column exists', () {
+          expect(data.findNextPopulatedColumn(5, 0), isNull);
+        });
+
+        test('ignores cells in other rows', () {
+          data.setCell(CellCoordinate(7, 10), CellValue.text('wrong row'));
+
+          expect(data.findNextPopulatedColumn(5, 0), isNull);
+        });
+      });
+
+      group('findPrevPopulatedColumn', () {
+        test('finds nearest populated column backward', () {
+          data.setCell(CellCoordinate(5, 10), CellValue.text('A'));
+          data.setCell(CellCoordinate(5, 50), CellValue.text('B'));
+
+          expect(data.findPrevPopulatedColumn(5, 99), 50);
+          expect(data.findPrevPopulatedColumn(5, 49), 10);
+        });
+
+        test('returns fromColumn when it is populated', () {
+          data.setCell(CellCoordinate(5, 50), CellValue.text('A'));
+
+          expect(data.findPrevPopulatedColumn(5, 50), 50);
+        });
+
+        test('returns null when no populated column exists', () {
+          expect(data.findPrevPopulatedColumn(5, 99), isNull);
+        });
+
+        test('returns null when all data is after fromColumn', () {
+          data.setCell(CellCoordinate(5, 50), CellValue.text('A'));
+
+          expect(data.findPrevPopulatedColumn(5, 49), isNull);
+        });
+      });
+    });
   });
 }
