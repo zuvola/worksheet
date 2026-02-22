@@ -1,14 +1,18 @@
-import 'dart:math' as math;
 import 'dart:ui';
 
 import '../core/models/cell_coordinate.dart';
 import '../core/models/cell_range.dart';
 import 'controllers/selection_controller.dart';
+import 'gestures/fill_drag_handler.dart';
+import 'gestures/move_drag_handler.dart';
 import 'hit_testing/hit_test_result.dart';
 import 'hit_testing/hit_tester.dart';
 
-/// The axis along which a fill drag is constrained.
-enum FillAxis { vertical, horizontal }
+// Re-export sub-handler types so existing imports continue to work.
+export 'gestures/fill_drag_handler.dart'
+    show FillAxis, OnFillPreviewUpdate, OnFillComplete, OnFillCancel;
+export 'gestures/move_drag_handler.dart'
+    show OnMoveComplete, OnMovePreviewUpdate, OnMoveCancel;
 
 /// Callback for when a cell should be edited.
 typedef OnEditCell = void Function(CellCoordinate cell);
@@ -24,26 +28,6 @@ typedef OnResizeRowEnd = void Function(int row);
 
 /// Callback for when column resize ends.
 typedef OnResizeColumnEnd = void Function(int column);
-
-/// Callback for when the fill preview range changes during drag.
-typedef OnFillPreviewUpdate = void Function(CellRange previewRange);
-
-/// Callback for when a fill drag completes.
-typedef OnFillComplete = void Function(
-    CellRange sourceRange, CellCoordinate destination);
-
-/// Callback for when a fill drag is cancelled.
-typedef OnFillCancel = void Function();
-
-/// Callback for when a move drag completes.
-typedef OnMoveComplete = void Function(
-    CellRange source, CellCoordinate destination);
-
-/// Callback for when the move preview range changes during drag.
-typedef OnMovePreviewUpdate = void Function(CellRange previewRange);
-
-/// Callback for when a move drag is cancelled.
-typedef OnMoveCancel = void Function();
 
 /// Callback for auto-fitting a column to its content width.
 typedef OnAutoFitColumn = void Function(int column);
@@ -65,6 +49,9 @@ typedef OnSelectAll = void Function();
 /// Handles gesture events for worksheet interaction.
 ///
 /// Coordinates between hit testing and selection/resize operations.
+/// Delegates fill and move drag operations to [FillDragHandler] and
+/// [MoveDragHandler] respectively.
+///
 /// Call the appropriate methods from your gesture detector:
 /// - [onTapDown] / [onTapUp] for taps
 /// - [onDoubleTap] for double taps (edit mode)
@@ -91,24 +78,6 @@ class WorksheetGestureHandler {
   /// Callback when column resize ends.
   final OnResizeColumnEnd? onResizeColumnEnd;
 
-  /// Callback when the fill preview range changes during drag.
-  final OnFillPreviewUpdate? onFillPreviewUpdate;
-
-  /// Callback when a fill drag completes.
-  final OnFillComplete? onFillComplete;
-
-  /// Callback when a fill drag is cancelled.
-  final OnFillCancel? onFillCancel;
-
-  /// Callback when a move drag completes.
-  final OnMoveComplete? onMoveComplete;
-
-  /// Callback when the move preview range changes during drag.
-  final OnMovePreviewUpdate? onMovePreviewUpdate;
-
-  /// Callback when a move drag is cancelled.
-  final OnMoveCancel? onMoveCancel;
-
   /// Callback for auto-fitting a column to its content width.
   final OnAutoFitColumn? onAutoFitColumn;
 
@@ -121,21 +90,19 @@ class WorksheetGestureHandler {
   /// Callback for selecting all cells (corner cell tap).
   final OnSelectAll? onSelectAll;
 
-  // Internal state
+  /// Sub-handler for fill drag operations.
+  final FillDragHandler _fillHandler;
+
+  /// Sub-handler for move drag operations.
+  final MoveDragHandler _moveHandler;
+
+  // Internal state (selection, resize, handle drag)
   WorksheetHitTestResult? _dragStartHit;
   Offset? _dragStartPosition;
   Offset? _lastDragPosition;
   bool _isResizing = false;
   bool _isSelectingRange = false;
-  bool _isFilling = false;
-  bool _isMoving = false;
   bool _isHandleDragging = false;
-  CellRange? _fillSourceRange;
-  CellCoordinate? _lastFillDestination;
-  FillAxis? _fillAxis;
-  CellRange? _moveSourceRange;
-  CellCoordinate? _lastMoveDestination;
-  CellCoordinate _moveGrabOffset = const CellCoordinate(0, 0);
   CellRange? _selectionBeforeDrag;
 
   /// Creates a gesture handler.
@@ -147,17 +114,28 @@ class WorksheetGestureHandler {
     this.onResizeColumn,
     this.onResizeRowEnd,
     this.onResizeColumnEnd,
-    this.onFillPreviewUpdate,
-    this.onFillComplete,
-    this.onFillCancel,
-    this.onMoveComplete,
-    this.onMovePreviewUpdate,
-    this.onMoveCancel,
+    OnFillPreviewUpdate? onFillPreviewUpdate,
+    OnFillComplete? onFillComplete,
+    OnFillCancel? onFillCancel,
+    OnMoveComplete? onMoveComplete,
+    OnMovePreviewUpdate? onMovePreviewUpdate,
+    OnMoveCancel? onMoveCancel,
     this.onAutoFitColumn,
     this.onAutoFitRow,
     this.onJumpToEdge,
     this.onSelectAll,
-  });
+  })  : _fillHandler = FillDragHandler(
+          hitTester: hitTester,
+          onFillPreviewUpdate: onFillPreviewUpdate,
+          onFillComplete: onFillComplete,
+          onFillCancel: onFillCancel,
+        ),
+        _moveHandler = MoveDragHandler(
+          hitTester: hitTester,
+          onMovePreviewUpdate: onMovePreviewUpdate,
+          onMoveComplete: onMoveComplete,
+          onMoveCancel: onMoveCancel,
+        );
 
   /// Whether a resize operation is in progress.
   bool get isResizing => _isResizing;
@@ -166,17 +144,20 @@ class WorksheetGestureHandler {
   bool get isSelectingRange => _isSelectingRange;
 
   /// Whether a fill handle drag is in progress.
-  bool get isFilling => _isFilling;
+  bool get isFilling => _fillHandler.isFilling;
 
   /// Whether a move drag is in progress.
-  bool get isMoving => _isMoving;
+  bool get isMoving => _moveHandler.isMoving;
 
   /// Whether a selection handle drag is in progress.
   bool get isHandleDragging => _isHandleDragging;
 
   /// Whether any drag operation is currently in progress.
   bool get isDragging =>
-      _isResizing || _isSelectingRange || _isFilling || _isMoving;
+      _isResizing ||
+      _isSelectingRange ||
+      _fillHandler.isFilling ||
+      _moveHandler.isMoving;
 
   /// The selection range saved at the start of the current drag.
   CellRange? get selectionBeforeDrag => _selectionBeforeDrag;
@@ -340,21 +321,9 @@ class WorksheetGestureHandler {
         }
       }
     } else if (hit.isFillHandle) {
-      _isFilling = true;
-      _fillSourceRange = selectionController.selectedRange;
-      _lastFillDestination = null;
-      _fillAxis = null;
+      _fillHandler.start(selectionController.selectedRange, position);
     } else if (hit.isSelectionBorder) {
-      _isMoving = true;
-      _moveSourceRange = selectionController.selectedRange;
-      if (hit.cell != null && _moveSourceRange != null) {
-        final src = _moveSourceRange!;
-        _moveGrabOffset = CellCoordinate(
-          (hit.cell!.row - src.startRow).clamp(0, src.endRow - src.startRow),
-          (hit.cell!.column - src.startColumn)
-              .clamp(0, src.endColumn - src.startColumn),
-        );
-      }
+      _moveHandler.start(hit, selectionController.selectedRange);
     } else if (hit.isResizeHandle) {
       _isResizing = true;
     } else if (hit.isCell) {
@@ -387,10 +356,10 @@ class WorksheetGestureHandler {
   }) {
     if (_dragStartHit == null || _dragStartPosition == null) return;
 
-    if (_isFilling) {
-      _handleFillUpdate(position, scrollOffset, zoom);
-    } else if (_isMoving) {
-      _handleMoveUpdate(position, scrollOffset, zoom);
+    if (_fillHandler.isFilling) {
+      _fillHandler.update(position, scrollOffset, zoom);
+    } else if (_moveHandler.isMoving) {
+      _moveHandler.update(position, scrollOffset, zoom);
     } else if (_isResizing) {
       _handleResizeUpdate(position, zoom);
     } else if (_isSelectingRange) {
@@ -401,24 +370,15 @@ class WorksheetGestureHandler {
   /// Handles drag end event.
   void onDragEnd() {
     // Handle fill drag completion
-    if (_isFilling) {
-      if (_lastFillDestination != null && _fillSourceRange != null) {
-        onFillComplete?.call(_fillSourceRange!, _lastFillDestination!);
-      } else {
-        onFillCancel?.call();
-      }
+    if (_fillHandler.isFilling) {
+      _fillHandler.end();
       _resetDragState();
       return;
     }
 
     // Handle move drag completion
-    if (_isMoving) {
-      if (_moveSourceRange != null && _lastMoveDestination != null &&
-          _lastMoveDestination != _moveSourceRange!.topLeft) {
-        onMoveComplete?.call(_moveSourceRange!, _lastMoveDestination!);
-      } else {
-        onMoveCancel?.call();
-      }
+    if (_moveHandler.isMoving) {
+      _moveHandler.end();
       _resetDragState();
       return;
     }
@@ -448,10 +408,10 @@ class WorksheetGestureHandler {
   bool cancelDrag() {
     if (!isDragging) return false;
 
-    if (_isFilling) {
-      onFillCancel?.call();
-    } else if (_isMoving) {
-      onMoveCancel?.call();
+    if (_fillHandler.isFilling) {
+      _fillHandler.cancel();
+    } else if (_moveHandler.isMoving) {
+      _moveHandler.cancel();
     }
 
     // Restore selection to pre-drag state
@@ -470,15 +430,9 @@ class WorksheetGestureHandler {
     _lastDragPosition = null;
     _isResizing = false;
     _isSelectingRange = false;
-    _isMoving = false;
     _isHandleDragging = false;
-    _moveSourceRange = null;
-    _lastMoveDestination = null;
-    _moveGrabOffset = const CellCoordinate(0, 0);
-    _isFilling = false;
-    _fillSourceRange = null;
-    _lastFillDestination = null;
-    _fillAxis = null;
+    _fillHandler.reset();
+    _moveHandler.reset();
     _selectionBeforeDrag = null;
   }
 
@@ -498,89 +452,6 @@ class WorksheetGestureHandler {
       final worksheetDelta = delta.dx / zoom;
       onResizeColumn?.call(_dragStartHit!.headerIndex!, worksheetDelta);
     }
-  }
-
-  void _handleFillUpdate(
-    Offset position,
-    Offset scrollOffset,
-    double zoom,
-  ) {
-    if (_fillSourceRange == null) return;
-
-    // Hit test without selectionRange to get the cell under the cursor
-    final hit = hitTester.hitTest(
-      position: position,
-      scrollOffset: scrollOffset,
-      zoom: zoom,
-    );
-
-    if (!hit.isCell || hit.cell == null) return;
-    final cell = hit.cell!;
-    final source = _fillSourceRange!;
-
-    // Single-cell source: no series to disambiguate, expand freely
-    final isSingleCell = source.startRow == source.endRow &&
-        source.startColumn == source.endColumn;
-    if (isSingleCell) {
-      _lastFillDestination = cell;
-      final previewRange = source.expand(cell);
-      onFillPreviewUpdate?.call(previewRange);
-      return;
-    }
-
-    // If cursor is still inside the source range and axis not yet locked, skip
-    if (source.contains(cell) && _fillAxis == null) return;
-
-    // Lock axis on first cell outside source range
-    if (_fillAxis == null) {
-      final outsideRow =
-          cell.row < source.startRow || cell.row > source.endRow;
-      final outsideCol =
-          cell.column < source.startColumn || cell.column > source.endColumn;
-
-      if (outsideRow && outsideCol) {
-        // Diagonal — use pixel displacement to break tie
-        final dx = (position.dx - _dragStartPosition!.dx).abs();
-        final dy = (position.dy - _dragStartPosition!.dy).abs();
-        _fillAxis = dy >= dx ? FillAxis.vertical : FillAxis.horizontal;
-      } else if (outsideRow) {
-        _fillAxis = FillAxis.vertical;
-      } else if (outsideCol) {
-        _fillAxis = FillAxis.horizontal;
-      } else {
-        return; // Still inside source (shouldn't reach here)
-      }
-    }
-
-    // Constrain destination to the locked axis
-    final CellCoordinate constrained;
-    if (_fillAxis == FillAxis.vertical) {
-      constrained = CellCoordinate(cell.row, source.endColumn);
-    } else {
-      constrained = CellCoordinate(source.endRow, cell.column);
-    }
-
-    _lastFillDestination = constrained;
-
-    // Build the preview range: source expanded along the locked axis only
-    final CellRange previewRange;
-    if (_fillAxis == FillAxis.vertical) {
-      previewRange = CellRange(
-        math.min(source.startRow, constrained.row),
-        source.startColumn,
-        math.max(source.endRow, constrained.row),
-        source.endColumn,
-      );
-    } else {
-      previewRange = CellRange(
-        source.startRow,
-        math.min(source.startColumn, constrained.column),
-        source.endRow,
-        math.max(source.endColumn, constrained.column),
-      );
-    }
-
-    onFillPreviewUpdate?.call(previewRange);
   }
 
   void _handleSelectionUpdate(
@@ -635,44 +506,6 @@ class WorksheetGestureHandler {
     }
   }
 
-  void _handleMoveUpdate(
-    Offset position,
-    Offset scrollOffset,
-    double zoom,
-  ) {
-    if (_moveSourceRange == null) return;
-
-    // Hit test without selectionRange to get the cell under the cursor
-    final hit = hitTester.hitTest(
-      position: position,
-      scrollOffset: scrollOffset,
-      zoom: zoom,
-    );
-
-    if (!hit.isCell || hit.cell == null) return;
-    final cell = hit.cell!;
-    final source = _moveSourceRange!;
-
-    // Apply grab offset so the cursor stays over the same relative position
-    final sourceHeight = source.endRow - source.startRow;
-    final sourceWidth = source.endColumn - source.startColumn;
-    final maxRow = hitTester.layoutSolver.rowCount - 1 - sourceHeight;
-    final maxCol = hitTester.layoutSolver.columnCount - 1 - sourceWidth;
-    final destRow = (cell.row - _moveGrabOffset.row).clamp(0, maxRow);
-    final destCol = (cell.column - _moveGrabOffset.column).clamp(0, maxCol);
-    _lastMoveDestination = CellCoordinate(destRow, destCol);
-
-    // Compute preview range: source dimensions translated to drop position
-    final previewRange = CellRange(
-      destRow,
-      destCol,
-      destRow + sourceHeight,
-      destCol + sourceWidth,
-    );
-
-    onMovePreviewUpdate?.call(previewRange);
-  }
-
   /// Handles long-press start for mobile move gesture.
   ///
   /// If the long-press is on a cell within the current selection,
@@ -698,12 +531,7 @@ class WorksheetGestureHandler {
     final cell = hit.cell;
     if (cell == null || !selection.contains(cell)) return;
 
-    _isMoving = true;
-    _moveSourceRange = selection;
-    _moveGrabOffset = CellCoordinate(
-      cell.row - selection.startRow,
-      cell.column - selection.startColumn,
-    );
+    _moveHandler.longPressStart(cell, selection);
     _selectionBeforeDrag = selection;
     _dragStartPosition = position;
     _lastDragPosition = position;
@@ -715,19 +543,14 @@ class WorksheetGestureHandler {
     required Offset scrollOffset,
     required double zoom,
   }) {
-    if (!_isMoving) return;
-    _handleMoveUpdate(position, scrollOffset, zoom);
+    if (!_moveHandler.isMoving) return;
+    _moveHandler.update(position, scrollOffset, zoom);
   }
 
   /// Handles long-press end for mobile move gesture.
   void onLongPressEnd() {
-    if (!_isMoving) return;
-    if (_moveSourceRange != null && _lastMoveDestination != null &&
-        _lastMoveDestination != _moveSourceRange!.topLeft) {
-      onMoveComplete?.call(_moveSourceRange!, _lastMoveDestination!);
-    } else {
-      onMoveCancel?.call();
-    }
+    if (!_moveHandler.isMoving) return;
+    _moveHandler.end();
     _resetDragState();
   }
 

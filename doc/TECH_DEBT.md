@@ -50,19 +50,13 @@ This document tracks known technical debt, architectural bottlenecks, and sugges
 
 ## 4. Interaction & UX
 
-### God Object: WorksheetGestureHandler
-- **Current State:** `WorksheetGestureHandler` handles too many responsibilities (tap, double-tap, drag, resize, selection, scrolling coordination).
-- **Impact:** Difficult to maintain and test; hard to add specialized mobile gestures.
-- **Suggestion:** Decompose into specialized handlers:
-  - `SelectionGestureHandler`
-  - `ResizeGestureHandler`
-  - `EditGestureHandler`
-  - `MobileGestureHandler` (for long-press, etc.)
+### WorksheetGestureHandler Decomposition — RESOLVED
+- **Resolution:** Extracted `FillDragHandler` and `MoveDragHandler` as sub-objects that encapsulate fill-specific and move-specific state and logic. The coordinator keeps tap, double-tap, selection drag, resize drag, and handle drag (simpler, tightly coupled). Reduced `gesture_handler.dart` from 783 lines to ~530 lines.
+- **New files:** `lib/src/interaction/gestures/fill_drag_handler.dart`, `lib/src/interaction/gestures/move_drag_handler.dart`
+- **Tests:** Direct unit tests for sub-handlers + all 88 existing integration tests continue to pass through delegation.
 
-### Keyboard Interaction
-- **Current State:** Shortcut logic is currently split between `shortcuts/` and `interaction/`.
-- **Impact:** Inconsistent behavior between keyboard and mouse interactions.
-- **Suggestion:** Fully migrate all interaction logic to the `Actions`/`Intents` system.
+### Keyboard Shortcuts — RESOLVED
+- **Resolution:** Already fully migrated to Flutter's `Actions`/`Intents` system (`shortcuts/` directory with 40+ bindings, 21 Intents, 25 Actions). Deprecated `keyboard_handler.dart` deleted. Remaining raw key handlers (`_handleKeyBeforeShortcuts`, cell editor overlay) are intentionally raw — they handle type-to-edit triggers, escape during drag, formula mode arrow keys, and autocomplete navigation that don't fit the declarative Shortcuts model.
 
 ## 5. Missing Core Features
 
@@ -91,7 +85,19 @@ This document tracks known technical debt, architectural bottlenecks, and sugges
 
 ## Summary of Priority Actions
 
-1. ~~**High Priority (Performance):** Implement `TextPainter` pooling and `Path` caching in `TilePainter`.~~ — PARTIALLY RESOLVED (gridline Paint pre-allocated; other items not pursued — see assessment above).
-2. ~~**High Priority (User Experience):** Implement Tile Prefetching in `TileManager`.~~ — RESOLVED.
-3. **Medium Priority (Architecture):** Decompose `WorksheetGestureHandler`.
-4. **Low Priority (Features):** Complete Formula Engine Integration and Frozen Panes.
+### Resolved (Performance)
+1. ~~**TilePainter Optimization**~~ — PARTIALLY RESOLVED (gridline Paint pre-allocated; pooling/caching not pursued — tiles cached as `ui.Picture` makes per-cell optimizations moot).
+2. ~~**TileManager Prefetching**~~ — RESOLVED (1-ring prefetch eliminates white flashes).
+3. ~~**SpanList Performance**~~ — RESOLVED (Fenwick tree: setSize O(log N), 26,000x improvement).
+4. ~~**LayoutSolver Caching**~~ — RESOLVED (memoization for repeated lookups).
+5. ~~**Auto-Fit Column Performance**~~ — RESOLVED (deduplication + length filtering).
+6. ~~**Jump-to-Edge Performance**~~ — RESOLVED (sparse lookups + boundary tile clamping fix).
+
+### Resolved (Architecture)
+7. ~~**WorksheetGestureHandler Decomposition**~~ — RESOLVED (extracted `FillDragHandler` + `MoveDragHandler` sub-objects).
+8. ~~**Keyboard Shortcuts**~~ — RESOLVED (fully migrated to `Actions`/`Intents`; deprecated handler deleted).
+
+### Open
+9. **Medium Priority (Data):** Debounce change notification thrashing.
+10. **Low Priority (Features):** Formula Engine Integration, Frozen Panes, Undo/Redo.
+11. **Low Priority (Testing):** Golden test coverage for complex rendering states.

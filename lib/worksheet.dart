@@ -104,6 +104,6 @@ export 'src/shortcuts/worksheet_actions.dart';
 export 'src/shortcuts/default_worksheet_shortcuts.dart';
 
 // Gesture Handlers
+export 'src/interaction/gestures/fill_drag_handler.dart';
+export 'src/interaction/gestures/move_drag_handler.dart';
 export 'src/interaction/gestures/scale_handler.dart';
-@Deprecated('Use the Shortcuts/Actions pattern. See worksheet_intents.dart.')
-export 'src/interaction/gestures/keyboard_handler.dart';
