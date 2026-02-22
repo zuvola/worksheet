@@ -360,6 +360,11 @@ class _WorksheetState extends State<Worksheet>
   // Data change subscription for external mutations
   StreamSubscription<DataChangeEvent>? _dataSubscription;
 
+  // Microtask coalescing for data change events.
+  // Null means no microtask is scheduled; non-null buffers events until
+  // the next microtask processes them in a single pass.
+  List<DataChangeEvent>? _pendingDataChanges;
+
   // Pinch-to-zoom
   ScaleHandler? _scaleHandler;
   final Map<int, Offset> _activePointers = {};
@@ -1669,11 +1674,13 @@ class _WorksheetState extends State<Worksheet>
     List<TextSpan>? richText,
   }) {
     _clearEditingCell();
-    widget.data.setCell(cell, value);
-    if (detectedFormat != null && widget.data.getFormat(cell) == null) {
-      widget.data.setFormat(cell, detectedFormat);
-    }
-    widget.data.setRichText(cell, richText);
+    widget.data.batchUpdate((batch) {
+      batch.setCell(cell, value);
+      if (detectedFormat != null && widget.data.getFormat(cell) == null) {
+        batch.setFormat(cell, detectedFormat);
+      }
+      batch.setRichText(cell, richText);
+    });
     invalidateAndRebuild();
   }
 
@@ -1706,11 +1713,13 @@ class _WorksheetState extends State<Worksheet>
     List<TextSpan>? richText,
   }) {
     _clearEditingCell();
-    widget.data.setCell(cell, value);
-    if (detectedFormat != null && widget.data.getFormat(cell) == null) {
-      widget.data.setFormat(cell, detectedFormat);
-    }
-    widget.data.setRichText(cell, richText);
+    widget.data.batchUpdate((batch) {
+      batch.setCell(cell, value);
+      if (detectedFormat != null && widget.data.getFormat(cell) == null) {
+        batch.setFormat(cell, detectedFormat);
+      }
+      batch.setRichText(cell, richText);
+    });
     selectionController.moveFocus(
       rowDelta: rowDelta,
       columnDelta: colDelta,
@@ -1905,44 +1914,65 @@ class _WorksheetState extends State<Worksheet>
 
   void _onDataChanged(DataChangeEvent event) {
     if (!_initialized) return;
+    final isFirst = _pendingDataChanges == null;
+    (_pendingDataChanges ??= []).add(event);
+    if (isFirst) {
+      scheduleMicrotask(_processPendingDataChanges);
+    }
+  }
+
+  /// Processes all buffered data change events in a single pass.
+  ///
+  /// Coalesces multiple events that arrive in the same microtask frame
+  /// (e.g. individual setCell + setFormat + setRichText calls) into one
+  /// invalidation + setState cycle instead of N separate ones.
+  void _processPendingDataChanges() {
+    final events = _pendingDataChanges;
+    _pendingDataChanges = null;
+    if (events == null || !_initialized || !mounted) return;
+
     _cachedEditorOverlay = null;
-    switch (event.type) {
-      case DataChangeType.cellValue:
-      case DataChangeType.cellStyle:
-      case DataChangeType.cellFormat:
-        if (event.cell != null) {
-          // Expand to full merge extent so all tiles covering the merged
-          // cell's visual area are invalidated (not just the anchor's tile).
-          final region = widget.data.mergedCells.getRegion(event.cell!);
-          final range = region?.range ??
-              CellRange(
-                event.cell!.row,
-                event.cell!.column,
-                event.cell!.row,
-                event.cell!.column,
-              );
-          _tileManager.invalidateRange(range);
-        }
-      case DataChangeType.range:
-        if (event.range != null) {
-          _tileManager.invalidateRange(
-            _expandRangeForMerges(event.range!),
-          );
-        }
-      case DataChangeType.merge:
-      case DataChangeType.unmerge:
-        if (event.range != null) {
-          _tileManager.invalidateRange(event.range!);
-        }
-      case DataChangeType.reset:
-      case DataChangeType.rowInserted:
-      case DataChangeType.rowDeleted:
-      case DataChangeType.columnInserted:
-      case DataChangeType.columnDeleted:
-        _tileManager.invalidateAll();
+    var didInvalidateAll = false;
+
+    for (final event in events) {
+      if (didInvalidateAll) break;
+      switch (event.type) {
+        case DataChangeType.cellValue:
+        case DataChangeType.cellStyle:
+        case DataChangeType.cellFormat:
+          if (event.cell != null) {
+            final region = widget.data.mergedCells.getRegion(event.cell!);
+            final range = region?.range ??
+                CellRange(
+                  event.cell!.row,
+                  event.cell!.column,
+                  event.cell!.row,
+                  event.cell!.column,
+                );
+            _tileManager.invalidateRange(range);
+          }
+        case DataChangeType.range:
+          if (event.range != null) {
+            _tileManager.invalidateRange(
+              _expandRangeForMerges(event.range!),
+            );
+          }
+        case DataChangeType.merge:
+        case DataChangeType.unmerge:
+          if (event.range != null) {
+            _tileManager.invalidateRange(event.range!);
+          }
+        case DataChangeType.reset:
+        case DataChangeType.rowInserted:
+        case DataChangeType.rowDeleted:
+        case DataChangeType.columnInserted:
+        case DataChangeType.columnDeleted:
+          _tileManager.invalidateAll();
+          didInvalidateAll = true;
+      }
     }
     _layoutVersion++;
-    if (mounted) setState(() {});
+    setState(() {});
   }
 
   /// Expands a range to include full merge regions that overlap with it.
@@ -2060,6 +2090,7 @@ class _WorksheetState extends State<Worksheet>
   void dispose() {
     _stopAutoScroll();
     _keyboardScrollTimer?.cancel();
+    _pendingDataChanges = null;
     _dataSubscription?.cancel();
     widget.editController?.removeListener(_onEditTextChanged);
     _controller.detachLayout();

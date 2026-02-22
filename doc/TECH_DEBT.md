@@ -16,10 +16,10 @@ This document tracks known technical debt, architectural bottlenecks, and sugges
 
 ## 2. Data Management
 
-### Change Notification Thrashing
-- **Current State:** Batch updates emit a single `range` event, but individual `setCell` calls emit many individual events.
-- **Impact:** Redundant tile invalidations.
-- **Suggestion:** Ensure all multi-cell operations (like Paste or Fill) strictly use `batchUpdate`. Consider debouncing change events at the `WorksheetData` level.
+### Change Notification Thrashing — RESOLVED
+- **Resolution:** Two-pronged fix:
+  1. **Batched commit paths:** `_onInternalCommit` and `_onInternalCommitAndNavigate` now wrap `setCell`/`setFormat`/`setRichText` in `batchUpdate()`, emitting 1 range event instead of 3 individual events.
+  2. **Microtask coalescing:** `_onDataChanged` buffers events into `_pendingDataChanges` and processes them in a single `scheduleMicrotask` pass — one `_layoutVersion++` and `setState()` per microtask frame, regardless of how many events arrive. Structural events (reset, row/column insert/delete) short-circuit to `invalidateAll`.
 
 ## 3. Rendering Pipeline
 
@@ -97,7 +97,9 @@ This document tracks known technical debt, architectural bottlenecks, and sugges
 7. ~~**WorksheetGestureHandler Decomposition**~~ — RESOLVED (extracted `FillDragHandler` + `MoveDragHandler` sub-objects).
 8. ~~**Keyboard Shortcuts**~~ — RESOLVED (fully migrated to `Actions`/`Intents`; deprecated handler deleted).
 
+### Resolved (Data)
+9. ~~**Change Notification Thrashing**~~ — RESOLVED (batched commit paths + microtask coalescing).
+
 ### Open
-9. **Medium Priority (Data):** Debounce change notification thrashing.
 10. **Low Priority (Features):** Formula Engine Integration, Frozen Panes, Undo/Redo.
 11. **Low Priority (Testing):** Golden test coverage for complex rendering states.
