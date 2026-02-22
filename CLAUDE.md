@@ -128,6 +128,7 @@ const zoomFps = 30;          // Acceptable during zoom animation
 const tileRenderMs = 8;      // Max time to render single tile
 const hitTestUs = 100;       // Max hit test latency
 const selectionMs = 200;     // Max action on Excel-scale selection
+const autoFitMs = 200;       // Max auto-fit on 50K-cell column
 const spanRebuild100kMs = 10; // Max SpanList rebuild at 100K items
 ```
 

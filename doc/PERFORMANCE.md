@@ -32,6 +32,11 @@ All SLAs are enforced by `expect()` assertions in `test/benchmarks/`. CI fails a
 | `scalability_benchmark` | MergedCellRegistry query (10K merges) | < 50ms avg |
 | `scalability_benchmark` | LayoutSolver 1000 repeated lookups | < 1ms total |
 | `scalability_benchmark` | LayoutSolver per-frame (sequential scroll) | < 50µs avg |
+| `scalability_benchmark` | Auto-fit 50K cells (few unique values) | < 200ms |
+| `scalability_benchmark` | Auto-fit 50K cells (many unique values) | < 200ms |
+| `scalability_benchmark` | Auto-fit 50K cells (rich text) | < 200ms |
+| `scalability_benchmark` | Jump across 1M empty rows | < 200ms |
+| `scalability_benchmark` | Jump across 16K empty columns | < 200ms |
 
 ### Running Benchmarks
 
