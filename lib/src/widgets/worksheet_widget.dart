@@ -13,6 +13,7 @@ import '../core/geometry/editing_bounds_calculator.dart';
 import '../core/geometry/layout_solver.dart';
 import '../core/geometry/span_list.dart';
 import '../core/models/cell_coordinate.dart';
+import '../core/models/freeze_config.dart';
 import '../core/models/cell_range.dart';
 import '../core/models/cell_style.dart';
 import '../core/models/cell_format.dart';
@@ -37,6 +38,7 @@ import '../core/formula/formula_reference_inserter.dart';
 import '../interaction/controllers/autocomplete_controller.dart';
 import '../widgets/autocomplete_dropdown.dart';
 import '../rendering/layers/formula_reference_layer.dart';
+import '../rendering/layers/frozen_layer.dart';
 import '../rendering/layers/header_layer.dart';
 import '../rendering/layers/render_layer.dart';
 import '../rendering/layers/selection_layer.dart';
@@ -233,6 +235,15 @@ class Worksheet extends StatefulWidget {
   /// iOS and Android use mobile mode, all others use desktop mode.
   final bool? mobileMode;
 
+  /// Configuration for frozen (pinned) rows and columns.
+  ///
+  /// Frozen rows stay fixed at the top of the viewport while scrolling
+  /// vertically. Frozen columns stay fixed at the left while scrolling
+  /// horizontally. The frozen layer is painted on top of tile content.
+  ///
+  /// Defaults to [FreezeConfig.none] (no frozen panes).
+  final FreezeConfig freezeConfig;
+
   const Worksheet({
     super.key,
     required this.data,
@@ -259,6 +270,7 @@ class Worksheet extends StatefulWidget {
     this.formulaAutocompleteConfig,
     this.onAutocompleteAccept,
     this.mobileMode,
+    this.freezeConfig = FreezeConfig.none,
   });
 
   @override
@@ -299,6 +311,7 @@ class _WorksheetState extends State<Worksheet>
   late HeaderRenderer _headerRenderer;
   late SelectionLayer _selectionLayer;
   late HeaderLayer _headerLayer;
+  FrozenLayer? _frozenLayer;
 
   bool _initialized = false;
 
@@ -493,6 +506,7 @@ class _WorksheetState extends State<Worksheet>
       layoutSolver: _layoutSolver,
       headerWidth: theme.rowHeaderWidth,
       headerHeight: theme.columnHeaderHeight,
+      freezeConfig: widget.freezeConfig,
     );
 
     // Attach layout to controller for public API access
@@ -501,6 +515,8 @@ class _WorksheetState extends State<Worksheet>
       headerWidth: theme.showHeaders ? theme.rowHeaderWidth : 0.0,
       headerHeight: theme.showHeaders ? theme.columnHeaderHeight : 0.0,
     );
+    _controller.freezeConfig = widget.freezeConfig;
+    _scrollSuppressor.freezeConfig = widget.freezeConfig;
   }
 
   void _initRendering(WorksheetThemeData theme, double devicePixelRatio) {
@@ -586,6 +602,7 @@ class _WorksheetState extends State<Worksheet>
     _headerLayer = HeaderLayer(
       renderer: _headerRenderer,
       selectionController: _controller.selectionController,
+      freezeConfig: widget.freezeConfig,
       getVisibleColumns: (scrollX, viewportWidth, zoom) {
         // scrollX is already in worksheet coordinates (divided by zoom in the painter)
         // viewportWidth is in screen pixels, so divide by zoom to get worksheet units
@@ -598,6 +615,24 @@ class _WorksheetState extends State<Worksheet>
       },
       onNeedsPaint: () => setState(() {}),
     );
+
+    // Frozen layer (painted on top of tiles, below headers)
+    _frozenLayer?.dispose();
+    _frozenLayer = widget.freezeConfig.hasFrozenPanes
+        ? (FrozenLayer(
+            freezeConfig: widget.freezeConfig,
+            data: widget.data,
+            layoutSolver: _layoutSolver,
+            onNeedsPaint: () => setState(() {}),
+            backgroundColor: theme.cellBackgroundColor,
+            gridlineColor: theme.gridlineColor,
+            defaultTextColor: theme.textColor,
+            defaultFontSize: theme.fontSize,
+            defaultFontFamily: theme.fontFamily,
+            cellPadding: theme.cellPadding,
+            devicePixelRatio: devicePixelRatio,
+          )..mergedCells = widget.data.mergedCells)
+        : null;
   }
 
   void _initFormulaRefLayer() {
@@ -2021,6 +2056,7 @@ class _WorksheetState extends State<Worksheet>
         final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
         _selectionLayer.dispose();
         _headerLayer.dispose();
+        _frozenLayer?.dispose();
         _initLayers(theme, devicePixelRatio);
       }
     }
@@ -2048,8 +2084,33 @@ class _WorksheetState extends State<Worksheet>
       _tileManager.dispose();
       _selectionLayer.dispose();
       _headerLayer.dispose();
+      _frozenLayer?.dispose();
       _initRendering(theme, devicePixelRatio);
       _initLayers(theme, devicePixelRatio);
+    } else if (widget.freezeConfig != oldWidget.freezeConfig && _initialized) {
+      // Freeze config changed without data change — recreate frozen layer
+      final theme = WorksheetTheme.of(context);
+      final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
+      _frozenLayer?.dispose();
+      _frozenLayer = widget.freezeConfig.hasFrozenPanes
+          ? (FrozenLayer(
+              freezeConfig: widget.freezeConfig,
+              data: widget.data,
+              layoutSolver: _layoutSolver,
+              onNeedsPaint: () => setState(() {}),
+              backgroundColor: theme.cellBackgroundColor,
+              gridlineColor: theme.gridlineColor,
+              defaultTextColor: theme.textColor,
+              defaultFontSize: theme.fontSize,
+              defaultFontFamily: theme.fontFamily,
+              cellPadding: theme.cellPadding,
+              devicePixelRatio: devicePixelRatio,
+            )..mergedCells = widget.data.mergedCells)
+          : null;
+      _hitTester.freezeConfig = widget.freezeConfig;
+      _controller.freezeConfig = widget.freezeConfig;
+      _scrollSuppressor.freezeConfig = widget.freezeConfig;
+      _headerLayer.freezeConfig = widget.freezeConfig;
     }
   }
 
@@ -2066,6 +2127,7 @@ class _WorksheetState extends State<Worksheet>
       if (_lastTheme != null) {
         _selectionLayer.dispose();
         _headerLayer.dispose();
+        _frozenLayer?.dispose();
         _tileManager.dispose();
         _initRendering(theme, devicePixelRatio);
         _initLayers(theme, devicePixelRatio);
@@ -2081,6 +2143,7 @@ class _WorksheetState extends State<Worksheet>
     if (_initialized) {
       _selectionLayer.dispose();
       _headerLayer.dispose();
+      _frozenLayer?.dispose();
       _tileManager.dispose();
       _initialized = false;
     }
@@ -2101,6 +2164,7 @@ class _WorksheetState extends State<Worksheet>
     if (_initialized) {
       _selectionLayer.dispose();
       _headerLayer.dispose();
+      _frozenLayer?.dispose();
       _tileManager.dispose();
     }
     _formulaRefLayer?.dispose();
@@ -2932,6 +2996,68 @@ class _WorksheetState extends State<Worksheet>
                               ),
                             ),
 
+                          // Frozen panes layer (on top of selection, below headers)
+                          if (_frozenLayer != null)
+                            Positioned.fill(
+                              child: IgnorePointer(
+                                child: CustomPaint(
+                                  painter: _FrozenLayerPainter(
+                                    layer: _frozenLayer!,
+                                    scrollOffset: Offset(
+                                      _controller.scrollX / _controller.zoom,
+                                      _controller.scrollY / _controller.zoom,
+                                    ),
+                                    zoom: _controller.zoom,
+                                    headerOffset: Offset(
+                                      theme.showHeaders
+                                          ? theme.rowHeaderWidth *
+                                              _controller.zoom
+                                          : 0.0,
+                                      theme.showHeaders
+                                          ? theme.columnHeaderHeight *
+                                              _controller.zoom
+                                          : 0.0,
+                                    ),
+                                    layoutVersion: _layoutVersion,
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                          // Selection on frozen cells (on top of frozen layer)
+                          if (_frozenLayer != null &&
+                              _controller.hasSelection)
+                            Positioned.fill(
+                              child: IgnorePointer(
+                                child: CustomPaint(
+                                  painter: _FrozenSelectionPainter(
+                                    renderer: _selectionRenderer,
+                                    selectionController:
+                                        _controller.selectionController,
+                                    frozenLayer: _frozenLayer!,
+                                    scrollOffset: Offset(
+                                      _controller.scrollX / _controller.zoom,
+                                      _controller.scrollY / _controller.zoom,
+                                    ),
+                                    zoom: _controller.zoom,
+                                    headerOffset: Offset(
+                                      theme.showHeaders
+                                          ? theme.rowHeaderWidth *
+                                              _controller.zoom
+                                          : 0.0,
+                                      theme.showHeaders
+                                          ? theme.columnHeaderHeight *
+                                              _controller.zoom
+                                          : 0.0,
+                                    ),
+                                    layoutVersion: _layoutVersion,
+                                    showFillHandle: !widget.readOnly &&
+                                        !_isMobileMode,
+                                  ),
+                                ),
+                              ),
+                            ),
+
                           // Headers layer (fixed position)
                           if (theme.showHeaders)
                             Positioned.fill(
@@ -3527,14 +3653,188 @@ class _HeaderPainter extends CustomPainter {
   }
 }
 
-/// Mutable flag shared between the widget state and [_SuppressibleBouncingPhysics].
+/// Custom painter for frozen panes layer.
+class _FrozenLayerPainter extends CustomPainter {
+  final FrozenLayer layer;
+  final Offset scrollOffset;
+  final double zoom;
+  final Offset headerOffset;
+  final int layoutVersion;
+
+  _FrozenLayerPainter({
+    required this.layer,
+    required this.scrollOffset,
+    required this.zoom,
+    required this.headerOffset,
+    required this.layoutVersion,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final contentW = size.width - headerOffset.dx;
+    final contentH = size.height - headerOffset.dy;
+
+    canvas.save();
+    canvas.translate(headerOffset.dx, headerOffset.dy);
+    canvas.clipRect(Rect.fromLTWH(0, 0, contentW, contentH));
+
+    layer.paint(
+      LayerPaintContext(
+        canvas: canvas,
+        viewportSize: Size(contentW, contentH),
+        scrollOffset: scrollOffset,
+        zoom: zoom,
+      ),
+    );
+
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_FrozenLayerPainter oldDelegate) {
+    return layer != oldDelegate.layer ||
+        scrollOffset != oldDelegate.scrollOffset ||
+        zoom != oldDelegate.zoom ||
+        headerOffset != oldDelegate.headerOffset ||
+        layoutVersion != oldDelegate.layoutVersion;
+  }
+}
+
+/// Paints selection indicators on top of the frozen layer.
+///
+/// The frozen layer covers the normal selection layer, so this painter
+/// re-renders selection in the 3 frozen regions (corner, frozen rows,
+/// frozen columns) with adjusted scroll offsets so the selection appears
+/// at the correct fixed position.
+class _FrozenSelectionPainter extends CustomPainter {
+  final SelectionRenderer renderer;
+  final SelectionController selectionController;
+  final FrozenLayer frozenLayer;
+  final Offset scrollOffset; // worksheet coordinates
+  final double zoom;
+  final Offset headerOffset;
+  final int layoutVersion;
+  final bool showFillHandle;
+
+  _FrozenSelectionPainter({
+    required this.renderer,
+    required this.selectionController,
+    required this.frozenLayer,
+    required this.scrollOffset,
+    required this.zoom,
+    required this.headerOffset,
+    required this.layoutVersion,
+    required this.showFillHandle,
+  }) : super(repaint: selectionController);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final range = selectionController.selectedRange;
+    if (range == null) return;
+
+    final freezeConfig = frozenLayer.freezeConfig;
+    if (!freezeConfig.hasFrozenPanes) return;
+
+    final contentW = size.width - headerOffset.dx;
+    final contentH = size.height - headerOffset.dy;
+    final frozenColsW = frozenLayer.frozenColumnsWidth * zoom;
+    final frozenRowsH = frozenLayer.frozenRowsHeight * zoom;
+
+    canvas.save();
+    canvas.translate(headerOffset.dx, headerOffset.dy);
+
+    // Corner region: no scroll on either axis
+    if (freezeConfig.hasFrozenRows && freezeConfig.hasFrozenColumns) {
+      canvas.save();
+      canvas.clipRect(Rect.fromLTWH(0, 0, frozenColsW, frozenRowsH));
+      _paintSelection(canvas, Offset.zero);
+      canvas.restore();
+    }
+
+    // Frozen rows strip: scrollX applied, no scrollY
+    if (freezeConfig.hasFrozenRows) {
+      final left = freezeConfig.hasFrozenColumns ? frozenColsW : 0.0;
+      canvas.save();
+      canvas.clipRect(
+          Rect.fromLTWH(left, 0, contentW - left, frozenRowsH));
+      _paintSelection(canvas, Offset(scrollOffset.dx, 0));
+      canvas.restore();
+    }
+
+    // Frozen columns strip: no scrollX, scrollY applied
+    if (freezeConfig.hasFrozenColumns) {
+      final top = freezeConfig.hasFrozenRows ? frozenRowsH : 0.0;
+      canvas.save();
+      canvas.clipRect(
+          Rect.fromLTWH(0, top, frozenColsW, contentH - top));
+      _paintSelection(canvas, Offset(0, scrollOffset.dy));
+      canvas.restore();
+    }
+
+    canvas.restore();
+  }
+
+  void _paintSelection(Canvas canvas, Offset viewportOffset) {
+    final range = selectionController.selectedRange!;
+    final anchor = selectionController.anchor;
+
+    if (range.cellCount == 1 && anchor != null) {
+      renderer.paintSingleCell(
+        canvas: canvas,
+        viewportOffset: viewportOffset,
+        zoom: zoom,
+        cell: anchor,
+      );
+    } else {
+      renderer.paintSelection(
+        canvas: canvas,
+        viewportOffset: viewportOffset,
+        zoom: zoom,
+        range: range,
+        anchorCell: anchor,
+      );
+    }
+
+    if (showFillHandle) {
+      renderer.paintFillHandle(
+        canvas: canvas,
+        viewportOffset: viewportOffset,
+        zoom: zoom,
+        range: range,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_FrozenSelectionPainter oldDelegate) {
+    return renderer != oldDelegate.renderer ||
+        selectionController != oldDelegate.selectionController ||
+        frozenLayer != oldDelegate.frozenLayer ||
+        scrollOffset != oldDelegate.scrollOffset ||
+        zoom != oldDelegate.zoom ||
+        headerOffset != oldDelegate.headerOffset ||
+        layoutVersion != oldDelegate.layoutVersion ||
+        showFillHandle != oldDelegate.showFillHandle;
+  }
+}
+
+/// Mutable flags shared between the widget state and
+/// [SuppressibleBouncingPhysics].
 ///
 /// When [suppress] is `true`, the physics returns zero user-offset and no
 /// ballistic simulation, effectively freezing scroll position for user
 /// gestures while still allowing programmatic [ScrollController.jumpTo].
+///
+/// When [freezeConfig] has frozen panes, overscroll at the min extent is
+/// prevented on the frozen axis so that frozen rows/columns stay flush
+/// with the non-frozen content (no elastic gap at the frozen boundary).
 class ScrollSuppressor {
   /// Whether to suppress user-initiated scrolling.
   bool suppress = false;
+
+  /// Current freeze configuration. When frozen panes exist, overscroll at
+  /// the start (min extent) is clamped on the corresponding axis.
+  FreezeConfig freezeConfig = FreezeConfig.none;
 }
 
 /// [BouncingScrollPhysics] variant that can be temporarily suppressed via a
@@ -3543,6 +3843,9 @@ class ScrollSuppressor {
 /// This is used during selection-handle and resize-handle touch drags to
 /// prevent the [TwoDimensionalScrollable] from scrolling in response to the
 /// same pointer, while still allowing auto-scroll via [ScrollController.jumpTo].
+///
+/// When frozen panes are active, overscroll at the min extent (start) is
+/// prevented on the frozen axis so frozen rows/columns stay anchored.
 class SuppressibleBouncingPhysics extends BouncingScrollPhysics {
   /// Creates physics that delegates to [BouncingScrollPhysics] unless
   /// [suppressor.suppress] is `true`.
@@ -3558,6 +3861,23 @@ class SuppressibleBouncingPhysics extends BouncingScrollPhysics {
       suppressor: suppressor,
       parent: buildParent(ancestor),
     );
+  }
+
+  @override
+  double applyBoundaryConditions(ScrollMetrics position, double value) {
+    // When frozen panes exist, prevent overscroll at the start (min extent)
+    // on the frozen axis. This keeps frozen rows/columns flush with non-
+    // frozen content — no elastic gap at the frozen boundary.
+    final freeze = suppressor.freezeConfig;
+    if (freeze.hasFrozenPanes) {
+      final hasFreezeOnAxis = position.axis == Axis.vertical
+          ? freeze.hasFrozenRows
+          : freeze.hasFrozenColumns;
+      if (hasFreezeOnAxis && value < position.minScrollExtent) {
+        return value - position.minScrollExtent;
+      }
+    }
+    return super.applyBoundaryConditions(position, value);
   }
 
   @override

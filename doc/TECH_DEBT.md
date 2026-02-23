@@ -69,9 +69,14 @@ This document tracks known technical debt, architectural bottlenecks, and sugges
   - **Dependency Tracking:** Integrate the engine's `DependencyGraph` to track cell relationships. When `WorksheetData` changes, use the graph to identify and re-evaluate only the affected dependent cells, triggering targeted `TileManager.invalidateRange` calls.
   - **Asynchronous Evaluation:** For complex sheets, evaluate formulas in a background isolate or using microtasks to prevent blocking the UI thread during large-scale recalculations.
 
-### Frozen Panes Integration
-- **Current State:** `FrozenLayer` infrastructure exists but isn't fully wired into the main viewport scrolling logic.
-- **Suggestion:** Complete the implementation of `WorksheetViewport` to support fixed "sticky" regions that don't move with the main scroll.
+### Frozen Panes Integration — RESOLVED
+- **Resolution:** Wired existing `FreezeConfig` model and `FrozenLayer` renderer into the `Worksheet` widget with full integration across all subsystems:
+  1. **Widget integration:** Added `freezeConfig` property to `Worksheet`, `FrozenLayer` lifecycle management (init, didUpdateWidget, dispose, reassemble), `_FrozenLayerPainter` and `_FrozenSelectionPainter` in the build Stack (between selection and headers).
+  2. **Hit testing:** `WorksheetHitTester.screenToWorksheet()` suppresses scroll offset on frozen axes so taps in frozen regions resolve to the correct unscrolled cell.
+  3. **Scroll-to-cell:** `WorksheetController.scrollToCell()` skips scrolling for frozen cells and reduces visible area by frozen dimensions when scrolling to non-frozen cells.
+  4. **Elastic overscroll suppression:** `SuppressibleBouncingPhysics.applyBoundaryConditions()` prevents overscroll at min extent on axes with frozen panes, keeping frozen content flush with non-frozen content (no elastic gap at the frozen boundary). Bottom/right bounce is unaffected.
+  5. **Frozen headers:** `HeaderLayer` overpaints frozen column/row headers at fixed positions (zero scroll offset on the frozen axis) with separator lines at the freeze boundary matching the `FrozenLayer` separator style.
+- **New files:** `example/frozen_panes.dart`, `test/widgets/frozen_panes_integration_test.dart`
 
 ### Undo/Redo System
 - **Current State:** No built-in support for undoing edits or formatting changes.
@@ -101,5 +106,5 @@ This document tracks known technical debt, architectural bottlenecks, and sugges
 9. ~~**Change Notification Thrashing**~~ — RESOLVED (batched commit paths + microtask coalescing).
 
 ### Open
-10. **Low Priority (Features):** Formula Engine Integration, Frozen Panes, Undo/Redo.
+10. **Low Priority (Features):** Formula Engine Integration, ~~Frozen Panes~~, Undo/Redo.
 11. **Low Priority (Testing):** Golden test coverage for complex rendering states.

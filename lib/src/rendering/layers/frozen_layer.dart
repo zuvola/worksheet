@@ -288,6 +288,8 @@ class FrozenLayer extends RenderLayer {
     final endCol = (visibleColEnd + 1).clamp(0, layoutSolver.columnCount - 1);
 
     // Paint cells
+    // Cell coordinates are absolute — don't add bounds.left offset.
+    // The clip rect handles hiding content that overlaps the frozen columns.
     final frozenRowsRendered = <CellCoordinate>{};
     for (int row = 0; row < _freezeConfig.frozenRows; row++) {
       for (int col = startCol; col <= endCol; col++) {
@@ -302,7 +304,7 @@ class FrozenLayer extends RenderLayer {
 
         final cellBounds = layoutSolver.getCellBounds(renderCoord);
         final scaledBounds = Rect.fromLTWH(
-          (cellBounds.left - scrollX) * zoom + bounds.left,
+          (cellBounds.left - scrollX) * zoom,
           cellBounds.top * zoom,
           cellBounds.width * zoom,
           cellBounds.height * zoom,
@@ -325,13 +327,11 @@ class FrozenLayer extends RenderLayer {
       scrollX,
       0,
       zoom,
-      offsetX: bounds.left,
     );
 
     // Paint borders on top of all cell backgrounds (fixes z-order)
     if (zoom >= 0.4) {
       final frozenRowsScrollX = scrollX;
-      final frozenRowsBoundsLeft = bounds.left;
       CellBorderRenderer.renderBorders(
         canvas: canvas,
         borderPaint: _borderPaint,
@@ -346,7 +346,7 @@ class FrozenLayer extends RenderLayer {
         getBounds: (coord) {
           final cellBounds = layoutSolver.getCellBounds(coord);
           return Rect.fromLTWH(
-            (cellBounds.left - frozenRowsScrollX) * zoom + frozenRowsBoundsLeft,
+            (cellBounds.left - frozenRowsScrollX) * zoom,
             cellBounds.top * zoom,
             cellBounds.width * zoom,
             cellBounds.height * zoom,
@@ -383,6 +383,8 @@ class FrozenLayer extends RenderLayer {
     final endRow = (visibleRowEnd + 1).clamp(0, layoutSolver.rowCount - 1);
 
     // Paint cells
+    // Cell coordinates are absolute — don't add bounds.top offset.
+    // The clip rect handles hiding content that overlaps the frozen rows.
     final frozenColsRendered = <CellCoordinate>{};
     for (int row = startRow; row <= endRow; row++) {
       for (int col = 0; col < _freezeConfig.frozenColumns; col++) {
@@ -398,7 +400,7 @@ class FrozenLayer extends RenderLayer {
         final cellBounds = layoutSolver.getCellBounds(renderCoord);
         final scaledBounds = Rect.fromLTWH(
           cellBounds.left * zoom,
-          (cellBounds.top - scrollY) * zoom + bounds.top,
+          (cellBounds.top - scrollY) * zoom,
           cellBounds.width * zoom,
           cellBounds.height * zoom,
         );
@@ -420,13 +422,11 @@ class FrozenLayer extends RenderLayer {
       0,
       scrollY,
       zoom,
-      offsetY: bounds.top,
     );
 
     // Paint borders on top of all cell backgrounds (fixes z-order)
     if (zoom >= 0.4) {
       final frozenColsScrollY = scrollY;
-      final frozenColsBoundsTop = bounds.top;
       CellBorderRenderer.renderBorders(
         canvas: canvas,
         borderPaint: _borderPaint,
@@ -442,7 +442,7 @@ class FrozenLayer extends RenderLayer {
           final cellBounds = layoutSolver.getCellBounds(coord);
           return Rect.fromLTWH(
             cellBounds.left * zoom,
-            (cellBounds.top - frozenColsScrollY) * zoom + frozenColsBoundsTop,
+            (cellBounds.top - frozenColsScrollY) * zoom,
             cellBounds.width * zoom,
             cellBounds.height * zoom,
           );

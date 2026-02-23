@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import '../core/geometry/layout_solver.dart';
 import '../core/models/cell_coordinate.dart';
 import '../core/models/cell_range.dart';
+import '../core/models/freeze_config.dart';
 import '../interaction/controllers/selection_controller.dart';
 import '../interaction/controllers/zoom_controller.dart';
 
@@ -35,6 +36,12 @@ class WorksheetController extends ChangeNotifier {
   LayoutSolver? _layoutSolver;
   double _headerWidth = 0.0;
   double _headerHeight = 0.0;
+
+  /// Configuration for frozen (pinned) rows and columns.
+  ///
+  /// Used by [scrollToCell] to skip scrolling for frozen cells and to
+  /// account for frozen dimensions when scrolling to non-frozen cells.
+  FreezeConfig freezeConfig = FreezeConfig.none;
 
   // Zoom tracking for anchor-preserving scroll adjustment.
   double _previousZoom;
@@ -305,29 +312,55 @@ class WorksheetController extends ChangeNotifier {
     final cellWidth = getColumnWidth(cell.column) * zoom;
     final cellHeight = getRowHeight(cell.row) * zoom;
 
-    final visibleWidth = viewportSize.width - headerWidth;
-    final visibleHeight = viewportSize.height - headerHeight;
+    // Compute frozen dimensions in screen pixels
+    double frozenColumnsWidth = 0.0;
+    double frozenRowsHeight = 0.0;
+    if (freezeConfig.hasFrozenColumns) {
+      for (int col = 0; col < freezeConfig.frozenColumns; col++) {
+        frozenColumnsWidth += getColumnWidth(col) * zoom;
+      }
+    }
+    if (freezeConfig.hasFrozenRows) {
+      for (int row = 0; row < freezeConfig.frozenRows; row++) {
+        frozenRowsHeight += getRowHeight(row) * zoom;
+      }
+    }
+
+    // Reduce visible area by frozen dimensions (frozen panes occupy space)
+    final visibleWidth = viewportSize.width - headerWidth - frozenColumnsWidth;
+    final visibleHeight = viewportSize.height - headerHeight - frozenRowsHeight;
 
     // Calculate target scroll positions
     double? targetX;
     double? targetY;
 
+    // Skip scrolling on frozen axes — frozen cells are always visible
+    final isFrozenColumn = freezeConfig.isFrozenColumn(cell.column);
+    final isFrozenRow = freezeConfig.isFrozenRow(cell.row);
+
     // Horizontal scrolling
-    if (cellLeft < scrollX) {
-      // Cell is to the left of the viewport
-      targetX = cellLeft;
-    } else if (cellLeft + cellWidth > scrollX + visibleWidth) {
-      // Cell is to the right of the viewport
-      targetX = cellLeft + cellWidth - visibleWidth;
+    if (!isFrozenColumn) {
+      // Compare against scrollable origin (scroll + frozen width)
+      if (cellLeft < scrollX + frozenColumnsWidth) {
+        // Cell is to the left of the scrollable area
+        targetX = cellLeft - frozenColumnsWidth;
+      } else if (cellLeft + cellWidth >
+          scrollX + frozenColumnsWidth + visibleWidth) {
+        // Cell is to the right of the scrollable area
+        targetX = cellLeft + cellWidth - frozenColumnsWidth - visibleWidth;
+      }
     }
 
     // Vertical scrolling
-    if (cellTop < scrollY) {
-      // Cell is above the viewport
-      targetY = cellTop;
-    } else if (cellTop + cellHeight > scrollY + visibleHeight) {
-      // Cell is below the viewport
-      targetY = cellTop + cellHeight - visibleHeight;
+    if (!isFrozenRow) {
+      if (cellTop < scrollY + frozenRowsHeight) {
+        // Cell is above the scrollable area
+        targetY = cellTop - frozenRowsHeight;
+      } else if (cellTop + cellHeight >
+          scrollY + frozenRowsHeight + visibleHeight) {
+        // Cell is below the scrollable area
+        targetY = cellTop + cellHeight - frozenRowsHeight - visibleHeight;
+      }
     }
 
     // Perform scrolling

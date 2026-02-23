@@ -5,6 +5,7 @@ import 'package:worksheet/src/core/geometry/layout_solver.dart';
 import 'package:worksheet/src/core/geometry/span_list.dart';
 import 'package:worksheet/src/core/models/cell_coordinate.dart';
 import 'package:worksheet/src/core/models/cell_range.dart';
+import 'package:worksheet/src/core/models/freeze_config.dart';
 import 'package:worksheet/src/interaction/controllers/selection_controller.dart';
 import 'package:worksheet/src/interaction/controllers/zoom_controller.dart';
 import 'package:worksheet/src/widgets/worksheet_controller.dart';
@@ -1023,6 +1024,112 @@ void main() {
 
         controller.zoomIn();
         expect(notifyCount, 2);
+      });
+    });
+
+    group('frozen pane scroll', () {
+      // Layout: rows 24px each, columns 100px each
+      // Headers: 50px wide, 24px tall
+      // Frozen: 1 row (24px), 1 column (100px)
+
+      testWidgets('scrollToCell for frozen cell does not scroll',
+          (tester) async {
+        await tester.pumpWidget(
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: SizedBox(
+              width: 800,
+              height: 600,
+              child: Stack(
+                children: [
+                  SingleChildScrollView(
+                    controller: controller.horizontalScrollController,
+                    scrollDirection: Axis.horizontal,
+                    child: const SizedBox(width: 10000, height: 100),
+                  ),
+                  SingleChildScrollView(
+                    controller: controller.verticalScrollController,
+                    child: const SizedBox(width: 100, height: 10000),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+
+        // Set initial scroll position
+        controller.horizontalScrollController.jumpTo(500);
+        controller.verticalScrollController.jumpTo(300);
+        await tester.pump();
+
+        controller.freezeConfig =
+            const FreezeConfig(frozenRows: 1, frozenColumns: 1);
+
+        // Try to scroll to a frozen cell (row 0, col 0) — should not change scroll
+        controller.scrollToCell(
+          const CellCoordinate(0, 0),
+          getRowTop: (row) => row * 24.0,
+          getColumnLeft: (col) => col * 100.0,
+          getRowHeight: (_) => 24.0,
+          getColumnWidth: (_) => 100.0,
+          viewportSize: const Size(800, 600),
+          headerWidth: 50.0,
+          headerHeight: 24.0,
+          animate: false,
+        );
+        await tester.pump();
+
+        // Scroll should be unchanged
+        expect(controller.scrollX, 500.0);
+        expect(controller.scrollY, 300.0);
+      });
+
+      testWidgets(
+          'scrollToCell for non-frozen cell accounts for frozen dimensions',
+          (tester) async {
+        await tester.pumpWidget(
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: SizedBox(
+              width: 800,
+              height: 600,
+              child: Stack(
+                children: [
+                  SingleChildScrollView(
+                    controller: controller.horizontalScrollController,
+                    scrollDirection: Axis.horizontal,
+                    child: const SizedBox(width: 10000, height: 100),
+                  ),
+                  SingleChildScrollView(
+                    controller: controller.verticalScrollController,
+                    child: const SizedBox(width: 100, height: 10000),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+
+        controller.freezeConfig =
+            const FreezeConfig(frozenRows: 1, frozenColumns: 1);
+
+        // Scroll to cell (50, 20) — non-frozen cell
+        controller.scrollToCell(
+          const CellCoordinate(50, 20),
+          getRowTop: (row) => row * 24.0,
+          getColumnLeft: (col) => col * 100.0,
+          getRowHeight: (_) => 24.0,
+          getColumnWidth: (_) => 100.0,
+          viewportSize: const Size(800, 600),
+          headerWidth: 50.0,
+          headerHeight: 24.0,
+          animate: false,
+        );
+        await tester.pump();
+
+        // Should have scrolled
+        expect(controller.scrollX, greaterThan(0));
+        expect(controller.scrollY, greaterThan(0));
       });
     });
   });

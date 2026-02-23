@@ -3,6 +3,7 @@ import 'dart:ui';
 import '../../core/geometry/layout_solver.dart';
 import '../../core/models/cell_coordinate.dart';
 import '../../core/models/cell_range.dart';
+import '../../core/models/freeze_config.dart';
 import 'hit_test_result.dart';
 
 /// Resolves screen coordinates to worksheet elements.
@@ -19,11 +20,18 @@ class WorksheetHitTester {
   /// Height of the column header area.
   final double headerHeight;
 
+  /// Configuration for frozen rows/columns.
+  ///
+  /// When set, clicks in frozen regions don't apply scroll offset on the
+  /// frozen axis, so frozen cells resolve correctly regardless of scroll.
+  FreezeConfig freezeConfig;
+
   /// Creates a hit tester.
   WorksheetHitTester({
     required this.layoutSolver,
     required this.headerWidth,
     required this.headerHeight,
+    this.freezeConfig = FreezeConfig.none,
   });
 
   /// Performs a hit test at the given screen position.
@@ -220,7 +228,9 @@ class WorksheetHitTester {
 
   /// Converts a screen position to worksheet coordinates.
   ///
-  /// Accounts for headers, scroll offset, and zoom.
+  /// Accounts for headers, scroll offset, zoom, and frozen panes.
+  /// When the position falls within a frozen region's screen extent,
+  /// scroll offset is not applied on that axis.
   Offset screenToWorksheet({
     required Offset screenPosition,
     required Offset scrollOffset,
@@ -232,10 +242,25 @@ class WorksheetHitTester {
     final viewportX = screenPosition.dx - scaledHeaderWidth;
     final viewportY = screenPosition.dy - scaledHeaderHeight;
 
-    // Convert to worksheet coordinates (accounting for zoom and scroll)
-    // Scroll offset is in screen coordinates, convert to worksheet
-    final worksheetScrollX = scrollOffset.dx / zoom;
-    final worksheetScrollY = scrollOffset.dy / zoom;
+    // Compute frozen region screen extents
+    double frozenColsScreenWidth = 0.0;
+    double frozenRowsScreenHeight = 0.0;
+    if (freezeConfig.hasFrozenColumns) {
+      for (int col = 0; col < freezeConfig.frozenColumns; col++) {
+        frozenColsScreenWidth += layoutSolver.getColumnWidth(col) * zoom;
+      }
+    }
+    if (freezeConfig.hasFrozenRows) {
+      for (int row = 0; row < freezeConfig.frozenRows; row++) {
+        frozenRowsScreenHeight += layoutSolver.getRowHeight(row) * zoom;
+      }
+    }
+
+    // If position is in frozen region, don't apply scroll on that axis
+    final worksheetScrollX =
+        viewportX < frozenColsScreenWidth ? 0.0 : scrollOffset.dx / zoom;
+    final worksheetScrollY =
+        viewportY < frozenRowsScreenHeight ? 0.0 : scrollOffset.dy / zoom;
 
     return Offset(
       viewportX / zoom + worksheetScrollX,

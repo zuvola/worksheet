@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.4.0] - 2026-02-23
+
+### Added
+- **Frozen panes** — `Worksheet.freezeConfig` property wires existing `FreezeConfig` model and `FrozenLayer` renderer into the widget for pinned rows and columns
+- `_FrozenLayerPainter` renders frozen cells on top of scrolling content with opaque backgrounds, gridlines, text spillover, and separator lines at the freeze boundary
+- `_FrozenSelectionPainter` renders selection indicators in the three frozen regions (corner, frozen rows, frozen columns) with adjusted scroll offsets
+- Frozen-aware hit testing — taps in frozen regions resolve to the correct unscrolled cell
+- Frozen-aware `scrollToCell()` — skips scrolling for frozen cells and accounts for frozen dimensions when scrolling to non-frozen cells
+- Frozen headers — column/row headers for frozen panes stay pinned alongside their content cells with separator lines at the freeze boundary
+- Elastic overscroll suppression on frozen axes — prevents bounce gap at the frozen boundary while preserving bottom/right bounce
+- `example/frozen_panes.dart` — interactive example with +/- controls and presets for frozen rows and columns
+
 ## [3.3.0] - 2026-02-21
 
 ### Added
