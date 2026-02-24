@@ -81,9 +81,9 @@ This document tracks known technical debt, architectural bottlenecks, and sugges
 
 ## 6. Testing & Quality
 
-### Golden Test Coverage
-- **Current State:** Limited golden tests for complex rendering states (merges + spillover + borders).
-- **Suggestion:** Add more golden tests covering edge cases of the rendering pipeline.
+### Golden Test Coverage — RESOLVED
+- **Resolution:** Added 7 golden tests covering complex rendering states: merges with gridline suppression, text spillover (including hash fill), border styles and junctions (all 4 line styles, thick/thin conflict resolution, double-border corners), rich text styles (multi-span, aligned, merged), wrap text with vertical alignment, format-driven styling (currency/percentage/date/scientific/duration with conditional colors), and a kitchen-sink invoice integration test combining merges, spillover, borders, currency formatting, wrap text, and hash fill.
+- **New files:** `test/golden/golden_test_helpers.dart` (shared helpers), `test/golden/complex_rendering_golden_test.dart` (7 tests).
 
 ## Summary of Priority Actions
 
@@ -102,6 +102,8 @@ This document tracks known technical debt, architectural bottlenecks, and sugges
 ### Resolved (Data)
 9. ~~**Change Notification Thrashing**~~ — RESOLVED (batched commit paths + microtask coalescing).
 
+### Resolved (Testing)
+10. ~~**Golden Test Coverage**~~ — RESOLVED (7 golden tests for complex rendering states).
+
 ### Open
-10. **Low Priority (Features):** Formula Engine Integration.
-11. **Low Priority (Testing):** Golden test coverage for complex rendering states.
+11. **Low Priority (Features):** Formula Engine Integration.

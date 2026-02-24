@@ -1,38 +1,21 @@
 @Tags(['golden'])
 library;
 
-import 'dart:io';
-
 import 'package:flutter/material.dart' hide BorderStyle;
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worksheet/worksheet.dart';
+
+import 'golden_test_helpers.dart';
 
 void main() {
   const Size surfaceSize = Size(700, 350);
 
   setUpAll(() async {
-    // Load all Roboto variants under the package-resolved name.
-    // When a package declares fonts, Flutter registers them as
-    // 'packages/<package>/<family>', so golden tests must match.
-    final fontLoader = FontLoader('packages/worksheet/Roboto');
-    for (final fileName in [
-      'Roboto-Regular.ttf',
-      'Roboto-Bold.ttf',
-      'Roboto-Italic.ttf',
-      'Roboto-BoldItalic.ttf',
-    ]) {
-      final fontData = File('assets/fonts/$fileName').readAsBytesSync();
-      fontLoader.addFont(Future.value(ByteData.view(fontData.buffer)));
-    }
-    await fontLoader.load();
+    await loadGoldenFonts();
   });
 
   testWidgets('worksheet screenshot', (tester) async {
-    // Set surface size for consistent golden rendering
-    await tester.binding.setSurfaceSize(surfaceSize);
-    tester.view.physicalSize = surfaceSize;
-    tester.view.devicePixelRatio = 1.0;
+    await setupGoldenSurface(tester, surfaceSize);
 
     // Create sample data
     final data = SparseWorksheetData(rowCount: 100, columnCount: 26);
@@ -79,26 +62,7 @@ void main() {
 
     // Build widget
     await tester.pumpWidget(
-      MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(fontFamily: 'Roboto'),
-        home: Scaffold(
-          body: WorksheetTheme(
-            data: const WorksheetThemeData(
-              fontFamily: 'Roboto',
-              defaultColumnWidth: 90,
-              defaultRowHeight: 30,
-              rowHeaderWidth: 45,
-              columnHeaderHeight: 30,
-            ),
-            child: Worksheet(
-              data: data,
-              rowCount: 100,
-              columnCount: 26,
-            ),
-          ),
-        ),
-      ),
+      goldenWorksheetApp(data: data),
     );
 
     await tester.pumpAndSettle();
@@ -108,9 +72,6 @@ void main() {
       matchesGoldenFile('worksheet_screenshot.png'),
     );
 
-    // Reset surface size
-    await tester.binding.setSurfaceSize(null);
-    tester.view.resetPhysicalSize();
-    tester.view.resetDevicePixelRatio();
+    await resetGoldenSurface(tester);
   });
 }
