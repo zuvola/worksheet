@@ -90,6 +90,7 @@ export 'src/rendering/painters/header_renderer.dart';
 
 // Rendering - Layers
 export 'src/rendering/layers/render_layer.dart';
+export 'src/rendering/layers/cut_indicator_layer.dart';
 export 'src/rendering/layers/formula_reference_layer.dart';
 export 'src/rendering/layers/selection_layer.dart';
 export 'src/rendering/layers/header_layer.dart';

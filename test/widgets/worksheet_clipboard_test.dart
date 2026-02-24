@@ -128,13 +128,14 @@ void main() {
       await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
       await tester.pump();
 
-      // Cell should be cleared
-      expect(data.getCell(const CellCoordinate(2, 2)), isNull);
+      // Cell should NOT be cleared yet (deferred cut — marching ants shown)
+      expect(data.getCell(const CellCoordinate(2, 2)),
+          const CellValue.text('CutMe'));
 
       // Value should be on clipboard
       expect(clipboardContent, 'CutMe');
 
-      // Layout version should have incremented
+      // Layout version should have incremented (cut indicator repaint)
       expect(renderObject.layoutVersion, greaterThan(versionBefore));
     });
 

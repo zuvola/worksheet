@@ -70,23 +70,56 @@ void main() {
   });
 
   group('ClipboardHandler.cut', () {
-    test('writes TSV to clipboard and clears source cells', () async {
+    test('writes TSV to clipboard and returns cut range without clearing', () async {
       data[(0, 0)] = 'A'.cell;
       data[(0, 1)] = 'B'.cell;
       selectionController.selectRange(const CellRange(0, 0, 0, 1));
 
-      await handler.cut();
+      final range = await handler.cut();
 
       expect(mockClipboardText, 'A\tB');
+      expect(range, const CellRange(0, 0, 0, 1));
 
-      // Source cells should be cleared
+      // Source cells should NOT be cleared (deferred cut)
+      expect(data.getCell(const CellCoordinate(0, 0)), const CellValue.text('A'));
+      expect(data.getCell(const CellCoordinate(0, 1)), const CellValue.text('B'));
+    });
+
+    test('does nothing with no selection', () async {
+      final range = await handler.cut();
+      expect(mockClipboardText, isNull);
+      expect(range, isNull);
+    });
+  });
+
+  group('ClipboardHandler.completeCut', () {
+    test('clears source cells', () {
+      data[(0, 0)] = 'A'.cell;
+      data[(0, 1)] = 'B'.cell;
+
+      handler.completeCut(const CellRange(0, 0, 0, 1));
+
       expect(data.getCell(const CellCoordinate(0, 0)), isNull);
       expect(data.getCell(const CellCoordinate(0, 1)), isNull);
     });
 
-    test('does nothing with no selection', () async {
-      await handler.cut();
-      expect(mockClipboardText, isNull);
+    test('wraps clear in recordUndo when provided', () {
+      data[(0, 0)] = 'X'.cell;
+      String? recordedLabel;
+      CellRange? recordedRange;
+
+      handler.completeCut(
+        const CellRange(0, 0, 0, 0),
+        recordUndo: (label, range, mutation) {
+          recordedLabel = label;
+          recordedRange = range;
+          mutation();
+        },
+      );
+
+      expect(recordedLabel, 'Cut');
+      expect(recordedRange, const CellRange(0, 0, 0, 0));
+      expect(data.getCell(const CellCoordinate(0, 0)), isNull);
     });
   });
 
@@ -176,6 +209,42 @@ void main() {
       await handler.paste();
 
       expect(selectionController.selectedRange, const CellRange(3, 4, 3, 4));
+    });
+
+    test('clears cut source cells when pendingCutRange is provided', () async {
+      data[(0, 0)] = 'A'.cell;
+      data[(0, 1)] = 'B'.cell;
+      mockClipboardText = 'A\tB';
+      selectionController.selectCell(const CellCoordinate(2, 0));
+
+      await handler.paste(pendingCutRange: const CellRange(0, 0, 0, 1));
+
+      // Pasted data should be at new location
+      expect(data.getCell(const CellCoordinate(2, 0)),
+          const CellValue.text('A'));
+      expect(data.getCell(const CellCoordinate(2, 1)),
+          const CellValue.text('B'));
+      // Source cells should be cleared
+      expect(data.getCell(const CellCoordinate(0, 0)), isNull);
+      expect(data.getCell(const CellCoordinate(0, 1)), isNull);
+    });
+
+    test('uses bounding box of paste+cut for undo affectedRange', () async {
+      data[(0, 0)] = 'A'.cell;
+      mockClipboardText = 'A';
+      selectionController.selectCell(const CellCoordinate(5, 5));
+
+      CellRange? recordedRange;
+      await handler.paste(
+        pendingCutRange: const CellRange(0, 0, 0, 0),
+        recordUndo: (label, range, mutation) {
+          recordedRange = range;
+          mutation();
+        },
+      );
+
+      // Bounding box of paste (5,5,5,5) and cut source (0,0,0,0)
+      expect(recordedRange, const CellRange(0, 0, 5, 5));
     });
   });
 }

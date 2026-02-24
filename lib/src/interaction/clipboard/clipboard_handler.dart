@@ -38,18 +38,30 @@ class ClipboardHandler {
     await Clipboard.setData(ClipboardData(text: text));
   }
 
-  /// Cuts the selected cells: copies to clipboard then clears the source cells.
+  /// Copies the selected cells to the clipboard for a deferred cut.
   ///
-  /// Does nothing if no range is selected.
-  /// If [recordUndo] is provided, the synchronous clear is wrapped for undo.
-  Future<void> cut({
-    void Function(String label, CellRange range, void Function() mutation)?
-        recordUndo,
-  }) async {
+  /// Unlike the old immediate-delete behavior, this only copies to the
+  /// clipboard and returns the cut range. The caller is responsible for
+  /// showing marching ants and completing the cut on paste.
+  ///
+  /// Returns the cut range, or null if no range is selected.
+  Future<CellRange?> cut() async {
     final range = selectionController.selectedRange;
-    if (range == null) return;
+    if (range == null) return null;
     final text = serializer.serialize(range, data);
     await Clipboard.setData(ClipboardData(text: text));
+    return range;
+  }
+
+  /// Completes a deferred cut by clearing the source cells.
+  ///
+  /// Called by the paste action after pasting, to remove the original data.
+  /// If [recordUndo] is provided, the clear is wrapped for undo.
+  void completeCut(
+    CellRange range, {
+    void Function(String label, CellRange range, void Function() mutation)?
+        recordUndo,
+  }) {
     if (recordUndo != null) {
       recordUndo('Cut', range, () => data.clearRange(range));
     } else {
@@ -63,11 +75,16 @@ class ClipboardHandler {
   /// worksheet starting at the top-left of the current selection.
   /// Values are clamped to worksheet bounds.
   ///
+  /// When [pendingCutRange] is provided (deferred cut), the paste and source
+  /// clear are combined into a single undo entry whose affected range is the
+  /// bounding box of both the paste destination and the cut source.
+  ///
   /// Does nothing if no range is selected or clipboard is empty.
   /// If [recordUndo] is provided, the synchronous write is wrapped for undo.
   Future<void> paste({
     void Function(String label, CellRange range, void Function() mutation)?
         recordUndo,
+    CellRange? pendingCutRange,
   }) async {
     final range = selectionController.selectedRange;
     if (range == null) return;
@@ -93,10 +110,17 @@ class ClipboardHandler {
           }
         }
       });
+      // Clear the cut source cells as part of the same mutation.
+      if (pendingCutRange != null) {
+        data.clearRange(pendingCutRange);
+      }
       selectionController.selectRange(pasteRange);
     }
     if (recordUndo != null) {
-      recordUndo('Paste', pasteRange, doWrite);
+      final affectedRange = pendingCutRange != null
+          ? pasteRange.union(pendingCutRange)
+          : pasteRange;
+      recordUndo('Paste', affectedRange, doWrite);
     } else {
       doWrite();
     }

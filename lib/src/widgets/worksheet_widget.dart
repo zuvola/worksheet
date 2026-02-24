@@ -38,6 +38,7 @@ import '../core/formula/formula_reference_config.dart';
 import '../core/formula/formula_reference_inserter.dart';
 import '../interaction/controllers/autocomplete_controller.dart';
 import '../widgets/autocomplete_dropdown.dart';
+import '../rendering/layers/cut_indicator_layer.dart';
 import '../rendering/layers/formula_reference_layer.dart';
 import '../rendering/layers/frozen_layer.dart';
 import '../rendering/layers/header_layer.dart';
@@ -355,6 +356,11 @@ class _WorksheetState extends State<Worksheet>
   double? _editingContentAreaWidth; // viewport width minus row header
   double? _editingContentAreaHeight; // viewport height minus col header
 
+  // Cut indicator state (deferred cut with marching ants)
+  CutIndicatorLayer? _cutIndicatorLayer;
+  AnimationController? _cutAntsController;
+  CellRange? _cutRange;
+
   // Formula reference editing state
   FormulaReferenceLayer? _formulaRefLayer;
   AnimationController? _marchingAntsController;
@@ -441,6 +447,23 @@ class _WorksheetState extends State<Worksheet>
 
   @override
   UndoManager? get undoManager => _controller.undoManager;
+
+  @override
+  CellRange? get pendingCutRange => _cutRange;
+
+  @override
+  void setPendingCutRange(CellRange? range) {
+    if (_cutRange == range) return;
+    _cutRange = range;
+    _cutIndicatorLayer?.range = range;
+    if (range != null) {
+      _cutAntsController?.repeat();
+    } else {
+      _cutAntsController?.stop();
+      _cutAntsController?.reset();
+    }
+    invalidateAndRebuild();
+  }
 
   @override
   void ensureSelectionVisible() => _ensureSelectionVisible();
@@ -652,6 +675,7 @@ class _WorksheetState extends State<Worksheet>
     );
 
     _initFormulaRefLayer();
+    _initCutIndicatorLayer();
 
     _headerLayer = HeaderLayer(
       renderer: _headerRenderer,
@@ -711,6 +735,36 @@ class _WorksheetState extends State<Worksheet>
             layer.markNeedsPaint();
           }
         });
+    }
+  }
+
+  void _initCutIndicatorLayer() {
+    _cutIndicatorLayer?.dispose();
+    _cutAntsController?.dispose();
+    _cutAntsController = null;
+    _cutIndicatorLayer = null;
+
+    _cutIndicatorLayer = CutIndicatorLayer(
+      layoutSolver: _layoutSolver,
+      onNeedsPaint: () => setState(() {}),
+    );
+
+    _cutAntsController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    )..addListener(() {
+        final layer = _cutIndicatorLayer;
+        if (layer != null && layer.range != null) {
+          layer.animationValue = _cutAntsController!.value;
+          // Repaint is driven by CustomPaint(repaint: _cutAntsController),
+          // so no setState needed here.
+        }
+      });
+
+    // Restore pending cut state if re-initializing.
+    if (_cutRange != null) {
+      _cutIndicatorLayer!.range = _cutRange;
+      _cutAntsController!.repeat();
     }
   }
 
@@ -2224,6 +2278,10 @@ class _WorksheetState extends State<Worksheet>
       _selectionLayer.dispose();
       _headerLayer.dispose();
       _frozenLayer?.dispose();
+      _cutIndicatorLayer?.dispose();
+      _cutAntsController?.dispose();
+      _cutIndicatorLayer = null;
+      _cutAntsController = null;
       _tileManager.dispose();
       _initialized = false;
     }
@@ -2250,6 +2308,8 @@ class _WorksheetState extends State<Worksheet>
     }
     _formulaRefLayer?.dispose();
     _marchingAntsController?.dispose();
+    _cutIndicatorLayer?.dispose();
+    _cutAntsController?.dispose();
     _autocompleteController?.dispose();
     _editorTriggerController.dispose();
     _editorFocusNode.dispose();
@@ -3056,6 +3116,37 @@ class _WorksheetState extends State<Worksheet>
                               ),
                             ),
 
+                          // Cut indicator layer (marching ants on cut range,
+                          // between formula refs and selection).
+                          if (_cutIndicatorLayer != null &&
+                              _cutRange != null)
+                            Positioned.fill(
+                              child: IgnorePointer(
+                                child: CustomPaint(
+                                  painter: _CutIndicatorPainter(
+                                    layer: _cutIndicatorLayer!,
+                                    scrollOffset: Offset(
+                                      _controller.scrollX,
+                                      _controller.scrollY,
+                                    ),
+                                    zoom: _controller.zoom,
+                                    headerOffset: Offset(
+                                      theme.showHeaders
+                                          ? theme.rowHeaderWidth *
+                                              _controller.zoom
+                                          : 0.0,
+                                      theme.showHeaders
+                                          ? theme.columnHeaderHeight *
+                                              _controller.zoom
+                                          : 0.0,
+                                    ),
+                                    layoutVersion: _layoutVersion,
+                                    repaint: _cutAntsController,
+                                  ),
+                                ),
+                              ),
+                            ),
+
                           // Selection layer (painted on top of content)
                           if (theme.showHeaders && _controller.hasSelection)
                             Positioned.fill(
@@ -3647,6 +3738,61 @@ class _FormulaRefPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_FormulaRefPainter oldDelegate) {
+    return layer != oldDelegate.layer ||
+        scrollOffset != oldDelegate.scrollOffset ||
+        zoom != oldDelegate.zoom ||
+        headerOffset != oldDelegate.headerOffset ||
+        layoutVersion != oldDelegate.layoutVersion;
+  }
+}
+
+/// Custom painter for cut indicator (marching ants) layer.
+///
+/// Uses [repaint] (an [AnimationController]) so the marching ants animate
+/// without needing a full widget rebuild per frame.
+class _CutIndicatorPainter extends CustomPainter {
+  final CutIndicatorLayer layer;
+  final Offset scrollOffset;
+  final double zoom;
+  final Offset headerOffset;
+  final int layoutVersion;
+
+  _CutIndicatorPainter({
+    required this.layer,
+    required this.scrollOffset,
+    required this.zoom,
+    required this.headerOffset,
+    required this.layoutVersion,
+    super.repaint,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.save();
+    canvas.translate(headerOffset.dx, headerOffset.dy);
+    canvas.clipRect(
+      Rect.fromLTWH(
+        0,
+        0,
+        size.width - headerOffset.dx,
+        size.height - headerOffset.dy,
+      ),
+    );
+
+    layer.paint(
+      LayerPaintContext(
+        canvas: canvas,
+        viewportSize: size,
+        scrollOffset: scrollOffset,
+        zoom: zoom,
+      ),
+    );
+
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_CutIndicatorPainter oldDelegate) {
     return layer != oldDelegate.layer ||
         scrollOffset != oldDelegate.scrollOffset ||
         zoom != oldDelegate.zoom ||

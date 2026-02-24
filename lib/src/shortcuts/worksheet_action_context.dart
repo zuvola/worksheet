@@ -49,6 +49,15 @@ abstract mixin class WorksheetActionContext {
   FormulaReferenceAdjuster? get formulaReferenceAdjuster =>
       defaultFormulaReferenceAdjuster;
 
+  /// The cell range marked for a deferred cut (marching ants), or null.
+  CellRange? get pendingCutRange => null;
+
+  /// Sets or clears the pending cut range.
+  ///
+  /// When [range] is non-null, starts marching ants animation.
+  /// When null, stops animation and clears the indicator.
+  void setPendingCutRange(CellRange? range) {}
+
   /// The undo manager, or null if undo is not enabled.
   UndoManager? get undoManager => null;
 

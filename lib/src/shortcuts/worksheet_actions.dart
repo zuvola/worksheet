@@ -107,6 +107,9 @@ class SelectAllCellsAction extends Action<SelectAllCellsIntent> {
 }
 
 /// Cancels the current selection extension, collapsing to the focus cell.
+///
+/// If a deferred cut is pending, Escape clears the cut indicator first
+/// (data untouched) without collapsing the selection.
 class CancelSelectionAction extends Action<CancelSelectionIntent> {
   final WorksheetActionContext _context;
 
@@ -114,6 +117,10 @@ class CancelSelectionAction extends Action<CancelSelectionIntent> {
 
   @override
   Object? invoke(CancelSelectionIntent intent) {
+    if (_context.pendingCutRange != null) {
+      _context.setPendingCutRange(null);
+      return null;
+    }
     final focus = _context.selectionController.focus;
     if (focus != null) {
       _context.selectionController.selectCell(focus);
@@ -139,6 +146,8 @@ class EditCellAction extends Action<EditCellIntent> {
 }
 
 /// Copies the selected cells to the system clipboard.
+///
+/// A new copy also cancels any pending cut indicator (marching ants).
 class CopyCellsAction extends Action<CopyCellsIntent> {
   final WorksheetActionContext _context;
 
@@ -151,11 +160,15 @@ class CopyCellsAction extends Action<CopyCellsIntent> {
   @override
   Object? invoke(CopyCellsIntent intent) {
     _context.clipboardHandler.copy();
+    _context.setPendingCutRange(null);
     return null;
   }
 }
 
-/// Cuts the selected cells to the system clipboard.
+/// Cuts the selected cells to the system clipboard (deferred).
+///
+/// Copies to clipboard and shows marching ants on the source range.
+/// The actual data removal happens when the user pastes.
 class CutCellsAction extends Action<CutCellsIntent> {
   final WorksheetActionContext _context;
 
@@ -167,16 +180,19 @@ class CutCellsAction extends Action<CutCellsIntent> {
 
   @override
   Object? invoke(CutCellsIntent intent) {
-    _context.clipboardHandler
-        .cut(recordUndo: _context.undoManager != null ? _context.recordUndo : null)
-        .then((_) {
-      _context.invalidateAndRebuild();
+    _context.clipboardHandler.cut().then((range) {
+      if (range != null) {
+        _context.setPendingCutRange(range);
+      }
     });
     return null;
   }
 }
 
 /// Pastes from the system clipboard at the current selection.
+///
+/// If a deferred cut is pending, completes it: the paste and source clear
+/// are combined into a single undo entry.
 class PasteCellsAction extends Action<PasteCellsIntent> {
   final WorksheetActionContext _context;
 
@@ -188,9 +204,17 @@ class PasteCellsAction extends Action<PasteCellsIntent> {
 
   @override
   Object? invoke(PasteCellsIntent intent) {
+    final cutRange = _context.pendingCutRange;
     _context.clipboardHandler
-        .paste(recordUndo: _context.undoManager != null ? _context.recordUndo : null)
+        .paste(
+      recordUndo:
+          _context.undoManager != null ? _context.recordUndo : null,
+      pendingCutRange: cutRange,
+    )
         .then((_) {
+      if (cutRange != null) {
+        _context.setPendingCutRange(null);
+      }
       _context.invalidateAndRebuild();
     });
     return null;

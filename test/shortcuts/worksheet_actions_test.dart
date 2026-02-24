@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' hide BorderStyle;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worksheet/src/core/data/sparse_worksheet_data.dart';
@@ -17,6 +18,8 @@ import 'package:worksheet/src/shortcuts/worksheet_intents.dart';
 import '../helpers/mock_worksheet_action_context.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late SparseWorksheetData data;
   late SelectionController selectionController;
   late ClipboardHandler clipboardHandler;
@@ -167,6 +170,19 @@ void main() {
 
       expect(selectionController.mode, SelectionMode.single);
       expect(selectionController.focus, focusBefore);
+    });
+
+    test('clears pending cut range without collapsing selection', () {
+      selectionController.extendSelection(const CellCoordinate(8, 8));
+      ctx.setPendingCutRange(const CellRange(0, 0, 1, 1));
+
+      final action = CancelSelectionAction(ctx);
+      action.invoke(const CancelSelectionIntent());
+
+      // Cut indicator should be cleared
+      expect(ctx.pendingCutRange, isNull);
+      // Selection should NOT be collapsed (Escape was consumed by cut cancel)
+      expect(selectionController.mode, SelectionMode.range);
     });
   });
 
@@ -619,6 +635,23 @@ void main() {
       final action = CutCellsAction(ctx);
       expect(action.isEnabled(const CutCellsIntent()), true);
     });
+
+    test('sets pending cut range without clearing cells', () async {
+      _installMockClipboard();
+      addTearDown(_removeMockClipboard);
+
+      data.setCell(const CellCoordinate(5, 5), CellValue.text('Hello'));
+      final action = CutCellsAction(ctx);
+      action.invoke(const CutCellsIntent());
+
+      // Wait for the async clipboard operation to complete.
+      await Future<void>.delayed(Duration.zero);
+
+      expect(ctx.pendingCutRange, const CellRange(5, 5, 5, 5));
+      // Data should NOT be cleared yet (deferred cut)
+      expect(data.getCell(const CellCoordinate(5, 5)),
+          const CellValue.text('Hello'));
+    });
   });
 
   group('PasteCellsAction', () {
@@ -638,6 +671,43 @@ void main() {
     test('is enabled when not readOnly', () {
       final action = PasteCellsAction(ctx);
       expect(action.isEnabled(const PasteCellsIntent()), true);
+    });
+
+    test('clears pending cut range after paste', () async {
+      _installMockClipboard(initialText: 'Hello');
+      addTearDown(_removeMockClipboard);
+
+      data.setCell(const CellCoordinate(0, 0), CellValue.text('Hello'));
+      ctx.setPendingCutRange(const CellRange(0, 0, 0, 0));
+
+      selectionController.selectCell(const CellCoordinate(3, 3));
+      final action = PasteCellsAction(ctx);
+      action.invoke(const PasteCellsIntent());
+
+      // Wait for async clipboard operation.
+      await Future<void>.delayed(Duration.zero);
+
+      // Pending cut should be cleared
+      expect(ctx.pendingCutRange, isNull);
+      // Source should be cleared (deferred cut completed)
+      expect(data.getCell(const CellCoordinate(0, 0)), isNull);
+      // Paste destination should have the value
+      expect(data.getCell(const CellCoordinate(3, 3)),
+          const CellValue.text('Hello'));
+    });
+  });
+
+  group('CopyCellsAction', () {
+    test('clears pending cut indicator', () {
+      _installMockClipboard();
+      addTearDown(_removeMockClipboard);
+
+      ctx.setPendingCutRange(const CellRange(0, 0, 1, 1));
+
+      final action = CopyCellsAction(ctx);
+      action.invoke(const CopyCellsIntent());
+
+      expect(ctx.pendingCutRange, isNull);
     });
   });
 
@@ -1368,4 +1438,28 @@ void main() {
       expect(rtc.hasRichStyles, isTrue);
     });
   });
+}
+
+String? _mockClipboardText;
+
+void _installMockClipboard({String? initialText}) {
+  _mockClipboardText = initialText;
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+    if (call.method == 'Clipboard.setData') {
+      final args = call.arguments as Map<dynamic, dynamic>;
+      _mockClipboardText = args['text'] as String?;
+      return null;
+    }
+    if (call.method == 'Clipboard.getData') {
+      if (_mockClipboardText == null) return null;
+      return <String, dynamic>{'text': _mockClipboardText};
+    }
+    return null;
+  });
+}
+
+void _removeMockClipboard() {
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(SystemChannels.platform, null);
 }
