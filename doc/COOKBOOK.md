@@ -2222,9 +2222,12 @@ final raw = SparseWorksheetData(rowCount: 1000, columnCount: 26);
 final data = FormulaWorksheetData(raw, myEngine);
 
 Worksheet(
-  data: data,  // reads go through the formula layer
+  data: data,     // tile rendering sees evaluated values
+  rawData: raw,   // cell editor sees original formulas
   // ...
 )
 ```
 
-The widget sees evaluated values via `getCell()`, while writes pass through to the underlying `SparseWorksheetData`. The formula engine stays entirely at the consumer layer.
+The widget sees evaluated values via `data.getCell()` for rendering, while the cell editor reads from `rawData` so users edit the original formula text (e.g., `=SUM(A1:A5)`) instead of the computed result (`15`). Writes pass through to the underlying `SparseWorksheetData`. The formula engine stays entirely at the consumer layer.
+
+> **Note:** If you omit `rawData`, the editor shows whatever `data.getCell()` returns — the evaluated result. Always pass `rawData` when your wrapper replaces formula values.

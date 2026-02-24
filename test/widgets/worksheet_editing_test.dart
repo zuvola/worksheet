@@ -2,7 +2,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:worksheet/src/core/data/delegating_worksheet_data.dart';
 import 'package:worksheet/src/core/data/sparse_worksheet_data.dart';
+import 'package:worksheet/src/core/data/worksheet_data.dart';
 import 'package:worksheet/src/core/formula/formula_reference_config.dart';
 import 'package:worksheet/src/core/models/cell_coordinate.dart';
 import 'package:worksheet/src/core/models/cell_style.dart';
@@ -39,6 +41,8 @@ void main() {
     OnEditCellCallback? onEditCell,
     Map<int, double>? customRowHeights,
     double defaultColumnWidth = 100.0,
+    WorksheetData? dataOverride,
+    WorksheetData? rawData,
   }) {
     return MaterialApp(
       home: Scaffold(
@@ -50,7 +54,8 @@ void main() {
             width: 800,
             height: 600,
             child: Worksheet(
-              data: data,
+              data: dataOverride ?? data,
+              rawData: rawData,
               controller: controller,
               editController: ec,
               rowCount: 100,
@@ -911,4 +916,81 @@ void main() {
           reason: 'The reference should have been moved');
     });
   });
+
+  group('rawData parameter', () {
+    testWidgets('F2 shows raw formula when rawData is provided',
+        (tester) async {
+      // Raw data has the original formula.
+      final rawData = SparseWorksheetData(rowCount: 100, columnCount: 26);
+      rawData.setCell(
+        const CellCoordinate(0, 0),
+        CellValue.formula('=SUM(A1:A5)'),
+      );
+
+      // Wrapper evaluates formulas → returns the computed number.
+      final wrapper = _EvaluatingWrapper(rawData);
+
+      await tester.pumpWidget(buildWorksheet(
+        ec: editController,
+        dataOverride: wrapper,
+        rawData: rawData,
+      ));
+
+      selectCell(0, 0);
+      await tester.pump();
+
+      // F2 to start editing.
+      await tester.sendKeyEvent(LogicalKeyboardKey.f2);
+      await tester.pump();
+
+      expect(editController.isEditing, isTrue);
+      expect(editController.currentText, equals('=SUM(A1:A5)'));
+
+      rawData.dispose();
+    });
+
+    testWidgets('F2 shows evaluated value when rawData is not provided',
+        (tester) async {
+      // Raw data has the original formula.
+      final rawData = SparseWorksheetData(rowCount: 100, columnCount: 26);
+      rawData.setCell(
+        const CellCoordinate(0, 0),
+        CellValue.formula('=SUM(A1:A5)'),
+      );
+
+      // Wrapper evaluates formulas → returns the computed number.
+      final wrapper = _EvaluatingWrapper(rawData);
+
+      // No rawData parameter — editor should see the wrapper's value.
+      await tester.pumpWidget(buildWorksheet(
+        ec: editController,
+        dataOverride: wrapper,
+      ));
+
+      selectCell(0, 0);
+      await tester.pump();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.f2);
+      await tester.pump();
+
+      expect(editController.isEditing, isTrue);
+      expect(editController.currentText, equals('15'));
+
+      rawData.dispose();
+    });
+  });
+}
+
+/// Test wrapper that replaces formula cells with evaluated numbers.
+class _EvaluatingWrapper extends DelegatingWorksheetData {
+  _EvaluatingWrapper(super.inner);
+
+  @override
+  CellValue? getCell(CellCoordinate coord) {
+    final value = super.getCell(coord);
+    if (value != null && value.type == CellValueType.formula) {
+      return CellValue.number(15);
+    }
+    return value;
+  }
 }

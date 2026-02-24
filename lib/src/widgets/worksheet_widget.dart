@@ -88,6 +88,17 @@ class Worksheet extends StatefulWidget {
   /// The worksheet data source.
   final WorksheetData data;
 
+  /// Optional raw data source for editing.
+  ///
+  /// When provided, the cell editor shows values from [rawData] instead of
+  /// [data]. This lets a consuming app wrap [data] to evaluate formulas
+  /// (e.g., replacing `CellValue.formula("=SUM(A1:A5)")` with
+  /// `CellValue.number(15)`) while still editing the original formula text.
+  ///
+  /// Only affects cell editing — tile rendering, styling, clipboard, and
+  /// formatting all continue to use [data].
+  final WorksheetData? rawData;
+
   /// The controller for programmatic interaction.
   ///
   /// If not provided, a default controller is created internally.
@@ -249,6 +260,7 @@ class Worksheet extends StatefulWidget {
   const Worksheet({
     super.key,
     required this.data,
+    this.rawData,
     this.controller,
     this.rowCount = 1000,
     this.columnCount = 26,
@@ -1448,7 +1460,7 @@ class _WorksheetState extends State<Worksheet>
     final ec = widget.editController;
     if (ec == null) return;
 
-    final currentValue = widget.data.getCell(cell);
+    final currentValue = (widget.rawData ?? widget.data).getCell(cell);
     ec.startEdit(
       cell: cell,
       currentValue: currentValue,

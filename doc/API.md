@@ -503,6 +503,7 @@ abstract class WorksheetActionContext {
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `data` | `WorksheetData` | required | Data source for the worksheet |
+| `rawData` | `WorksheetData?` | null | Raw data source for editing. When set, the cell editor reads values from `rawData` instead of `data`, so formula wrappers can evaluate formulas for display while editing still shows the original formula text. Only affects cell editing — rendering, styling, clipboard, and formatting use `data`. |
 | `controller` | `WorksheetController?` | null | Controller for selection, zoom, scroll |
 | `rowCount` | `int` | required | Total number of rows |
 | `columnCount` | `int` | required | Total number of columns |

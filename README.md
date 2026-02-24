@@ -321,7 +321,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  worksheet: ^3.3.0
+  worksheet: ^3.5.0
 ```
 
 Then run:
