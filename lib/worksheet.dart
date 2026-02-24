@@ -29,6 +29,7 @@ export 'src/core/geometry/zoom_transformer.dart';
 
 // Core Data
 export 'src/core/data/data_change_event.dart';
+export 'src/core/data/delegating_worksheet_data.dart';
 export 'src/core/data/fill_pattern_detector.dart';
 export 'src/core/data/formula_reference_adjuster.dart';
 export 'src/core/data/merged_cell_registry.dart';

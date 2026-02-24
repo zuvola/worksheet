@@ -25,6 +25,7 @@ Practical recipes for common worksheet tasks.
 19. [Mobile Mode](#mobile-mode)
 20. [Formula Autocomplete](#formula-autocomplete)
 21. [Undo/Redo](#undoredo)
+22. [Custom Data Wrappers](#custom-data-wrappers)
 
 ---
 
@@ -2146,3 +2147,84 @@ Text('Undo: ${_undoManager.undoCount} / Redo: ${_undoManager.redoCount}')
 Since all cell models (`Cell`, `CellValue`, `CellStyle`, `CellFormat`) are immutable with equality, snapshots are cheap — they reference existing objects rather than deep-copying.
 
 See `example/undo_redo.dart` for a complete working example with toolbar buttons and status display.
+
+---
+
+## Custom Data Wrappers
+
+Use `DelegatingWorksheetData` to wrap a `WorksheetData` instance with custom behavior. Override only the methods you need — everything else delegates automatically.
+
+### Basic Pattern
+
+```dart
+class PermissionWorksheetData extends DelegatingWorksheetData {
+  final bool Function(CellCoordinate) canEdit;
+
+  PermissionWorksheetData(super.inner, {required this.canEdit});
+
+  @override
+  void setCell(CellCoordinate coord, CellValue? value) {
+    if (!canEdit(coord)) return; // silently ignore
+    super.setCell(coord, value);
+  }
+
+  @override
+  void setStyle(CellCoordinate coord, CellStyle? style) {
+    if (!canEdit(coord)) return;
+    super.setStyle(coord, style);
+  }
+}
+```
+
+### Formula Evaluation Wrapper
+
+This is the recommended pattern for integrating a formula engine (e.g., `worksheet_formula`) without coupling the widget to any specific engine. The `worksheets_cc` project uses this approach:
+
+```dart
+class FormulaWorksheetData extends DelegatingWorksheetData {
+  final FormulaEngine _engine;
+  final Map<CellCoordinate, CellValue> _evaluatedCache = {};
+
+  FormulaWorksheetData(super.inner, this._engine) {
+    // Re-evaluate when cells change
+    inner.changes.listen(_onDataChanged);
+  }
+
+  @override
+  CellValue? getCell(CellCoordinate coord) {
+    final raw = super.getCell(coord);
+    if (raw != null && raw.isFormula) {
+      return _evaluatedCache[coord] ?? _evaluate(coord, raw);
+    }
+    return raw;
+  }
+
+  CellValue _evaluate(CellCoordinate coord, CellValue formula) {
+    final result = _engine.evaluate(formula.displayValue, coord);
+    _evaluatedCache[coord] = result;
+    return result;
+  }
+
+  void _onDataChanged(DataChangeEvent event) {
+    // Invalidate cache for affected cells and their dependents
+    _evaluatedCache.clear();
+  }
+
+  @override
+  void dispose() {
+    _evaluatedCache.clear();
+    super.dispose();
+  }
+}
+
+// Usage:
+final raw = SparseWorksheetData(rowCount: 1000, columnCount: 26);
+final data = FormulaWorksheetData(raw, myEngine);
+
+Worksheet(
+  data: data,  // reads go through the formula layer
+  // ...
+)
+```
+
+The widget sees evaluated values via `getCell()`, while writes pass through to the underlying `SparseWorksheetData`. The formula engine stays entirely at the consumer layer.

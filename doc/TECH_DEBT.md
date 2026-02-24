@@ -62,10 +62,8 @@ This document tracks known technical debt, architectural bottlenecks, and sugges
 
 ### Formula Evaluation Integration (worksheet_formula)
 - **Current State:** `CellValue.formula` exists, but there is no integration with the external `worksheet_formula` engine.
-- **Suggestion:**
-  - **EvaluationContext Implementation:** Create a bridge that implements `worksheet_formula`'s `EvaluationContext`, mapping `A1` coordinates and `A1Range` to this package's `CellCoordinate` and `CellRange`.
-  - **Value Translation:** Implement bi-directional mapping between `CellValue` (this package) and `FormulaValue` (engine), ensuring Excel-compatible errors like `#DIV/0!` are handled correctly.
-  - **AST Caching:** Store parsed `AST` nodes alongside `CellValue.formula` to avoid re-parsing during every evaluation cycle.
+- **Recommended Pattern:** A `DelegatingWorksheetData` subclass at the consumer layer (as demonstrated by the `worksheets_cc` project). The subclass overrides `getCell()` to return evaluated results for formula cells, while writes pass through to the underlying `SparseWorksheetData`. This keeps the formula engine entirely at the consumer layer — the widget package has no dependency on any formula engine. See [Cookbook: Custom Data Wrappers](COOKBOOK.md#custom-data-wrappers) for the implementation pattern.
+- **Further Integration Points (consumer-side):**
   - **Dependency Tracking:** Integrate the engine's `DependencyGraph` to track cell relationships. When `WorksheetData` changes, use the graph to identify and re-evaluate only the affected dependent cells, triggering targeted `TileManager.invalidateRange` calls.
   - **Asynchronous Evaluation:** For complex sheets, evaluate formulas in a background isolate or using microtasks to prevent blocking the UI thread during large-scale recalculations.
 
@@ -105,5 +103,5 @@ This document tracks known technical debt, architectural bottlenecks, and sugges
 9. ~~**Change Notification Thrashing**~~ — RESOLVED (batched commit paths + microtask coalescing).
 
 ### Open
-10. **Low Priority (Features):** Formula Engine Integration, ~~Frozen Panes~~, ~~Undo/Redo~~.
+10. **Low Priority (Features):** Formula Engine Integration.
 11. **Low Priority (Testing):** Golden test coverage for complex rendering states.

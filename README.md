@@ -282,6 +282,7 @@ for (var row = 0; row < 50000; row++) {
 - **Formula cell referencing**: Click cells to insert A1 references, drag for ranges, arrow keys to insert/move refs, F4 for absolute/relative cycling, color-coded borders with marching ants
 - **Formula autocomplete**: Dropdown suggestions for function names while typing formulas, with keyboard navigation and customizable function list
 - **Undo/Redo**: Full undo/redo with Ctrl+Z / Ctrl+Y covering all mutation paths; `invokeAction(Intent)` dispatches any worksheet action from external toolbars
+- **Data wrappers**: `DelegatingWorksheetData` makes it easy to wrap data with custom behavior (formula evaluation, permissions, logging) — override only the methods you need
 - **Resize support**: Drag column/row borders to resize
 - **Mobile support**: Touch gestures, selection handles, pinch-to-zoom, configurable via `mobileMode`
 - **Theming**: Full control over colors, fonts, headers — built-in light and dark mode presets
