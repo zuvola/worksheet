@@ -16,7 +16,7 @@ import 'package:worksheet/src/core/models/cell_value.dart';
 
 /// Benchmark tests for scalability of core data structures.
 ///
-/// Covers TECH_DEBT items:
+/// Benchmarks:
 /// - SpanList Fenwick tree scalability (O(log N) update on resize)
 /// - MergedCellRegistry.regionsInRange scalability (O(N_merges) linear scan)
 /// - LayoutSolver visible range caching (zero-cost cache hits)

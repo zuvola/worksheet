@@ -59,6 +59,30 @@ flutter test test/benchmarks/ -r expanded
 
 ---
 
+## Optimization History
+
+Summary of performance optimizations applied to the codebase and their measured impact.
+
+| Area | Technique | Impact |
+|------|-----------|--------|
+| **SpanList** | Replaced cumulative array with Fenwick tree (Binary Indexed Tree) — `setSize()` is O(log N) instead of O(N) | 26,000x improvement at 1M spans (~0.001ms vs ~26ms) |
+| **LayoutSolver** | Last-result memoization for `getVisibleRows`/`getVisibleColumns` — repeated calls with identical arguments return cached results; cache invalidated by `setRowHeight`/`setColumnWidth` | 1000 repeated lookups: 0.064ms total |
+| **TilePainter** | Pre-allocated `_gridlinePaint` field — `_renderGridlines()` no longer allocates a new `Paint()` on every call | Eliminated per-call allocation |
+| **TileManager** | Prefetch ring — `getTilesForViewport()` inflates viewport by `prefetchRings × tileWidth` before computing tile coordinates | Eliminates white flashes during fast scrolling |
+| **Auto-fit column** | Display-value deduplication + character-length filtering — plain text filtered to max char length, rich text deduped by display value, capped at 1000 measurements | 50K cells: 9–37ms (well under 200ms SLA) |
+| **Jump-to-edge** | Sparse `findNextPopulated*`/`findPrevPopulated*` lookups + boundary tile clamping fix in `getCellRangeForTile` | Jump across 1M empty rows: ~2.8ms |
+| **Change notifications** | Batched commit paths (`batchUpdate()` emits 1 range event instead of 3) + microtask coalescing (`_pendingDataChanges` processed in single `scheduleMicrotask` pass) | 1 `setState()` per microtask frame regardless of event count |
+
+### Design decisions: optimizations not pursued
+
+The following TilePainter optimizations were evaluated and intentionally **not** implemented because tiles are cached as `ui.Picture` — per-cell allocations only run on cache miss:
+
+- **TextPainter pooling** — 1-TP-per-cell pattern is already near-optimal since it only runs on cache miss
+- **Spillover result caching** — invalidation complexity outweighs gain; only runs on cache miss
+- **Path caching / layer hoisting** — gridline path construction is cheap relative to text layout; separating into a distinct layer adds complexity without measurable benefit
+
+---
+
 ## Understanding the Tile Cache
 
 The worksheet uses GPU-backed tile caching for high-performance rendering. Understanding how it works helps optimize your application.
