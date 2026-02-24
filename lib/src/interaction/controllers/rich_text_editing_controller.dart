@@ -382,7 +382,9 @@ class RichTextEditingController extends TextEditingController {
     }
 
     if (oldText.isEmpty) {
-      _charStyles = List.filled(newText.length, null, growable: true);
+      final style = _pendingStyle;
+      _pendingStyle = null;
+      _charStyles = List.filled(newText.length, style, growable: true);
       return;
     }
 
@@ -492,11 +494,25 @@ class RichTextEditingController extends TextEditingController {
   }
 
   /// Applies a style transformation to all characters in the current selection.
+  ///
+  /// When the selection is collapsed (no text selected), sets [_pendingStyle]
+  /// so the next typed character inherits the formatting.
   void _applyToSelection(TextStyle Function(TextStyle?) transform) {
     final sel = selection;
-    if (!sel.isValid || sel.isCollapsed) return;
+    if (!sel.isValid) return;
 
     _syncLength();
+
+    if (sel.isCollapsed) {
+      // Apply to pending style for future typing.
+      final current = _pendingStyle ??
+          (sel.start > 0 && sel.start <= _charStyles.length
+              ? _charStyles[sel.start - 1]
+              : null);
+      _pendingStyle = transform(current);
+      notifyListeners();
+      return;
+    }
 
     for (int i = sel.start; i < sel.end; i++) {
       _charStyles[i] = transform(_charStyles[i]);

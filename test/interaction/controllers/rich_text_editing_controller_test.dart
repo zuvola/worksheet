@@ -234,6 +234,42 @@ void main() {
         expect(spans[0].style?.color, const Color(0xFFFF0000));
         expect(spans[0].text, 'Hel');
       });
+
+      test('sets pending color on collapsed selection', () {
+        controller.initFromSpans([const TextSpan(text: 'Hi')]);
+        controller.selection =
+            const TextSelection.collapsed(offset: 2);
+
+        controller.setColor(const Color(0xFFFF0000));
+
+        // Pending style should have the color
+        final style = controller.getSelectionStyle();
+        expect(style?.color, const Color(0xFFFF0000));
+
+        // Simulate typing a character — it should inherit the color
+        controller.value = const TextEditingValue(
+          text: 'HiX',
+          selection: TextSelection.collapsed(offset: 3),
+        );
+        final spans = controller.toSpans();
+        expect(spans.last.style?.color, const Color(0xFFFF0000));
+      });
+
+      test('sets pending color on empty text then first character typed', () {
+        controller.initFromSpans([const TextSpan(text: '')]);
+        controller.selection =
+            const TextSelection.collapsed(offset: 0);
+
+        controller.setColor(const Color(0xFFFF0000));
+
+        // Simulate typing the first character into an empty cell
+        controller.value = const TextEditingValue(
+          text: 'A',
+          selection: TextSelection.collapsed(offset: 1),
+        );
+        final spans = controller.toSpans();
+        expect(spans[0].style?.color, const Color(0xFFFF0000));
+      });
     });
 
     group('setFontSize', () {
@@ -247,6 +283,24 @@ void main() {
         final spans = controller.toSpans();
         expect(spans[0].style?.fontSize, 24.0);
       });
+
+      test('sets pending font size on collapsed selection', () {
+        controller.initFromSpans([const TextSpan(text: 'Hi')]);
+        controller.selection =
+            const TextSelection.collapsed(offset: 2);
+
+        controller.setFontSize(24.0);
+
+        final style = controller.getSelectionStyle();
+        expect(style?.fontSize, 24.0);
+
+        controller.value = const TextEditingValue(
+          text: 'HiX',
+          selection: TextSelection.collapsed(offset: 3),
+        );
+        final spans = controller.toSpans();
+        expect(spans.last.style?.fontSize, 24.0);
+      });
     });
 
     group('setFontFamily', () {
@@ -259,6 +313,24 @@ void main() {
 
         final spans = controller.toSpans();
         expect(spans[0].style?.fontFamily, 'Courier');
+      });
+
+      test('sets pending font family on collapsed selection', () {
+        controller.initFromSpans([const TextSpan(text: 'Hi')]);
+        controller.selection =
+            const TextSelection.collapsed(offset: 2);
+
+        controller.setFontFamily('Courier');
+
+        final style = controller.getSelectionStyle();
+        expect(style?.fontFamily, 'Courier');
+
+        controller.value = const TextEditingValue(
+          text: 'HiX',
+          selection: TextSelection.collapsed(offset: 3),
+        );
+        final spans = controller.toSpans();
+        expect(spans.last.style?.fontFamily, 'Courier');
       });
     });
 
