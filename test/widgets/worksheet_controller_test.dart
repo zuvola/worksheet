@@ -8,6 +8,7 @@ import 'package:worksheet/src/core/models/cell_range.dart';
 import 'package:worksheet/src/core/models/freeze_config.dart';
 import 'package:worksheet/src/interaction/controllers/selection_controller.dart';
 import 'package:worksheet/src/interaction/controllers/zoom_controller.dart';
+import 'package:worksheet/src/shortcuts/worksheet_intents.dart';
 import 'package:worksheet/src/widgets/worksheet_controller.dart';
 
 void main() {
@@ -1130,6 +1131,89 @@ void main() {
         // Should have scrolled
         expect(controller.scrollX, greaterThan(0));
         expect(controller.scrollY, greaterThan(0));
+      });
+    });
+
+    group('action dispatch', () {
+      test('invokeAction returns null when no dispatcher attached', () {
+        expect(controller.invokeAction(const UndoIntent()), isNull);
+      });
+
+      test('isActionEnabled returns false when no dispatcher attached', () {
+        expect(controller.isActionEnabled(const UndoIntent()), isFalse);
+      });
+
+      test('invokeAction calls dispatcher and returns result', () {
+        final dispatched = <Intent>[];
+        controller.attachActionDispatcher(
+          dispatcher: (intent) {
+            dispatched.add(intent);
+            return 42;
+          },
+          enabledChecker: (_) => true,
+        );
+
+        final result = controller.invokeAction(const CopyCellsIntent());
+        expect(result, 42);
+        expect(dispatched, hasLength(1));
+        expect(dispatched.first, isA<CopyCellsIntent>());
+      });
+
+      test('isActionEnabled calls enabledChecker', () {
+        final checked = <Intent>[];
+        controller.attachActionDispatcher(
+          dispatcher: (_) => null,
+          enabledChecker: (intent) {
+            checked.add(intent);
+            return intent is UndoIntent;
+          },
+        );
+
+        expect(controller.isActionEnabled(const UndoIntent()), isTrue);
+        expect(controller.isActionEnabled(const RedoIntent()), isFalse);
+        expect(checked, hasLength(2));
+      });
+
+      test('undo() dispatches UndoIntent', () {
+        final dispatched = <Intent>[];
+        controller.attachActionDispatcher(
+          dispatcher: (intent) {
+            dispatched.add(intent);
+            return null;
+          },
+          enabledChecker: (_) => true,
+        );
+
+        controller.undo();
+        expect(dispatched, hasLength(1));
+        expect(dispatched.first, isA<UndoIntent>());
+      });
+
+      test('redo() dispatches RedoIntent', () {
+        final dispatched = <Intent>[];
+        controller.attachActionDispatcher(
+          dispatcher: (intent) {
+            dispatched.add(intent);
+            return null;
+          },
+          enabledChecker: (_) => true,
+        );
+
+        controller.redo();
+        expect(dispatched, hasLength(1));
+        expect(dispatched.first, isA<RedoIntent>());
+      });
+
+      test('detachActionDispatcher clears both callbacks', () {
+        controller.attachActionDispatcher(
+          dispatcher: (_) => 'should not be called',
+          enabledChecker: (_) => true,
+        );
+
+        controller.detachActionDispatcher();
+
+        expect(controller.invokeAction(const UndoIntent()), isNull);
+        expect(controller.isActionEnabled(const UndoIntent()), isFalse);
       });
     });
   });

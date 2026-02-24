@@ -91,6 +91,14 @@ abstract class WorksheetData {
   ) =>
       const [];
 
+  /// Returns all cells with formats within [range].
+  ///
+  /// Iterates only populated format entries. O(populated_cells).
+  Iterable<MapEntry<CellCoordinate, CellFormat>> getFormatsInRange(
+    CellRange range,
+  ) =>
+      const [];
+
   /// Pattern fill from range to target cell - either override this or provide a generator
   ///
   /// Returns the full filled range (source + target, possibly expanded to

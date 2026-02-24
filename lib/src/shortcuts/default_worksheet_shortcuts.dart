@@ -143,6 +143,20 @@ class DefaultWorksheetShortcuts {
     const SingleActivator(LogicalKeyboardKey.keyR, meta: true):
         const FillRightIntent(),
 
+    // Ctrl+Z: undo
+    const SingleActivator(LogicalKeyboardKey.keyZ, control: true):
+        const UndoIntent(),
+    const SingleActivator(LogicalKeyboardKey.keyZ, meta: true):
+        const UndoIntent(),
+
+    // Ctrl+Y / Ctrl+Shift+Z / Cmd+Shift+Z: redo
+    const SingleActivator(LogicalKeyboardKey.keyY, control: true):
+        const RedoIntent(),
+    const SingleActivator(LogicalKeyboardKey.keyZ, control: true, shift: true):
+        const RedoIntent(),
+    const SingleActivator(LogicalKeyboardKey.keyZ, meta: true, shift: true):
+        const RedoIntent(),
+
     // Rich text formatting (active only during editing)
     // Ctrl+B: toggle bold
     const SingleActivator(LogicalKeyboardKey.keyB, control: true):

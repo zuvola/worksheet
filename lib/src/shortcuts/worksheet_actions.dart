@@ -167,7 +167,9 @@ class CutCellsAction extends Action<CutCellsIntent> {
 
   @override
   Object? invoke(CutCellsIntent intent) {
-    _context.clipboardHandler.cut().then((_) {
+    _context.clipboardHandler
+        .cut(recordUndo: _context.undoManager != null ? _context.recordUndo : null)
+        .then((_) {
       _context.invalidateAndRebuild();
     });
     return null;
@@ -186,7 +188,9 @@ class PasteCellsAction extends Action<PasteCellsIntent> {
 
   @override
   Object? invoke(PasteCellsIntent intent) {
-    _context.clipboardHandler.paste().then((_) {
+    _context.clipboardHandler
+        .paste(recordUndo: _context.undoManager != null ? _context.recordUndo : null)
+        .then((_) {
       _context.invalidateAndRebuild();
     });
     return null;
@@ -215,29 +219,31 @@ class ClearCellsAction extends Action<ClearCellsIntent> {
     final range = _context.selectionController.selectedRange;
     if (range == null) return null;
 
-    if (intent.clearValue && intent.clearStyle && intent.clearFormat) {
-      _context.worksheetData.clearRange(range);
-    } else {
-      _context.worksheetData.batchUpdate((batch) {
-        if (intent.clearValue) batch.clearValues(range);
-        if (intent.clearStyle) batch.clearStyles(range);
-        if (intent.clearFormat) batch.clearFormats(range);
-      });
-    }
-
-    // Unmerge cells when clearing formatting (styles or formats).
-    if (intent.clearStyle || intent.clearFormat) {
-      _context.worksheetData.unmergeCellsInRange(range);
-    }
-
-    // Strip rich text formatting when clearing styles.
-    if (intent.clearStyle) {
-      if (_context.editController?.isEditing == true) {
-        _context.editController?.richTextController?.clearFormatting();
+    _context.recordUndo('Clear', range, () {
+      if (intent.clearValue && intent.clearStyle && intent.clearFormat) {
+        _context.worksheetData.clearRange(range);
       } else {
-        _context.worksheetData.clearRichTextInRange(range);
+        _context.worksheetData.batchUpdate((batch) {
+          if (intent.clearValue) batch.clearValues(range);
+          if (intent.clearStyle) batch.clearStyles(range);
+          if (intent.clearFormat) batch.clearFormats(range);
+        });
       }
-    }
+
+      // Unmerge cells when clearing formatting (styles or formats).
+      if (intent.clearStyle || intent.clearFormat) {
+        _context.worksheetData.unmergeCellsInRange(range);
+      }
+
+      // Strip rich text formatting when clearing styles.
+      if (intent.clearStyle) {
+        if (_context.editController?.isEditing == true) {
+          _context.editController?.richTextController?.clearFormatting();
+        } else {
+          _context.worksheetData.clearRichTextInRange(range);
+        }
+      }
+    });
 
     _context.invalidateAndRebuild();
     return null;
@@ -257,34 +263,38 @@ class FillDownAction extends Action<FillDownIntent> {
   Object? invoke(FillDownIntent intent) {
     final range = _context.selectionController.selectedRange;
     if (range == null || range.rowCount < 2) return null;
-    final adjuster = _context.formulaReferenceAdjuster;
-    for (int col = range.startColumn; col <= range.endColumn; col++) {
-      final source = CellCoordinate(range.startRow, col);
-      final target = CellRange(range.startRow + 1, col, range.endRow, col);
-      if (adjuster != null) {
-        _context.worksheetData.fillRange(source, target, (coord, sourceCell) {
-          if (sourceCell == null) return null;
-          final value = sourceCell.value;
-          if (value == null || !value.isFormula) return sourceCell;
-          final rowDelta = coord.row - source.row;
-          final adjusted = adjuster(value.rawValue as String, rowDelta, 0);
-          return sourceCell.copyWithValue(CellValue.formula(adjusted));
-        });
-      } else {
-        _context.worksheetData.fillRange(source, target);
+
+    _context.recordUndo('Fill Down', range, () {
+      final adjuster = _context.formulaReferenceAdjuster;
+      for (int col = range.startColumn; col <= range.endColumn; col++) {
+        final source = CellCoordinate(range.startRow, col);
+        final target = CellRange(range.startRow + 1, col, range.endRow, col);
+        if (adjuster != null) {
+          _context.worksheetData.fillRange(source, target, (coord, sourceCell) {
+            if (sourceCell == null) return null;
+            final value = sourceCell.value;
+            if (value == null || !value.isFormula) return sourceCell;
+            final rowDelta = coord.row - source.row;
+            final adjusted = adjuster(value.rawValue as String, rowDelta, 0);
+            return sourceCell.copyWithValue(CellValue.formula(adjusted));
+          });
+        } else {
+          _context.worksheetData.fillRange(source, target);
+        }
       }
-    }
-    _context.worksheetData.replicateMerges(
-      sourceRange: CellRange(
-        range.startRow, range.startColumn,
-        range.startRow, range.endColumn,
-      ),
-      targetRange: CellRange(
-        range.startRow + 1, range.startColumn,
-        range.endRow, range.endColumn,
-      ),
-      vertical: true,
-    );
+      _context.worksheetData.replicateMerges(
+        sourceRange: CellRange(
+          range.startRow, range.startColumn,
+          range.startRow, range.endColumn,
+        ),
+        targetRange: CellRange(
+          range.startRow + 1, range.startColumn,
+          range.endRow, range.endColumn,
+        ),
+        vertical: true,
+      );
+    });
+
     _context.invalidateAndRebuild();
     return null;
   }
@@ -303,34 +313,38 @@ class FillRightAction extends Action<FillRightIntent> {
   Object? invoke(FillRightIntent intent) {
     final range = _context.selectionController.selectedRange;
     if (range == null || range.columnCount < 2) return null;
-    final adjuster = _context.formulaReferenceAdjuster;
-    for (int row = range.startRow; row <= range.endRow; row++) {
-      final source = CellCoordinate(row, range.startColumn);
-      final target = CellRange(row, range.startColumn + 1, row, range.endColumn);
-      if (adjuster != null) {
-        _context.worksheetData.fillRange(source, target, (coord, sourceCell) {
-          if (sourceCell == null) return null;
-          final value = sourceCell.value;
-          if (value == null || !value.isFormula) return sourceCell;
-          final colDelta = coord.column - source.column;
-          final adjusted = adjuster(value.rawValue as String, 0, colDelta);
-          return sourceCell.copyWithValue(CellValue.formula(adjusted));
-        });
-      } else {
-        _context.worksheetData.fillRange(source, target);
+
+    _context.recordUndo('Fill Right', range, () {
+      final adjuster = _context.formulaReferenceAdjuster;
+      for (int row = range.startRow; row <= range.endRow; row++) {
+        final source = CellCoordinate(row, range.startColumn);
+        final target = CellRange(row, range.startColumn + 1, row, range.endColumn);
+        if (adjuster != null) {
+          _context.worksheetData.fillRange(source, target, (coord, sourceCell) {
+            if (sourceCell == null) return null;
+            final value = sourceCell.value;
+            if (value == null || !value.isFormula) return sourceCell;
+            final colDelta = coord.column - source.column;
+            final adjusted = adjuster(value.rawValue as String, 0, colDelta);
+            return sourceCell.copyWithValue(CellValue.formula(adjusted));
+          });
+        } else {
+          _context.worksheetData.fillRange(source, target);
+        }
       }
-    }
-    _context.worksheetData.replicateMerges(
-      sourceRange: CellRange(
-        range.startRow, range.startColumn,
-        range.endRow, range.startColumn,
-      ),
-      targetRange: CellRange(
-        range.startRow, range.startColumn + 1,
-        range.endRow, range.endColumn,
-      ),
-      vertical: false,
-    );
+      _context.worksheetData.replicateMerges(
+        sourceRange: CellRange(
+          range.startRow, range.startColumn,
+          range.endRow, range.startColumn,
+        ),
+        targetRange: CellRange(
+          range.startRow, range.startColumn + 1,
+          range.endRow, range.endColumn,
+        ),
+        vertical: false,
+      );
+    });
+
     _context.invalidateAndRebuild();
     return null;
   }
@@ -354,7 +368,9 @@ class MergeCellsAction extends Action<MergeCellsIntent> {
     final range = _context.selectionController.selectedRange;
     if (range == null || range.cellCount < 2) return null;
 
-    _context.worksheetData.mergeCells(range);
+    _context.recordUndo('Merge', range, () {
+      _context.worksheetData.mergeCells(range);
+    });
     _context.invalidateAndRebuild();
     return null;
   }
@@ -378,11 +394,13 @@ class MergeCellsHorizontallyAction extends Action<MergeCellsHorizontallyIntent> 
     final range = _context.selectionController.selectedRange;
     if (range == null || range.columnCount < 2) return null;
 
-    for (int row = range.startRow; row <= range.endRow; row++) {
-      _context.worksheetData.mergeCells(
-        CellRange(row, range.startColumn, row, range.endColumn),
-      );
-    }
+    _context.recordUndo('Merge Horizontally', range, () {
+      for (int row = range.startRow; row <= range.endRow; row++) {
+        _context.worksheetData.mergeCells(
+          CellRange(row, range.startColumn, row, range.endColumn),
+        );
+      }
+    });
     _context.invalidateAndRebuild();
     return null;
   }
@@ -406,11 +424,13 @@ class MergeCellsVerticallyAction extends Action<MergeCellsVerticallyIntent> {
     final range = _context.selectionController.selectedRange;
     if (range == null || range.rowCount < 2) return null;
 
-    for (int col = range.startColumn; col <= range.endColumn; col++) {
-      _context.worksheetData.mergeCells(
-        CellRange(range.startRow, col, range.endRow, col),
-      );
-    }
+    _context.recordUndo('Merge Vertically', range, () {
+      for (int col = range.startColumn; col <= range.endColumn; col++) {
+        _context.worksheetData.mergeCells(
+          CellRange(range.startRow, col, range.endRow, col),
+        );
+      }
+    });
     _context.invalidateAndRebuild();
     return null;
   }
@@ -439,14 +459,19 @@ class ToggleBoldAction extends Action<ToggleBoldIntent> {
     if (_context.editController?.isEditing == true) {
       _context.editController!.richTextController!.toggleBold();
     } else {
-      _toggleOnSelection(
-        _context,
-        test: (s) => s?.fontWeight == FontWeight.bold,
-        apply: (s) =>
-            (s ?? const TextStyle()).copyWith(fontWeight: FontWeight.bold),
-        remove: (s) =>
-            (s ?? const TextStyle()).copyWith(fontWeight: FontWeight.normal),
-      );
+      final range = _context.selectionController.selectedRange;
+      if (range != null) {
+        _context.recordUndo('Toggle Bold', range, () {
+          _toggleOnSelection(
+            _context,
+            test: (s) => s?.fontWeight == FontWeight.bold,
+            apply: (s) =>
+                (s ?? const TextStyle()).copyWith(fontWeight: FontWeight.bold),
+            remove: (s) =>
+                (s ?? const TextStyle()).copyWith(fontWeight: FontWeight.normal),
+          );
+        });
+      }
     }
     _context.invalidateAndRebuild();
     return null;
@@ -473,14 +498,19 @@ class ToggleItalicAction extends Action<ToggleItalicIntent> {
     if (_context.editController?.isEditing == true) {
       _context.editController!.richTextController!.toggleItalic();
     } else {
-      _toggleOnSelection(
-        _context,
-        test: (s) => s?.fontStyle == FontStyle.italic,
-        apply: (s) =>
-            (s ?? const TextStyle()).copyWith(fontStyle: FontStyle.italic),
-        remove: (s) =>
-            (s ?? const TextStyle()).copyWith(fontStyle: FontStyle.normal),
-      );
+      final range = _context.selectionController.selectedRange;
+      if (range != null) {
+        _context.recordUndo('Toggle Italic', range, () {
+          _toggleOnSelection(
+            _context,
+            test: (s) => s?.fontStyle == FontStyle.italic,
+            apply: (s) =>
+                (s ?? const TextStyle()).copyWith(fontStyle: FontStyle.italic),
+            remove: (s) =>
+                (s ?? const TextStyle()).copyWith(fontStyle: FontStyle.normal),
+          );
+        });
+      }
     }
     _context.invalidateAndRebuild();
     return null;
@@ -507,14 +537,19 @@ class ToggleUnderlineAction extends Action<ToggleUnderlineIntent> {
     if (_context.editController?.isEditing == true) {
       _context.editController!.richTextController!.toggleUnderline();
     } else {
-      _toggleOnSelection(
-        _context,
-        test: (s) => s?.decoration == TextDecoration.underline,
-        apply: (s) => (s ?? const TextStyle())
-            .copyWith(decoration: TextDecoration.underline),
-        remove: (s) =>
-            (s ?? const TextStyle()).copyWith(decoration: TextDecoration.none),
-      );
+      final range = _context.selectionController.selectedRange;
+      if (range != null) {
+        _context.recordUndo('Toggle Underline', range, () {
+          _toggleOnSelection(
+            _context,
+            test: (s) => s?.decoration == TextDecoration.underline,
+            apply: (s) => (s ?? const TextStyle())
+                .copyWith(decoration: TextDecoration.underline),
+            remove: (s) =>
+                (s ?? const TextStyle()).copyWith(decoration: TextDecoration.none),
+          );
+        });
+      }
     }
     _context.invalidateAndRebuild();
     return null;
@@ -541,14 +576,19 @@ class ToggleStrikethroughAction extends Action<ToggleStrikethroughIntent> {
     if (_context.editController?.isEditing == true) {
       _context.editController!.richTextController!.toggleStrikethrough();
     } else {
-      _toggleOnSelection(
-        _context,
-        test: (s) => s?.decoration == TextDecoration.lineThrough,
-        apply: (s) => (s ?? const TextStyle())
-            .copyWith(decoration: TextDecoration.lineThrough),
-        remove: (s) =>
-            (s ?? const TextStyle()).copyWith(decoration: TextDecoration.none),
-      );
+      final range = _context.selectionController.selectedRange;
+      if (range != null) {
+        _context.recordUndo('Toggle Strikethrough', range, () {
+          _toggleOnSelection(
+            _context,
+            test: (s) => s?.decoration == TextDecoration.lineThrough,
+            apply: (s) => (s ?? const TextStyle())
+                .copyWith(decoration: TextDecoration.lineThrough),
+            remove: (s) =>
+                (s ?? const TextStyle()).copyWith(decoration: TextDecoration.none),
+          );
+        });
+      }
     }
     _context.invalidateAndRebuild();
     return null;
@@ -633,8 +673,46 @@ class UnmergeCellsAction extends Action<UnmergeCellsIntent> {
     final range = _context.selectionController.selectedRange;
     if (range == null) return null;
 
-    _context.worksheetData.unmergeCellsInRange(range);
+    _context.recordUndo('Unmerge', range, () {
+      _context.worksheetData.unmergeCellsInRange(range);
+    });
 
+    _context.invalidateAndRebuild();
+    return null;
+  }
+}
+
+/// Undoes the most recent worksheet operation.
+class UndoAction extends Action<UndoIntent> {
+  final WorksheetActionContext _context;
+
+  UndoAction(this._context);
+
+  @override
+  bool isEnabled(UndoIntent intent) =>
+      _context.undoManager?.canUndo == true;
+
+  @override
+  Object? invoke(UndoIntent intent) {
+    _context.performUndo();
+    _context.invalidateAndRebuild();
+    return null;
+  }
+}
+
+/// Redoes the most recently undone worksheet operation.
+class RedoAction extends Action<RedoIntent> {
+  final WorksheetActionContext _context;
+
+  RedoAction(this._context);
+
+  @override
+  bool isEnabled(RedoIntent intent) =>
+      _context.undoManager?.canRedo == true;
+
+  @override
+  Object? invoke(RedoIntent intent) {
+    _context.performRedo();
     _context.invalidateAndRebuild();
     return null;
   }
@@ -658,29 +736,31 @@ class SetCellStyleAction extends Action<SetCellStyleIntent> {
     final range = _context.selectionController.selectedRange;
     if (range == null) return null;
 
-    // Pre-compute a border-stripped copy so non-anchor merge cells
-    // don't get borders stored in the data model.
-    final hasBorders = intent.style.borders != null;
-    final noBordersStyle = hasBorders
-        ? CellStyle(
-            backgroundColor: intent.style.backgroundColor,
-            textAlignment: intent.style.textAlignment,
-            verticalAlignment: intent.style.verticalAlignment,
-            wrapText: intent.style.wrapText,
-          )
-        : null;
+    _context.recordUndo('Set Style', range, () {
+      // Pre-compute a border-stripped copy so non-anchor merge cells
+      // don't get borders stored in the data model.
+      final hasBorders = intent.style.borders != null;
+      final noBordersStyle = hasBorders
+          ? CellStyle(
+              backgroundColor: intent.style.backgroundColor,
+              textAlignment: intent.style.textAlignment,
+              verticalAlignment: intent.style.verticalAlignment,
+              wrapText: intent.style.wrapText,
+            )
+          : null;
 
-    // For large ranges, iterate only populated cells (sparse path).
-    if (range.cellCount > 1000000) {
-      _applyStyleSparse(range, intent.style, hasBorders, noBordersStyle);
-    } else {
-      for (int row = range.startRow; row <= range.endRow; row++) {
-        for (int col = range.startColumn; col <= range.endColumn; col++) {
-          final coord = CellCoordinate(row, col);
-          _applyStyleToCell(coord, intent.style, hasBorders, noBordersStyle);
+      // For large ranges, iterate only populated cells (sparse path).
+      if (range.cellCount > 1000000) {
+        _applyStyleSparse(range, intent.style, hasBorders, noBordersStyle);
+      } else {
+        for (int row = range.startRow; row <= range.endRow; row++) {
+          for (int col = range.startColumn; col <= range.endColumn; col++) {
+            final coord = CellCoordinate(row, col);
+            _applyStyleToCell(coord, intent.style, hasBorders, noBordersStyle);
+          }
         }
       }
-    }
+    });
 
     _context.invalidateAndRebuild();
     return null;

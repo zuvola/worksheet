@@ -213,3 +213,17 @@ class SetCellStyleIntent extends Intent {
 
   const SetCellStyleIntent(this.style);
 }
+
+/// Undoes the most recent worksheet operation.
+///
+/// Used for Ctrl+Z / Cmd+Z.
+class UndoIntent extends Intent {
+  const UndoIntent();
+}
+
+/// Redoes the most recently undone worksheet operation.
+///
+/// Used for Ctrl+Y / Ctrl+Shift+Z / Cmd+Shift+Z.
+class RedoIntent extends Intent {
+  const RedoIntent();
+}

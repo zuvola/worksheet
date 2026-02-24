@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.5.0] - 2026-02-24
+
+### Added
+- **Undo/Redo** — `UndoManager` class provides full undo/redo support for all worksheet mutations
+- `UndoEntry` immutable model storing before/after cell snapshots, merge regions, and selection state
+- `UndoSnapshot` helper with `capture()` and `restore()` static methods for range-scoped cell state snapshots
+- Pass `UndoManager` to `WorksheetController` to enable: `WorksheetController(undoManager: UndoManager())`
+- All 13 mutation paths automatically recorded: cell edit, paste, cut, fill handle drag, fill down/right, clear, merge/unmerge, move, rich text toggle, set style
+- Keyboard shortcuts: Ctrl+Z / Cmd+Z (undo), Ctrl+Y / Ctrl+Shift+Z / Cmd+Shift+Z (redo)
+- `UndoIntent` and `RedoIntent` for custom shortcut/action integration
+- `WorksheetController.invokeAction(Intent)` — invoke any registered worksheet action from external UI (toolbars, side panels)
+- `WorksheetController.isActionEnabled(Intent)` — check if an action is currently enabled
+- `undo()` and `redo()` are now convenience wrappers around `invokeAction`
+- `WorksheetData.getFormatsInRange()` for sparse format iteration
+- `example/undo_redo.dart` — example with toolbar undo/redo buttons, `invokeAction` pattern, and stack depth display
+
 ## [3.4.0] - 2026-02-23
 
 ### Added

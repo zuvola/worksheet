@@ -281,6 +281,7 @@ for (var row = 0; row < 50000; row++) {
 - **Automatic type detection**: Numbers, booleans, dates, and formulas detected from text input via `CellValue.parse()`
 - **Formula cell referencing**: Click cells to insert A1 references, drag for ranges, arrow keys to insert/move refs, F4 for absolute/relative cycling, color-coded borders with marching ants
 - **Formula autocomplete**: Dropdown suggestions for function names while typing formulas, with keyboard navigation and customizable function list
+- **Undo/Redo**: Full undo/redo with Ctrl+Z / Ctrl+Y covering all mutation paths; `invokeAction(Intent)` dispatches any worksheet action from external toolbars
 - **Resize support**: Drag column/row borders to resize
 - **Mobile support**: Touch gestures, selection handles, pinch-to-zoom, configurable via `mobileMode`
 - **Theming**: Full control over colors, fonts, headers — built-in light and dark mode presets
@@ -347,6 +348,8 @@ All shortcuts work out of the box. You can override or extend them via the `shor
 | Escape | Cancel active drag; or collapse range to single cell |
 | Ctrl+A | Select all |
 | Ctrl+C / Ctrl+X / Ctrl+V | Copy / Cut / Paste |
+| Ctrl+Z | Undo |
+| Ctrl+Y / Ctrl+Shift+Z | Redo |
 | Ctrl+D / Ctrl+R | Fill down / Fill right |
 | Alt+Enter | Insert newline (when cell has wrapText) |
 | Ctrl+B / Ctrl+I / Ctrl+U | Toggle bold / italic / underline (editing) |
@@ -436,6 +439,7 @@ The `example/` directory contains several demos you can run individually:
 | `wrap_text.dart` | Text wrapping and vertical alignment |
 | `darklight.dart` | Light and dark theme switching |
 | `mobile.dart` | Mobile-optimized layout |
+| `undo_redo.dart` | Undo/redo with toolbar buttons and status display |
 | `autocomplete.dart` | Formula function autocomplete dropdown |
 
 Most examples are single-file targets run from the `example/` directory. Standalone examples that need their own dependencies (like `rich_text/` which uses `google_fonts`) are separate Flutter projects:

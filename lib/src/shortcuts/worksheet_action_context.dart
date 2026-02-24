@@ -1,15 +1,19 @@
 import '../core/data/formula_reference_adjuster.dart';
 import '../core/data/worksheet_data.dart';
 import '../core/models/cell_coordinate.dart';
+import '../core/models/cell_range.dart';
 import '../interaction/clipboard/clipboard_handler.dart';
 import '../interaction/controllers/edit_controller.dart';
 import '../interaction/controllers/selection_controller.dart';
+import '../interaction/undo/undo_entry.dart';
+import '../interaction/undo/undo_manager.dart';
+import '../interaction/undo/undo_snapshot.dart';
 
 /// Interface providing the dependencies that worksheet [Action] classes need.
 ///
 /// Implemented by the worksheet widget's state to avoid threading many
 /// constructor parameters into every Action.
-abstract class WorksheetActionContext {
+abstract mixin class WorksheetActionContext {
   /// The selection controller for reading and updating selection state.
   SelectionController get selectionController;
 
@@ -44,4 +48,100 @@ abstract class WorksheetActionContext {
   /// formulas verbatim. Defaults to [defaultFormulaReferenceAdjuster].
   FormulaReferenceAdjuster? get formulaReferenceAdjuster =>
       defaultFormulaReferenceAdjuster;
+
+  /// The undo manager, or null if undo is not enabled.
+  UndoManager? get undoManager => null;
+
+  /// Records an undoable operation.
+  ///
+  /// Captures cell state and merges within [affectedRange] before [mutation],
+  /// executes the mutation, captures the after state, and pushes an
+  /// [UndoEntry] onto the undo stack.
+  ///
+  /// If [undoManager] is null, simply executes [mutation] without recording.
+  void recordUndo(
+    String label,
+    CellRange affectedRange,
+    void Function() mutation,
+  ) {
+    final um = undoManager;
+    if (um == null) {
+      mutation();
+      return;
+    }
+    final selBefore = (
+      selectionController.anchor,
+      selectionController.focus,
+    );
+    final (cellsBefore, mergesBefore) =
+        UndoSnapshot.capture(worksheetData, affectedRange);
+
+    mutation();
+
+    final selAfter = (
+      selectionController.anchor,
+      selectionController.focus,
+    );
+    final (cellsAfter, mergesAfter) =
+        UndoSnapshot.capture(worksheetData, affectedRange);
+
+    um.push(UndoEntry(
+      label: label,
+      affectedRange: affectedRange,
+      cellsBefore: cellsBefore,
+      mergesBefore: mergesBefore,
+      selectionBefore: selBefore,
+      cellsAfter: cellsAfter,
+      mergesAfter: mergesAfter,
+      selectionAfter: selAfter,
+    ));
+  }
+
+  /// Performs an undo operation: restores the before-state of the most
+  /// recent entry and restores the before-selection.
+  void performUndo() {
+    final um = undoManager;
+    if (um == null || !um.canUndo) return;
+    final entry = um.undo();
+    if (entry == null) return;
+
+    UndoSnapshot.restore(
+      worksheetData,
+      entry.affectedRange,
+      entry.cellsBefore,
+      entry.mergesBefore,
+    );
+
+    final (anchor, focus) = entry.selectionBefore;
+    if (anchor != null && focus != null) {
+      selectionController.selectCell(anchor);
+      if (anchor != focus) {
+        selectionController.extendSelection(focus);
+      }
+    }
+  }
+
+  /// Performs a redo operation: restores the after-state of the most
+  /// recent undone entry and restores the after-selection.
+  void performRedo() {
+    final um = undoManager;
+    if (um == null || !um.canRedo) return;
+    final entry = um.redo();
+    if (entry == null) return;
+
+    UndoSnapshot.restore(
+      worksheetData,
+      entry.affectedRange,
+      entry.cellsAfter,
+      entry.mergesAfter,
+    );
+
+    final (anchor, focus) = entry.selectionAfter;
+    if (anchor != null && focus != null) {
+      selectionController.selectCell(anchor);
+      if (anchor != focus) {
+        selectionController.extendSelection(focus);
+      }
+    }
+  }
 }

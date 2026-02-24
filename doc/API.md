@@ -5,15 +5,16 @@ Quick reference for the worksheet widget API.
 ## Table of Contents
 
 1. [WorksheetController](#worksheetcontroller)
-2. [Callback Signatures](#callback-signatures)
-3. [CellValue Types](#cellvalue-types)
-4. [Cell Class](#cell-class) (Rich Text, Merging)
-5. [CellFormat](#cellformat)
-6. [CellStyle Properties](#cellstyle-properties)
-7. [Selection Types](#selection-types)
-8. [Theme Classes](#theme-classes)
-9. [Event Streams](#event-streams)
-10. [Core Models](#core-models)
+2. [UndoManager](#undomanager)
+3. [Callback Signatures](#callback-signatures)
+4. [CellValue Types](#cellvalue-types)
+5. [Cell Class](#cell-class) (Rich Text, Merging)
+6. [CellFormat](#cellformat)
+7. [CellStyle Properties](#cellstyle-properties)
+8. [Selection Types](#selection-types)
+9. [Theme Classes](#theme-classes)
+10. [Event Streams](#event-streams)
+11. [Core Models](#core-models)
 
 ---
 
@@ -29,6 +30,7 @@ WorksheetController({
   ZoomController? zoomController,
   ScrollController? horizontalScrollController,
   ScrollController? verticalScrollController,
+  UndoManager? undoManager,
 })
 ```
 
@@ -51,6 +53,9 @@ WorksheetController({
 | `layoutSolver` | `LayoutSolver?` | The authoritative layout solver, or null before attach |
 | `headerWidth` | `double` | Header width in worksheet coordinates |
 | `headerHeight` | `double` | Header height in worksheet coordinates |
+| `undoManager` | `UndoManager?` | Undo/redo manager, or null if disabled |
+| `canUndo` | `bool` | Whether an undo operation is available |
+| `canRedo` | `bool` | Whether a redo operation is available |
 
 ### Selection Methods
 
@@ -124,6 +129,47 @@ void scrollTo({
 })
 ```
 
+### Action Dispatch Methods
+
+```dart
+/// Invokes any registered worksheet action by intent.
+/// Returns the action result, or null if no dispatcher is attached,
+/// no action is registered, or the action is disabled.
+Object? invokeAction(Intent intent)
+
+/// Whether the action for [intent] is currently enabled.
+/// Returns false when no dispatcher is attached.
+bool isActionEnabled(Intent intent)
+```
+
+**Example — toolbar button invoking an action:**
+```dart
+IconButton(
+  icon: const Icon(Icons.format_bold),
+  onPressed: controller.isActionEnabled(const ToggleBoldIntent())
+      ? () => controller.invokeAction(const ToggleBoldIntent())
+      : null,
+)
+```
+
+### Undo/Redo Methods
+
+Convenience wrappers around `invokeAction`:
+
+```dart
+/// Whether an undo operation is available
+bool get canUndo
+
+/// Whether a redo operation is available
+bool get canRedo
+
+/// Performs an undo operation (shorthand for invokeAction(UndoIntent()))
+void undo()
+
+/// Performs a redo operation (shorthand for invokeAction(RedoIntent()))
+void redo()
+```
+
 ### Layout Methods
 
 Once the `Worksheet` widget has built, it attaches its internal `LayoutSolver`
@@ -169,6 +215,91 @@ void _onEditCell(CellCoordinate cell) {
 /// Disposes all controllers
 void dispose()
 ```
+
+---
+
+## UndoManager
+
+Manages undo/redo stacks for worksheet operations. Pass to `WorksheetController` to enable undo/redo.
+
+### Constructor
+
+```dart
+UndoManager({
+  int maxDepth = 100,  // Maximum undo entries before oldest is evicted
+})
+```
+
+### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `canUndo` | `bool` | Whether there are entries to undo |
+| `canRedo` | `bool` | Whether there are entries to redo |
+| `undoCount` | `int` | Number of entries in the undo stack |
+| `redoCount` | `int` | Number of entries in the redo stack |
+| `maxDepth` | `int` | Maximum undo entries (constructor param) |
+
+### Methods
+
+```dart
+/// Pushes a new undo entry. Clears the redo stack.
+void push(UndoEntry entry)
+
+/// Pops the most recent undo entry, pushes to redo. Returns null if empty.
+UndoEntry? undo()
+
+/// Pops the most recent redo entry, pushes back to undo. Returns null if empty.
+UndoEntry? redo()
+
+/// Clears both stacks.
+void clear()
+```
+
+### Enabling Undo/Redo
+
+```dart
+final undoManager = UndoManager();
+final controller = WorksheetController(undoManager: undoManager);
+
+// Use with Worksheet
+Worksheet(
+  data: data,
+  controller: controller,
+  // ...
+)
+
+// Listen for stack changes (e.g., to update toolbar button states)
+undoManager.addListener(() {
+  setState(() {});  // rebuild toolbar
+});
+```
+
+### Keyboard Shortcuts (built-in)
+
+| Key | Action |
+|-----|--------|
+| Ctrl+Z / Cmd+Z | Undo |
+| Ctrl+Y | Redo |
+| Ctrl+Shift+Z / Cmd+Shift+Z | Redo |
+
+### Covered Mutation Paths
+
+All 13 user-initiated mutation paths are automatically recorded:
+
+1. Cell edit commit
+2. Cell edit commit + navigate (Enter/Tab)
+3. Paste (Ctrl+V)
+4. Cut (Ctrl+X)
+5. Fill handle drag
+6. Fill Down (Ctrl+D)
+7. Fill Right (Ctrl+R)
+8. Clear cells (Delete/Backspace)
+9. Merge cells
+10. Unmerge cells
+11. Move (drag & drop)
+12. Rich text toggle (Ctrl+B/I/U, Ctrl+Shift+S)
+13. Set cell style
 
 ---
 

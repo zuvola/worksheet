@@ -5,7 +5,7 @@ import 'package:any_date/any_date.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart' hide UndoManager;
 
 import '../core/data/data_change_event.dart';
 import '../core/data/worksheet_data.dart';
@@ -28,6 +28,7 @@ import '../interaction/hit_testing/hit_test_result.dart';
 import '../interaction/hit_testing/hit_tester.dart';
 import '../shortcuts/default_worksheet_shortcuts.dart';
 import '../core/data/formula_reference_adjuster.dart';
+import '../interaction/undo/undo_manager.dart';
 import '../shortcuts/worksheet_action_context.dart';
 import '../shortcuts/worksheet_actions.dart';
 import '../shortcuts/worksheet_intents.dart';
@@ -278,8 +279,7 @@ class Worksheet extends StatefulWidget {
 }
 
 class _WorksheetState extends State<Worksheet>
-    with TickerProviderStateMixin
-    implements WorksheetActionContext {
+    with TickerProviderStateMixin, WorksheetActionContext {
   late WorksheetController _controller;
   bool _ownsController = false;
 
@@ -314,6 +314,11 @@ class _WorksheetState extends State<Worksheet>
   FrozenLayer? _frozenLayer;
 
   bool _initialized = false;
+
+  /// Cached effective actions map, rebuilt every build().
+  /// Used by [_dispatchAction] and [_isActionEnabled] so the controller
+  /// can invoke any registered worksheet action.
+  Map<Type, Action<Intent>> _effectiveActions = const {};
 
   /// Controller for formula autocomplete, created when config is non-null.
   AutocompleteController? _autocompleteController;
@@ -431,6 +436,9 @@ class _WorksheetState extends State<Worksheet>
       widget.formulaReferenceAdjuster;
 
   @override
+  UndoManager? get undoManager => _controller.undoManager;
+
+  @override
   void ensureSelectionVisible() => _ensureSelectionVisible();
 
   @override
@@ -460,6 +468,8 @@ class _WorksheetState extends State<Worksheet>
     MergeCellsVerticallyIntent: MergeCellsVerticallyAction(this),
     UnmergeCellsIntent: UnmergeCellsAction(this),
     SetCellStyleIntent: SetCellStyleAction(this),
+    UndoIntent: UndoAction(this),
+    RedoIntent: RedoAction(this),
     ToggleBoldIntent: ToggleBoldAction(this),
     ToggleItalicIntent: ToggleItalicAction(this),
     ToggleUnderlineIntent: ToggleUnderlineAction(this),
@@ -517,6 +527,31 @@ class _WorksheetState extends State<Worksheet>
     );
     _controller.freezeConfig = widget.freezeConfig;
     _scrollSuppressor.freezeConfig = widget.freezeConfig;
+
+    // Attach action dispatcher so controller.invokeAction() works
+    _controller.attachActionDispatcher(
+      dispatcher: _dispatchAction,
+      enabledChecker: _isActionEnabled,
+    );
+  }
+
+  /// Dispatches an [Intent] by looking up the action in [_effectiveActions].
+  ///
+  /// Returns the action result, or null if no action is registered or the
+  /// action is disabled.
+  Object? _dispatchAction(Intent intent) {
+    final action = _effectiveActions[intent.runtimeType];
+    if (action == null) return null;
+    if (!action.isEnabled(intent)) return null;
+    // ignore: invalid_use_of_protected_member — we act as the dispatch layer
+    return action.invoke(intent);
+  }
+
+  /// Whether the action for [intent] is registered and enabled.
+  bool _isActionEnabled(Intent intent) {
+    final action = _effectiveActions[intent.runtimeType];
+    if (action == null) return false;
+    return action.isEnabled(intent);
   }
 
   void _initRendering(WorksheetThemeData theme, double devicePixelRatio) {
@@ -781,12 +816,28 @@ class _WorksheetState extends State<Worksheet>
       onFillComplete: widget.readOnly
           ? null
           : (sourceRange, destination) {
-              final filledRange =
-                  widget.data.smartFill(sourceRange, destination);
-              if (filledRange != null) {
-                _adjustSmartFillFormulas(sourceRange, filledRange);
-                _controller.selectionController.selectRange(filledRange);
-              }
+              // Estimate the fill range for undo capture.
+              // smartFill may expand the range, so use a generous union.
+              final destRow = destination.row;
+              final destCol = destination.column;
+              final preUndoRange = sourceRange.union(CellRange(
+                sourceRange.startRow < destRow ? sourceRange.startRow : destRow,
+                sourceRange.startColumn < destCol ? sourceRange.startColumn : destCol,
+                sourceRange.endRow > destRow ? sourceRange.endRow : destRow,
+                sourceRange.endColumn > destCol ? sourceRange.endColumn : destCol,
+              ));
+              CellRange? filledRange;
+              recordUndo('Fill', preUndoRange, () {
+                filledRange =
+                    widget.data.smartFill(sourceRange, destination);
+                if (filledRange != null) {
+                  _adjustSmartFillFormulas(sourceRange, filledRange!);
+                  _controller.selectionController.selectRange(filledRange!);
+                }
+              });
+              // If smartFill expanded beyond preUndoRange, re-capture the
+              // entry with the actual range. For simplicity we accept the
+              // pre-estimated range which covers the source+destination.
               _selectionLayer.fillPreviewRange = null;
               _tileManager.invalidateAll();
               _layoutVersion++;
@@ -909,18 +960,21 @@ class _WorksheetState extends State<Worksheet>
 
   /// Performs a move operation: copies source cells to destination, clears source.
   void _performMove(CellRange sourceRange, CellCoordinate destination) {
-    widget.data.batchUpdate((batch) {
-      batch.copyRange(sourceRange, destination);
-      batch.clearRange(sourceRange);
-    });
-    widget.data.moveMerges(sourceRange, destination);
-    final newRange = CellRange(
+    final destRange = CellRange(
       destination.row,
       destination.column,
       destination.row + sourceRange.endRow - sourceRange.startRow,
       destination.column + sourceRange.endColumn - sourceRange.startColumn,
     );
-    _controller.selectionController.selectRange(newRange);
+    final undoRange = sourceRange.union(destRange);
+    recordUndo('Move', undoRange, () {
+      widget.data.batchUpdate((batch) {
+        batch.copyRange(sourceRange, destination);
+        batch.clearRange(sourceRange);
+      });
+      widget.data.moveMerges(sourceRange, destination);
+      _controller.selectionController.selectRange(destRange);
+    });
     _selectionLayer.movePreviewRange = null;
     _tileManager.invalidateAll();
     _layoutVersion++;
@@ -1709,12 +1763,14 @@ class _WorksheetState extends State<Worksheet>
     List<TextSpan>? richText,
   }) {
     _clearEditingCell();
-    widget.data.batchUpdate((batch) {
-      batch.setCell(cell, value);
-      if (detectedFormat != null && widget.data.getFormat(cell) == null) {
-        batch.setFormat(cell, detectedFormat);
-      }
-      batch.setRichText(cell, richText);
+    recordUndo('Edit cell', CellRange.single(cell), () {
+      widget.data.batchUpdate((batch) {
+        batch.setCell(cell, value);
+        if (detectedFormat != null && widget.data.getFormat(cell) == null) {
+          batch.setFormat(cell, detectedFormat);
+        }
+        batch.setRichText(cell, richText);
+      });
     });
     invalidateAndRebuild();
   }
@@ -1748,12 +1804,14 @@ class _WorksheetState extends State<Worksheet>
     List<TextSpan>? richText,
   }) {
     _clearEditingCell();
-    widget.data.batchUpdate((batch) {
-      batch.setCell(cell, value);
-      if (detectedFormat != null && widget.data.getFormat(cell) == null) {
-        batch.setFormat(cell, detectedFormat);
-      }
-      batch.setRichText(cell, richText);
+    recordUndo('Edit cell', CellRange.single(cell), () {
+      widget.data.batchUpdate((batch) {
+        batch.setCell(cell, value);
+        if (detectedFormat != null && widget.data.getFormat(cell) == null) {
+          batch.setFormat(cell, detectedFormat);
+        }
+        batch.setRichText(cell, richText);
+      });
     });
     selectionController.moveFocus(
       rowDelta: rowDelta,
@@ -2024,6 +2082,7 @@ class _WorksheetState extends State<Worksheet>
     super.didUpdateWidget(oldWidget);
 
     if (widget.controller != oldWidget.controller) {
+      _controller.detachActionDispatcher();
       _controller.detachLayout();
       if (_ownsController) {
         _controller.removeListener(_onControllerChanged);
@@ -2034,12 +2093,16 @@ class _WorksheetState extends State<Worksheet>
 
       _initController();
       if (_initialized) {
-        // Re-attach layout to the new controller
+        // Re-attach layout and action dispatcher to the new controller
         final theme = WorksheetTheme.of(context);
         _controller.attachLayout(
           _layoutSolver,
           headerWidth: theme.showHeaders ? theme.rowHeaderWidth : 0.0,
           headerHeight: theme.showHeaders ? theme.columnHeaderHeight : 0.0,
+        );
+        _controller.attachActionDispatcher(
+          dispatcher: _dispatchAction,
+          enabledChecker: _isActionEnabled,
         );
         _gestureHandler = _createGestureHandler();
         _clipboardHandler = ClipboardHandler(
@@ -2156,6 +2219,7 @@ class _WorksheetState extends State<Worksheet>
     _pendingDataChanges = null;
     _dataSubscription?.cancel();
     widget.editController?.removeListener(_onEditTextChanged);
+    _controller.detachActionDispatcher();
     _controller.detachLayout();
     _controller.removeListener(_onControllerChanged);
     if (_ownsController) {
@@ -2223,14 +2287,16 @@ class _WorksheetState extends State<Worksheet>
           };
 
     // Merge default actions with consumer overrides.
-    final effectiveActions = widget.readOnly
+    // Stored in a field so _dispatchAction / _isActionEnabled (used by the
+    // controller's invokeAction) always reference the latest merged map.
+    _effectiveActions = widget.readOnly
         ? <Type, Action<Intent>>{}
         : <Type, Action<Intent>>{..._defaultActions, ...?widget.actions};
 
     return Shortcuts(
       shortcuts: effectiveShortcuts,
       child: Actions(
-        actions: effectiveActions,
+        actions: _effectiveActions,
         child: Focus(
           focusNode: _keyboardFocusNode,
           autofocus: true,

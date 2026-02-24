@@ -24,6 +24,7 @@ Practical recipes for common worksheet tasks.
 18. [Multi-Select Resize](#multi-select-resize)
 19. [Mobile Mode](#mobile-mode)
 20. [Formula Autocomplete](#formula-autocomplete)
+21. [Undo/Redo](#undoredo)
 
 ---
 
@@ -2036,3 +2037,112 @@ Worksheet(
 The dropdown appears only in formula mode (text starts with `=`) and only for alphabetic tokens (not cell references like `A1`).
 
 See `example/autocomplete.dart` for a complete working example with ~20 sample functions.
+
+---
+
+## Undo/Redo
+
+Enable undo/redo by passing an `UndoManager` to `WorksheetController`. All 13 mutation paths (edit, paste, cut, fill, clear, merge, unmerge, move, style, formatting) are automatically recorded.
+
+### Basic Setup
+
+```dart
+final _undoManager = UndoManager();
+final _controller = WorksheetController(undoManager: _undoManager);
+```
+
+That's it — Ctrl+Z and Ctrl+Y (or Cmd+Z and Cmd+Shift+Z on macOS) work immediately.
+
+### Toolbar Buttons
+
+Listen to `UndoManager` to enable/disable toolbar buttons. `undo()` and `redo()` are convenience wrappers — they call `invokeAction` internally:
+
+```dart
+ListenableBuilder(
+  listenable: _undoManager,
+  builder: (context, _) => Row(
+    children: [
+      // Convenience methods for undo/redo
+      IconButton(
+        icon: const Icon(Icons.undo),
+        tooltip: 'Undo (Ctrl+Z)',
+        onPressed: _undoManager.canUndo
+            ? () => _controller.undo()
+            : null,
+      ),
+      IconButton(
+        icon: const Icon(Icons.redo),
+        tooltip: 'Redo (Ctrl+Y)',
+        onPressed: _undoManager.canRedo
+            ? () => _controller.redo()
+            : null,
+      ),
+    ],
+  ),
+)
+```
+
+For **any other action**, use `invokeAction` and `isActionEnabled` directly. This works for every registered worksheet action — `ClearCellsIntent`, `MergeCellsIntent`, `ToggleBoldIntent`, etc.:
+
+```dart
+// Listen to the controller to rebuild when enabled state changes
+ListenableBuilder(
+  listenable: _controller,
+  builder: (context, _) => IconButton(
+    icon: const Icon(Icons.delete_outline),
+    tooltip: 'Clear selected cells',
+    onPressed: _controller.isActionEnabled(const ClearCellsIntent())
+        ? () => _controller.invokeAction(const ClearCellsIntent())
+        : null,
+  ),
+)
+```
+
+### Programmatic Undo/Redo
+
+You can trigger undo/redo from anywhere via the controller:
+
+```dart
+_controller.undo();
+_controller.redo();
+```
+
+### Invoking Any Worksheet Action
+
+`undo()` and `redo()` are convenience wrappers around `invokeAction(Intent)`, which can dispatch **any** registered worksheet action — useful for toolbar buttons that sit outside the worksheet's widget subtree:
+
+```dart
+// Toggle bold from an external toolbar
+controller.invokeAction(const ToggleBoldIntent());
+
+// Check if an action is available before showing a button
+final canMerge = controller.isActionEnabled(const MergeCellsIntent());
+```
+
+### Configuration
+
+```dart
+// Limit undo history to 50 entries (default is 100)
+final _undoManager = UndoManager(maxDepth: 50);
+
+// Clear undo history (e.g., after loading a new document)
+_undoManager.clear();
+```
+
+### Stack Depth Display
+
+```dart
+Text('Undo: ${_undoManager.undoCount} / Redo: ${_undoManager.redoCount}')
+```
+
+### How It Works
+
+1. Before each mutation, `UndoSnapshot.capture()` takes a sparse snapshot of cell data (values, styles, formats, rich text) and merge regions within the affected range
+2. The mutation executes normally
+3. After the mutation, a second snapshot captures the new state
+4. Both snapshots plus selection state are stored as an `UndoEntry` on the undo stack
+5. Undo restores the before-snapshot; redo restores the after-snapshot
+
+Since all cell models (`Cell`, `CellValue`, `CellStyle`, `CellFormat`) are immutable with equality, snapshots are cheap — they reference existing objects rather than deep-copying.
+
+See `example/undo_redo.dart` for a complete working example with toolbar buttons and status display.

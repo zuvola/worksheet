@@ -41,12 +41,20 @@ class ClipboardHandler {
   /// Cuts the selected cells: copies to clipboard then clears the source cells.
   ///
   /// Does nothing if no range is selected.
-  Future<void> cut() async {
+  /// If [recordUndo] is provided, the synchronous clear is wrapped for undo.
+  Future<void> cut({
+    void Function(String label, CellRange range, void Function() mutation)?
+        recordUndo,
+  }) async {
     final range = selectionController.selectedRange;
     if (range == null) return;
     final text = serializer.serialize(range, data);
     await Clipboard.setData(ClipboardData(text: text));
-    data.clearRange(range);
+    if (recordUndo != null) {
+      recordUndo('Cut', range, () => data.clearRange(range));
+    } else {
+      data.clearRange(range);
+    }
   }
 
   /// Pastes from the system clipboard at the selection anchor.
@@ -56,7 +64,11 @@ class ClipboardHandler {
   /// Values are clamped to worksheet bounds.
   ///
   /// Does nothing if no range is selected or clipboard is empty.
-  Future<void> paste() async {
+  /// If [recordUndo] is provided, the synchronous write is wrapped for undo.
+  Future<void> paste({
+    void Function(String label, CellRange range, void Function() mutation)?
+        recordUndo,
+  }) async {
     final range = selectionController.selectedRange;
     if (range == null) return;
     final clipData = await Clipboard.getData(Clipboard.kTextPlain);
@@ -69,18 +81,24 @@ class ClipboardHandler {
     final maxPasteCols = grid.fold(0, (m, row) => math.max(m, row.length));
     final endRow = math.min(startRow + maxPasteRows - 1, data.rowCount - 1);
     final endCol = math.min(startCol + maxPasteCols - 1, data.columnCount - 1);
-    data.batchUpdate((batch) {
-      for (int r = 0; r < grid.length; r++) {
-        for (int c = 0; c < grid[r].length; c++) {
-          final coord = CellCoordinate(startRow + r, startCol + c);
-          if (coord.row < data.rowCount && coord.column < data.columnCount) {
-            batch.setCell(coord, grid[r][c]);
+    final pasteRange = CellRange(startRow, startCol, endRow, endCol);
+    void doWrite() {
+      data.batchUpdate((batch) {
+        for (int r = 0; r < grid.length; r++) {
+          for (int c = 0; c < grid[r].length; c++) {
+            final coord = CellCoordinate(startRow + r, startCol + c);
+            if (coord.row < data.rowCount && coord.column < data.columnCount) {
+              batch.setCell(coord, grid[r][c]);
+            }
           }
         }
-      }
-    });
-    selectionController.selectRange(
-      CellRange(startRow, startCol, endRow, endCol),
-    );
+      });
+      selectionController.selectRange(pasteRange);
+    }
+    if (recordUndo != null) {
+      recordUndo('Paste', pasteRange, doWrite);
+    } else {
+      doWrite();
+    }
   }
 }

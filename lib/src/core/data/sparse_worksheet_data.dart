@@ -425,6 +425,17 @@ class SparseWorksheetData implements WorksheetData {
   }
 
   @override
+  Iterable<MapEntry<CellCoordinate, CellFormat>> getFormatsInRange(
+    CellRange range,
+  ) sync* {
+    for (final entry in _formats.entries) {
+      if (range.contains(entry.key)) {
+        yield entry;
+      }
+    }
+  }
+
+  @override
   int? findNextPopulatedRow(int column, int fromRow) {
     int? best;
     for (final coord in _values.keys) {

@@ -8,6 +8,8 @@ import '../core/models/cell_range.dart';
 import '../core/models/freeze_config.dart';
 import '../interaction/controllers/selection_controller.dart';
 import '../interaction/controllers/zoom_controller.dart';
+import '../interaction/undo/undo_manager.dart';
+import '../shortcuts/worksheet_intents.dart';
 
 /// Controller for programmatic interaction with a worksheet.
 ///
@@ -31,6 +33,14 @@ class WorksheetController extends ChangeNotifier {
 
   /// The vertical scroll controller.
   final ScrollController verticalScrollController;
+
+  /// The undo manager, or null if undo/redo is not enabled.
+  final UndoManager? undoManager;
+
+  // Action dispatch callbacks — set by the Worksheet widget via
+  // attachActionDispatcher.
+  Object? Function(Intent)? _actionDispatcher;
+  bool Function(Intent)? _actionEnabledChecker;
 
   // Layout state — set by the Worksheet widget via attachLayout/detachLayout.
   LayoutSolver? _layoutSolver;
@@ -84,6 +94,7 @@ class WorksheetController extends ChangeNotifier {
     ZoomController? zoomController,
     ScrollController? horizontalScrollController,
     ScrollController? verticalScrollController,
+    this.undoManager,
   }) : selectionController = selectionController ?? SelectionController(),
        zoomController = zoomController ?? ZoomController(),
        horizontalScrollController =
@@ -417,6 +428,62 @@ class WorksheetController extends ChangeNotifier {
       }
     }
   }
+
+  // Action dispatch
+
+  /// Invokes any registered worksheet action by intent.
+  ///
+  /// Returns the action's result, or null if no dispatcher is attached,
+  /// no action is registered for the intent, or the action is disabled.
+  ///
+  /// Requires the controller to be attached to a [Worksheet] widget.
+  Object? invokeAction(Intent intent) => _actionDispatcher?.call(intent);
+
+  /// Whether the action for [intent] is currently enabled.
+  ///
+  /// Returns false when no dispatcher is attached (safe default).
+  bool isActionEnabled(Intent intent) =>
+      _actionEnabledChecker?.call(intent) ?? false;
+
+  /// Attaches the action dispatcher from the [Worksheet] widget.
+  ///
+  /// Called internally by the widget after initialization. External code
+  /// should not call this directly.
+  void attachActionDispatcher({
+    required Object? Function(Intent) dispatcher,
+    required bool Function(Intent) enabledChecker,
+  }) {
+    _actionDispatcher = dispatcher;
+    _actionEnabledChecker = enabledChecker;
+  }
+
+  /// Detaches the action dispatcher.
+  ///
+  /// Called internally by the [Worksheet] widget on dispose.
+  void detachActionDispatcher() {
+    _actionDispatcher = null;
+    _actionEnabledChecker = null;
+  }
+
+  // Undo/redo convenience methods
+
+  /// Whether an undo operation is available.
+  bool get canUndo => undoManager?.canUndo == true;
+
+  /// Whether a redo operation is available.
+  bool get canRedo => undoManager?.canRedo == true;
+
+  /// Performs an undo operation.
+  ///
+  /// Convenience wrapper around [invokeAction] with [UndoIntent].
+  /// Requires the controller to be attached to a [Worksheet] widget.
+  void undo() => invokeAction(const UndoIntent());
+
+  /// Performs a redo operation.
+  ///
+  /// Convenience wrapper around [invokeAction] with [RedoIntent].
+  /// Requires the controller to be attached to a [Worksheet] widget.
+  void redo() => invokeAction(const RedoIntent());
 
   // Layout attachment
 

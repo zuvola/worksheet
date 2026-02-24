@@ -73,6 +73,11 @@ export 'src/interaction/hit_testing/hit_tester.dart';
 export 'src/interaction/clipboard/clipboard_handler.dart';
 export 'src/interaction/clipboard/clipboard_serializer.dart';
 
+// Interaction - Undo
+export 'src/interaction/undo/undo_entry.dart';
+export 'src/interaction/undo/undo_manager.dart';
+export 'src/interaction/undo/undo_snapshot.dart';
+
 // Interaction - Gestures
 export 'src/interaction/gesture_handler.dart';
 

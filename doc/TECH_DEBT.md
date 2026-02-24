@@ -78,9 +78,8 @@ This document tracks known technical debt, architectural bottlenecks, and sugges
   5. **Frozen headers:** `HeaderLayer` overpaints frozen column/row headers at fixed positions (zero scroll offset on the frozen axis) with separator lines at the freeze boundary matching the `FrozenLayer` separator style.
 - **New files:** `example/frozen_panes.dart`, `test/widgets/frozen_panes_integration_test.dart`
 
-### Undo/Redo System
-- **Current State:** No built-in support for undoing edits or formatting changes.
-- **Suggestion:** Implement a **Command Pattern** for all `WorksheetData` modifications and maintain a `CommandHistory`.
+### ~~Undo/Redo System~~ (RESOLVED)
+- **Resolution:** Implemented range-scoped snapshot-based undo/redo via `UndoManager`, `UndoSnapshot`, and `UndoEntry`. All 13 mutation paths are wrapped with `recordUndo`. Keyboard shortcuts: Ctrl+Z / Cmd+Z (undo), Ctrl+Y / Ctrl+Shift+Z / Cmd+Shift+Z (redo).
 
 ## 6. Testing & Quality
 
@@ -106,5 +105,5 @@ This document tracks known technical debt, architectural bottlenecks, and sugges
 9. ~~**Change Notification Thrashing**~~ — RESOLVED (batched commit paths + microtask coalescing).
 
 ### Open
-10. **Low Priority (Features):** Formula Engine Integration, ~~Frozen Panes~~, Undo/Redo.
+10. **Low Priority (Features):** Formula Engine Integration, ~~Frozen Panes~~, ~~Undo/Redo~~.
 11. **Low Priority (Testing):** Golden test coverage for complex rendering states.

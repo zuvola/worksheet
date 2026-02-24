@@ -4,9 +4,10 @@ import 'package:worksheet/src/core/models/cell_coordinate.dart';
 import 'package:worksheet/src/interaction/clipboard/clipboard_handler.dart';
 import 'package:worksheet/src/interaction/controllers/edit_controller.dart';
 import 'package:worksheet/src/interaction/controllers/selection_controller.dart';
+import 'package:worksheet/src/interaction/undo/undo_manager.dart';
 import 'package:worksheet/src/shortcuts/worksheet_action_context.dart';
 
-class MockWorksheetActionContext implements WorksheetActionContext {
+class MockWorksheetActionContext extends WorksheetActionContext {
   @override
   final SelectionController selectionController;
   @override
@@ -26,6 +27,8 @@ class MockWorksheetActionContext implements WorksheetActionContext {
   @override
   FormulaReferenceAdjuster? formulaReferenceAdjuster =
       defaultFormulaReferenceAdjuster;
+  @override
+  UndoManager? undoManager;
 
   int ensureSelectionVisibleCount = 0;
   int invalidateAndRebuildCount = 0;
@@ -40,6 +43,7 @@ class MockWorksheetActionContext implements WorksheetActionContext {
     this.onEditCell,
     this.editController,
     this.formulaReferenceAdjuster = defaultFormulaReferenceAdjuster,
+    this.undoManager,
   });
 
   @override
