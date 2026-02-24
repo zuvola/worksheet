@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:worksheet/src/core/data/sparse_worksheet_data.dart';
 import 'package:worksheet/src/core/models/cell_coordinate.dart';
 import 'package:worksheet/src/core/models/cell_format.dart';
 import 'package:worksheet/src/core/models/cell_style.dart';
 import 'package:worksheet/src/core/models/cell_value.dart';
 import 'package:worksheet/src/interaction/controllers/edit_controller.dart';
 import 'package:worksheet/src/widgets/cell_editor_overlay.dart';
+import 'package:worksheet/src/widgets/worksheet_controller.dart';
+import 'package:worksheet/src/widgets/worksheet_theme.dart';
+import 'package:worksheet/src/widgets/worksheet_widget.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -1881,6 +1885,84 @@ void main() {
             const TextSelection.collapsed(offset: 3),
             reason: 'cursor at offset 3 should be preserved after Bold');
       });
+    });
+  });
+
+  group('scroll tracking (integration)', () {
+    testWidgets('editor overlay follows cell when viewport scrolls',
+        (tester) async {
+      final data = SparseWorksheetData(rowCount: 1000, columnCount: 26);
+      for (var row = 0; row < 20; row++) {
+        data.setCell(CellCoordinate(row, 0), CellValue.text('R${row}C0'));
+      }
+
+      final controller = WorksheetController();
+      final ec = EditController();
+
+      addTearDown(() {
+        controller.dispose();
+        ec.dispose();
+        data.dispose();
+      });
+
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: MediaQuery(
+            data: const MediaQueryData(size: Size(800, 600)),
+            child: WorksheetTheme(
+              data: const WorksheetThemeData(),
+              child: SizedBox(
+                width: 800,
+                height: 600,
+                child: Worksheet(
+                  data: data,
+                  controller: controller,
+                  editController: ec,
+                  rowCount: 1000,
+                  columnCount: 26,
+                  onEditCell: (_) {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Start editing cell (5, 0) — a few rows down
+      final cell = const CellCoordinate(5, 0);
+      controller.selectCell(cell);
+      ec.startEdit(
+        cell: cell,
+        currentValue: data.getCell(cell),
+        trigger: EditTrigger.doubleTap,
+      );
+      await tester.pump();
+
+      // Read the CellEditorOverlay widget's cellBounds — these are set
+      // fresh by the builder from getCellScreenBounds on each rebuild.
+      final overlayBefore = tester.widget<CellEditorOverlay>(
+        find.byType(CellEditorOverlay),
+      );
+      final topBefore = overlayBefore.cellBounds.top;
+
+      // Scroll down
+      const scrollDelta = 100.0;
+      controller.verticalScrollController.jumpTo(scrollDelta);
+      await tester.pump();
+
+      final overlayAfter = tester.widget<CellEditorOverlay>(
+        find.byType(CellEditorOverlay),
+      );
+      final topAfter = overlayAfter.cellBounds.top;
+
+      // The overlay should have moved up by the scroll delta
+      expect(
+        topAfter,
+        closeTo(topBefore - scrollDelta, 1.0),
+        reason: 'overlay top should shift by scroll delta',
+      );
     });
   });
 }

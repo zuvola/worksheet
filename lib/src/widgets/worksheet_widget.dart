@@ -351,7 +351,6 @@ class _WorksheetState extends State<Worksheet>
 
   // Cached expansion state computed by _onEditTextChanged()
   Rect? _editingExpandedBounds; // worksheet coords
-  Rect? _editingExpandedScreenBounds; // screen coords, header-adjusted
   double? _editingVerticalOffset; // fixed vertical offset for wrap-text cells
   double? _editingContentAreaWidth; // viewport width minus row header
   double? _editingContentAreaHeight; // viewport height minus col header
@@ -382,6 +381,11 @@ class _WorksheetState extends State<Worksheet>
   // Null means no microtask is scheduled; non-null buffers events until
   // the next microtask processes them in a single pass.
   List<DataChangeEvent>? _pendingDataChanges;
+
+  // Merged listenable for the editor overlay's ListenableBuilder.
+  // Combines editController (for text/edit changes) with both scroll
+  // controllers so the overlay repositions on every scroll frame.
+  Listenable? _editorOverlayListenable;
 
   // Pinch-to-zoom
   ScaleHandler? _scaleHandler;
@@ -607,6 +611,21 @@ class _WorksheetState extends State<Worksheet>
 
     // Listen to editController for expansion recomputation
     widget.editController?.addListener(_onEditTextChanged);
+
+    // Build merged listenable so the editor overlay rebuilds on scroll
+    _updateEditorOverlayListenable();
+  }
+
+  void _updateEditorOverlayListenable() {
+    if (widget.editController != null) {
+      _editorOverlayListenable = Listenable.merge([
+        widget.editController!,
+        _controller.horizontalScrollController,
+        _controller.verticalScrollController,
+      ]);
+    } else {
+      _editorOverlayListenable = null;
+    }
   }
 
   void _initLayers(WorksheetThemeData theme, double devicePixelRatio) {
@@ -1421,7 +1440,6 @@ class _WorksheetState extends State<Worksheet>
     }
     _selectionRenderer.editingFocusBounds = null;
     _editingExpandedBounds = null;
-    _editingExpandedScreenBounds = null;
     _editingVerticalOffset = null;
     _editingContentAreaWidth = null;
     _editingContentAreaHeight = null;
@@ -1448,7 +1466,6 @@ class _WorksheetState extends State<Worksheet>
     if (ec == null || !ec.isEditing) {
       if (_editingExpandedBounds != null) {
         _editingExpandedBounds = null;
-        _editingExpandedScreenBounds = null;
       }
       _editingVerticalOffset = null;
       _editingContentAreaWidth = null;
@@ -1573,18 +1590,14 @@ class _WorksheetState extends State<Worksheet>
     final headerTop = theme.showHeaders
         ? theme.columnHeaderHeight * zoom
         : 0.0;
-    final expandedScreenBounds = Rect.fromLTWH(
-      expanded.bounds.left * zoom - _controller.scrollX + headerLeft,
-      expanded.bounds.top * zoom - _controller.scrollY + headerTop,
-      expanded.bounds.width * zoom,
-      expanded.bounds.height * zoom,
-    );
-    final adjustedExpandedBounds = expandedScreenBounds.shift(
-      Offset(-headerLeft, -headerTop),
-    );
-
     // Auto-scroll when wrap-text editor bottom extends below the viewport.
     if (isWrap && boundsChanged) {
+      final expandedScreenBounds = Rect.fromLTWH(
+        expanded.bounds.left * zoom - _controller.scrollX + headerLeft,
+        expanded.bounds.top * zoom - _controller.scrollY + headerTop,
+        expanded.bounds.width * zoom,
+        expanded.bounds.height * zoom,
+      );
       final size = context.size;
       if (size != null) {
         final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
@@ -1602,7 +1615,6 @@ class _WorksheetState extends State<Worksheet>
     }
 
     _editingExpandedBounds = expanded.bounds;
-    _editingExpandedScreenBounds = adjustedExpandedBounds;
 
     // Cache content area dimensions for the overlay's right-edge clamping
     // and autocomplete dropdown flip-above logic.
@@ -2127,6 +2139,11 @@ class _WorksheetState extends State<Worksheet>
     if (widget.editController != oldWidget.editController) {
       oldWidget.editController?.removeListener(_onEditTextChanged);
       widget.editController?.addListener(_onEditTextChanged);
+      _updateEditorOverlayListenable();
+    }
+
+    if (widget.controller != oldWidget.controller) {
+      _updateEditorOverlayListenable();
     }
 
     // Recreate autocomplete controller when config changes
@@ -3167,7 +3184,7 @@ class _WorksheetState extends State<Worksheet>
                     clipBehavior: Clip.hardEdge,
                     children: [
                       ListenableBuilder(
-                        listenable: widget.editController!,
+                        listenable: _editorOverlayListenable!,
                         builder: (context, _) {
                           final headerLeft = theme.showHeaders
                               ? theme.rowHeaderWidth * _controller.zoom
@@ -3207,8 +3224,20 @@ class _WorksheetState extends State<Worksheet>
                           final adjustedBounds = bounds.shift(
                             Offset(-headerLeft, -headerTop),
                           );
-                          // Use precomputed expanded bounds from _onEditTextChanged
-                          final adjustedExpandedBounds = _editingExpandedScreenBounds;
+                          // Compute expanded screen bounds fresh from
+                          // worksheet-coord _editingExpandedBounds so
+                          // the overlay tracks the cell during scroll.
+                          Rect? adjustedExpandedBounds;
+                          if (_editingExpandedBounds != null) {
+                            adjustedExpandedBounds = Rect.fromLTWH(
+                              _editingExpandedBounds!.left * _controller.zoom -
+                                  _controller.scrollX,
+                              _editingExpandedBounds!.top * _controller.zoom -
+                                  _controller.scrollY,
+                              _editingExpandedBounds!.width * _controller.zoom,
+                              _editingExpandedBounds!.height * _controller.zoom,
+                            );
+                          }
                           final currentZoom = _controller.zoom;
                           final contentAreaWidth = _editingContentAreaWidth;
 
