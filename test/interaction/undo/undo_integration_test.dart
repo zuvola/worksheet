@@ -308,5 +308,177 @@ void main() {
       expect(data.getCell(const CellCoordinate(0, 0)),
           const CellValue.text('Src'));
     });
+
+    group('resize undo/redo', () {
+      late LayoutSolver solver;
+      late MockWorksheetActionContext ctxWithSolver;
+
+      setUp(() {
+        solver = LayoutSolver(
+          rows: SpanList(count: 20, defaultSize: 25.0),
+          columns: SpanList(count: 10, defaultSize: 100.0),
+        );
+        ctxWithSolver = MockWorksheetActionContext(
+          selectionController: selection,
+          maxRow: 20,
+          maxColumn: 10,
+          worksheetData: data,
+          clipboardHandler: ClipboardHandler(
+            data: data,
+            selectionController: selection,
+            serializer: TsvClipboardSerializer(),
+          ),
+          layoutSolver: solver,
+          undoManager: undoManager,
+        );
+      });
+
+      test('undo restores row size', () {
+        solver.setRowHeight(3, 50.0);
+        final sel = (selection.anchor, selection.focus);
+        undoManager.push(UndoEntry(
+          label: 'Resize row',
+          affectedRange: const CellRange(0, 0, 0, 0),
+          cellsBefore: const {},
+          mergesBefore: const [],
+          selectionBefore: sel,
+          cellsAfter: const {},
+          mergesAfter: const [],
+          selectionAfter: sel,
+          rowSizesBefore: {3: 25.0},
+          rowSizesAfter: {3: 50.0},
+        ));
+
+        expect(solver.getRowHeight(3), 50.0);
+
+        ctxWithSolver.performUndo();
+        expect(solver.getRowHeight(3), 25.0);
+      });
+
+      test('undo restores column size', () {
+        solver.setColumnWidth(2, 200.0);
+        final sel = (selection.anchor, selection.focus);
+        undoManager.push(UndoEntry(
+          label: 'Resize column',
+          affectedRange: const CellRange(0, 0, 0, 0),
+          cellsBefore: const {},
+          mergesBefore: const [],
+          selectionBefore: sel,
+          cellsAfter: const {},
+          mergesAfter: const [],
+          selectionAfter: sel,
+          columnSizesBefore: {2: 100.0},
+          columnSizesAfter: {2: 200.0},
+        ));
+
+        expect(solver.getColumnWidth(2), 200.0);
+
+        ctxWithSolver.performUndo();
+        expect(solver.getColumnWidth(2), 100.0);
+      });
+
+      test('redo re-applies resized dimensions', () {
+        solver.setColumnWidth(5, 150.0);
+        final sel = (selection.anchor, selection.focus);
+        undoManager.push(UndoEntry(
+          label: 'Resize column',
+          affectedRange: const CellRange(0, 0, 0, 0),
+          cellsBefore: const {},
+          mergesBefore: const [],
+          selectionBefore: sel,
+          cellsAfter: const {},
+          mergesAfter: const [],
+          selectionAfter: sel,
+          columnSizesBefore: {5: 100.0},
+          columnSizesAfter: {5: 150.0},
+        ));
+
+        ctxWithSolver.performUndo();
+        expect(solver.getColumnWidth(5), 100.0);
+
+        ctxWithSolver.performRedo();
+        expect(solver.getColumnWidth(5), 150.0);
+      });
+
+      test('resize undo entry with no cell changes still works', () {
+        // Record a cell edit first
+        data.setCell(
+            const CellCoordinate(0, 0), const CellValue.text('Keep'));
+        ctxWithSolver.recordUndo(
+            'Edit', CellRange.single(const CellCoordinate(0, 0)), () {
+          data.setCell(
+              const CellCoordinate(0, 0), const CellValue.text('Changed'));
+        });
+
+        // Then record a resize (no cell changes)
+        solver.setRowHeight(1, 40.0);
+        final sel = (selection.anchor, selection.focus);
+        undoManager.push(UndoEntry(
+          label: 'Resize row',
+          affectedRange: const CellRange(0, 0, 0, 0),
+          cellsBefore: const {},
+          mergesBefore: const [],
+          selectionBefore: sel,
+          cellsAfter: const {},
+          mergesAfter: const [],
+          selectionAfter: sel,
+          rowSizesBefore: {1: 25.0},
+          rowSizesAfter: {1: 40.0},
+        ));
+
+        // Undo resize
+        ctxWithSolver.performUndo();
+        expect(solver.getRowHeight(1), 25.0);
+        // Cell still changed
+        expect(data.getCell(const CellCoordinate(0, 0)),
+            const CellValue.text('Changed'));
+
+        // Undo cell edit
+        ctxWithSolver.performUndo();
+        expect(data.getCell(const CellCoordinate(0, 0)),
+            const CellValue.text('Keep'));
+      });
+
+      test('existing cell-only undo entries unaffected by null size maps',
+          () {
+        // Use ctx with solver — null size maps should be harmless
+        data.setCell(
+            const CellCoordinate(0, 0), const CellValue.text('Before'));
+        ctxWithSolver.recordUndo(
+            'Edit', CellRange.single(const CellCoordinate(0, 0)), () {
+          data.setCell(
+              const CellCoordinate(0, 0), const CellValue.text('After'));
+        });
+
+        ctxWithSolver.performUndo();
+        expect(data.getCell(const CellCoordinate(0, 0)),
+            const CellValue.text('Before'));
+
+        ctxWithSolver.performRedo();
+        expect(data.getCell(const CellCoordinate(0, 0)),
+            const CellValue.text('After'));
+      });
+
+      test('undo triggers invalidateAndRebuild for size changes', () {
+        solver.setRowHeight(0, 60.0);
+        final sel = (selection.anchor, selection.focus);
+        undoManager.push(UndoEntry(
+          label: 'Resize row',
+          affectedRange: const CellRange(0, 0, 0, 0),
+          cellsBefore: const {},
+          mergesBefore: const [],
+          selectionBefore: sel,
+          cellsAfter: const {},
+          mergesAfter: const [],
+          selectionAfter: sel,
+          rowSizesBefore: {0: 25.0},
+          rowSizesAfter: {0: 60.0},
+        ));
+
+        final beforeCount = ctxWithSolver.invalidateAndRebuildCount;
+        ctxWithSolver.performUndo();
+        expect(ctxWithSolver.invalidateAndRebuildCount, beforeCount + 1);
+      });
+    });
   });
 }

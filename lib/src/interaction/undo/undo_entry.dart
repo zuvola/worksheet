@@ -34,6 +34,18 @@ class UndoEntry {
   /// Selection state (anchor, focus) after the operation.
   final (CellCoordinate? anchor, CellCoordinate? focus) selectionAfter;
 
+  /// Row sizes before the operation, or null if no row sizes changed.
+  final Map<int, double>? rowSizesBefore;
+
+  /// Column sizes before the operation, or null if no column sizes changed.
+  final Map<int, double>? columnSizesBefore;
+
+  /// Row sizes after the operation, or null if no row sizes changed.
+  final Map<int, double>? rowSizesAfter;
+
+  /// Column sizes after the operation, or null if no column sizes changed.
+  final Map<int, double>? columnSizesAfter;
+
   const UndoEntry({
     required this.label,
     required this.affectedRange,
@@ -43,6 +55,10 @@ class UndoEntry {
     required this.cellsAfter,
     required this.mergesAfter,
     required this.selectionAfter,
+    this.rowSizesBefore,
+    this.columnSizesBefore,
+    this.rowSizesAfter,
+    this.columnSizesAfter,
   });
 
   @override

@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `Worksheet.rawData` — optional raw data source for editing. When provided, the cell editor shows values from `rawData` instead of `data`, so formula wrappers that evaluate `CellValue.formula` into computed results still let users edit the original formula text
+- **Undo/redo for column and row resize** — drag resize, multi-select resize, and auto-fit operations now push undo entries. Ctrl+Z reverts column width and row height changes just like cell edits
 - `DelegatingWorksheetData` — base class for writing `WorksheetData` wrappers with minimal boilerplate (override only the methods you need; everything else delegates to the inner data source)
 - **Undo/Redo** — `UndoManager` class provides full undo/redo support for all worksheet mutations
 - `UndoEntry` immutable model storing before/after cell snapshots, merge regions, and selection state

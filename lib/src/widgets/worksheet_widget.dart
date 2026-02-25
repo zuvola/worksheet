@@ -28,6 +28,7 @@ import '../interaction/hit_testing/hit_test_result.dart';
 import '../interaction/hit_testing/hit_tester.dart';
 import '../shortcuts/default_worksheet_shortcuts.dart';
 import '../core/data/formula_reference_adjuster.dart';
+import '../interaction/undo/undo_entry.dart';
 import '../interaction/undo/undo_manager.dart';
 import '../shortcuts/worksheet_action_context.dart';
 import '../shortcuts/worksheet_actions.dart';
@@ -458,6 +459,9 @@ class _WorksheetState extends State<Worksheet>
       widget.formulaReferenceAdjuster;
 
   @override
+  LayoutSolver? get layoutSolver => _layoutSolver;
+
+  @override
   UndoManager? get undoManager => _controller.undoManager;
 
   @override
@@ -850,6 +854,79 @@ class _WorksheetState extends State<Worksheet>
     }
   }
 
+  /// Records an undo entry for a resize operation at drag end.
+  ///
+  /// Captures the original size (from [_resizeDragOriginalSize]) and the
+  /// current size for all affected indices (the dragged row/column plus
+  /// any selected peers that were resized to match).
+  void _recordResizeUndo() {
+    final um = undoManager;
+    if (um == null) return;
+    if (_resizeDragOriginalSize == null || _resizeDragIndex == null) return;
+
+    final index = _resizeDragIndex!;
+    final originalSize = _resizeDragOriginalSize!;
+    final isRow = _resizeDragIsRow;
+
+    // Collect all affected indices (dragged + selected peers).
+    final affectedIndices = <int>[index];
+    final selection = _controller.selectionController.selectedRange;
+    if (selection != null) {
+      if (isRow && index >= selection.startRow && index <= selection.endRow) {
+        for (var r = selection.startRow; r <= selection.endRow; r++) {
+          if (r != index) affectedIndices.add(r);
+        }
+      } else if (!isRow &&
+          index >= selection.startColumn &&
+          index <= selection.endColumn) {
+        for (var c = selection.startColumn; c <= selection.endColumn; c++) {
+          if (c != index) affectedIndices.add(c);
+        }
+      }
+    }
+
+    // Build before/after maps.
+    if (isRow) {
+      final before = {for (final r in affectedIndices) r: originalSize};
+      final after = {
+        for (final r in affectedIndices) r: _layoutSolver.getRowHeight(r),
+      };
+      if (mapEquals(before, after)) return;
+      final sel = (selectionController.anchor, selectionController.focus);
+      um.push(UndoEntry(
+        label: 'Resize row',
+        affectedRange: const CellRange(0, 0, 0, 0),
+        cellsBefore: const {},
+        mergesBefore: const [],
+        selectionBefore: sel,
+        cellsAfter: const {},
+        mergesAfter: const [],
+        selectionAfter: sel,
+        rowSizesBefore: before,
+        rowSizesAfter: after,
+      ));
+    } else {
+      final before = {for (final c in affectedIndices) c: originalSize};
+      final after = {
+        for (final c in affectedIndices) c: _layoutSolver.getColumnWidth(c),
+      };
+      if (mapEquals(before, after)) return;
+      final sel = (selectionController.anchor, selectionController.focus);
+      um.push(UndoEntry(
+        label: 'Resize column',
+        affectedRange: const CellRange(0, 0, 0, 0),
+        cellsBefore: const {},
+        mergesBefore: const [],
+        selectionBefore: sel,
+        cellsAfter: const {},
+        mergesAfter: const [],
+        selectionAfter: sel,
+        columnSizesBefore: before,
+        columnSizesAfter: after,
+      ));
+    }
+  }
+
   /// Creates the gesture handler with all callbacks wired.
   WorksheetGestureHandler _createGestureHandler() {
     return WorksheetGestureHandler(
@@ -1173,10 +1250,30 @@ class _WorksheetState extends State<Worksheet>
 
     // Add padding and clamp
     final newWidth = (maxWidth + 2 * theme.cellPadding).clamp(20.0, 1000.0);
+    final oldWidth = _layoutSolver.getColumnWidth(column);
     _layoutSolver.setColumnWidth(column, newWidth);
     _tileManager.invalidateAll();
     _layoutVersion++;
     widget.onResizeColumn?.call(column, newWidth);
+
+    // Record undo for auto-fit
+    final um = undoManager;
+    if (um != null && oldWidth != newWidth) {
+      final sel = (selectionController.anchor, selectionController.focus);
+      um.push(UndoEntry(
+        label: 'Auto-fit column',
+        affectedRange: const CellRange(0, 0, 0, 0),
+        cellsBefore: const {},
+        mergesBefore: const [],
+        selectionBefore: sel,
+        cellsAfter: const {},
+        mergesAfter: const [],
+        selectionAfter: sel,
+        columnSizesBefore: {column: oldWidth},
+        columnSizesAfter: {column: newWidth},
+      ));
+    }
+
     setState(() {});
   }
 
@@ -1292,10 +1389,30 @@ class _WorksheetState extends State<Worksheet>
 
     // Add padding and clamp
     final newHeight = (maxHeight + 2 * theme.cellPadding).clamp(10.0, 500.0);
+    final oldHeight = _layoutSolver.getRowHeight(row);
     _layoutSolver.setRowHeight(row, newHeight);
     _tileManager.invalidateAll();
     _layoutVersion++;
     widget.onResizeRow?.call(row, newHeight);
+
+    // Record undo for auto-fit
+    final um = undoManager;
+    if (um != null && oldHeight != newHeight) {
+      final sel = (selectionController.anchor, selectionController.focus);
+      um.push(UndoEntry(
+        label: 'Auto-fit row',
+        affectedRange: const CellRange(0, 0, 0, 0),
+        cellsBefore: const {},
+        mergesBefore: const [],
+        selectionBefore: sel,
+        cellsAfter: const {},
+        mergesAfter: const [],
+        selectionAfter: sel,
+        rowSizesBefore: {row: oldHeight},
+        rowSizesAfter: {row: newHeight},
+      ));
+    }
+
     setState(() {});
   }
 
@@ -2793,6 +2910,8 @@ class _WorksheetState extends State<Worksheet>
                             _gestureHandler.onDragEnd();
                             // Re-enable scroll after handle/resize drag.
                             _scrollSuppressor.suppress = false;
+                            // Record undo before clearing resize tracking.
+                            _recordResizeUndo();
                             // Clear resize tracking after normal completion.
                             _resizeDragOriginalSize = null;
                             _resizeDragIndex = null;
