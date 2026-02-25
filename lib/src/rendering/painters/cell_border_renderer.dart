@@ -1,10 +1,6 @@
 import 'dart:ui';
 
-import '../../core/data/merged_cell_registry.dart';
-import '../../core/data/worksheet_data.dart';
-import '../../core/models/border_resolver.dart';
-import '../../core/models/cell_coordinate.dart';
-import '../../core/models/cell_style.dart';
+import '../../core/core.dart';
 import 'border_painter.dart';
 
 /// Shared border rendering logic used by both [TilePainter] and [FrozenLayer].

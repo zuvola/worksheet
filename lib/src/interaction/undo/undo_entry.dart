@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import '../../core/models/cell.dart';
-import '../../core/models/cell_coordinate.dart';
-import '../../core/models/cell_range.dart';
+import '../../core/core.dart';
 
 /// A single undoable/redoable operation.
 ///

@@ -2,14 +2,9 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 
-import '../core/geometry/layout_solver.dart';
-import '../core/models/cell_coordinate.dart';
-import '../core/models/cell_range.dart';
-import '../core/models/freeze_config.dart';
-import '../interaction/controllers/selection_controller.dart';
-import '../interaction/controllers/zoom_controller.dart';
-import '../interaction/undo/undo_manager.dart';
-import '../shortcuts/worksheet_intents.dart';
+import '../core/core.dart';
+import '../interaction/interaction.dart';
+import '../shortcuts/shortcuts.dart';
 
 /// Controller for programmatic interaction with a worksheet.
 ///

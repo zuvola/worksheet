@@ -1,6 +1,8 @@
 import 'package:flutter/painting.dart';
 
-import 'package:worksheet/worksheet.dart';
+import '../models/models.dart';
+import 'data_change_event.dart';
+import 'merged_cell_registry.dart';
 
 /// Abstract interface for worksheet data access.
 ///

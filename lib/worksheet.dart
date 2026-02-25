@@ -9,108 +9,29 @@ export 'package:a1/a1.dart' show A1, A1Range, A1Reference;
 // Date parsing (re-exported so consumers don't need a direct any_date dependency)
 export 'package:any_date/any_date.dart' show AnyDate, DateParserInfo;
 
-// Core Models
-export 'src/core/models/border_resolver.dart';
-export 'src/core/models/cell.dart';
-export 'src/core/models/cell_coordinate.dart';
-export 'src/core/models/cell_format.dart';
-export 'src/core/models/cell_range.dart';
-export 'src/core/models/cell_style.dart';
-export 'src/core/models/cell_value.dart';
-export 'src/core/models/freeze_config.dart';
+// Core (models, geometry, data, formula)
+export 'src/core/core.dart';
 
-// Core Geometry
-export 'src/core/geometry/editing_bounds_calculator.dart';
-export 'src/core/geometry/span_list.dart';
-export 'src/core/geometry/layout_solver.dart';
-export 'src/core/geometry/spillover_calculator.dart';
-export 'src/core/geometry/visible_range_calculator.dart';
-export 'src/core/geometry/zoom_transformer.dart';
-
-// Core Data
-export 'src/core/data/data_change_event.dart';
-export 'src/core/data/delegating_worksheet_data.dart';
-export 'src/core/data/fill_pattern_detector.dart';
-export 'src/core/data/formula_reference_adjuster.dart';
-export 'src/core/data/merged_cell_registry.dart';
-export 'src/core/data/worksheet_data.dart';
-export 'src/core/data/sparse_worksheet_data.dart';
-
-// Core Formula
-export 'src/core/formula/formula_autocomplete_config.dart';
-export 'src/core/formula/formula_function_matcher.dart';
-export 'src/core/formula/formula_function_tokenizer.dart';
-export 'src/core/formula/formula_reference_config.dart';
-export 'src/core/formula/formula_reference_inserter.dart';
-export 'src/core/formula/formula_tokenizer.dart';
-
-// Rendering - Tile System
-export 'src/rendering/tile/tile.dart';
-export 'src/rendering/tile/tile_cache.dart';
-export 'src/rendering/tile/tile_config.dart';
-export 'src/rendering/tile/tile_coordinate.dart';
-export 'src/rendering/tile/tile_manager.dart';
-export 'src/rendering/tile/tile_painter.dart';
+// Rendering (tile system, painters, layers)
+export 'src/rendering/rendering.dart';
 
 // Scrolling
 export 'src/scrolling/scroll_anchor.dart';
 export 'src/scrolling/scroll_physics.dart';
 export 'src/scrolling/viewport_delegate.dart';
-export 'src/scrolling/worksheet_viewport.dart';
 export 'src/scrolling/worksheet_scroll_delegate.dart';
+export 'src/scrolling/worksheet_viewport.dart';
 
-// Interaction - Controllers
-export 'src/interaction/controllers/autocomplete_controller.dart';
-export 'src/interaction/controllers/zoom_controller.dart';
-export 'src/interaction/controllers/selection_controller.dart';
-export 'src/interaction/controllers/edit_controller.dart';
-export 'src/interaction/controllers/rich_text_editing_controller.dart';
-
-// Interaction - Hit Testing
-export 'src/interaction/hit_testing/hit_test_result.dart';
-export 'src/interaction/hit_testing/hit_tester.dart';
-
-// Interaction - Clipboard
-export 'src/interaction/clipboard/clipboard_handler.dart';
-export 'src/interaction/clipboard/clipboard_serializer.dart';
-
-// Interaction - Undo
-export 'src/interaction/undo/undo_entry.dart';
-export 'src/interaction/undo/undo_manager.dart';
-export 'src/interaction/undo/undo_snapshot.dart';
-
-// Interaction - Gestures
-export 'src/interaction/gesture_handler.dart';
-
-// Rendering - Painters
-export 'src/rendering/painters/border_painter.dart';
-export 'src/rendering/painters/cell_border_renderer.dart';
-export 'src/rendering/painters/selection_renderer.dart';
-export 'src/rendering/painters/header_renderer.dart';
-
-// Rendering - Layers
-export 'src/rendering/layers/render_layer.dart';
-export 'src/rendering/layers/cut_indicator_layer.dart';
-export 'src/rendering/layers/formula_reference_layer.dart';
-export 'src/rendering/layers/selection_layer.dart';
-export 'src/rendering/layers/header_layer.dart';
-export 'src/rendering/layers/frozen_layer.dart';
+// Interaction (controllers, hit testing, clipboard, undo, gestures)
+export 'src/interaction/interaction.dart';
 
 // Widgets
 export 'src/widgets/autocomplete_dropdown.dart';
-export 'src/widgets/worksheet_widget.dart';
+export 'src/widgets/cell_editor_overlay.dart';
 export 'src/widgets/worksheet_controller.dart';
 export 'src/widgets/worksheet_scrollbar_config.dart';
 export 'src/widgets/worksheet_theme.dart';
-export 'src/widgets/cell_editor_overlay.dart';
+export 'src/widgets/worksheet_widget.dart';
 
 // Shortcuts / Actions
-export 'src/shortcuts/worksheet_intents.dart';
-export 'src/shortcuts/worksheet_action_context.dart';
-export 'src/shortcuts/worksheet_actions.dart';
-export 'src/shortcuts/default_worksheet_shortcuts.dart';
-
-// Gesture Handlers
-export 'src/interaction/gestures/fill_drag_handler.dart';
-export 'src/interaction/gestures/move_drag_handler.dart';
-export 'src/interaction/gestures/scale_handler.dart';
+export 'src/shortcuts/shortcuts.dart';

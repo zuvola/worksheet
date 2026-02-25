@@ -1,6 +1,9 @@
 import 'package:flutter/painting.dart';
 
-import 'package:worksheet/worksheet.dart';
+import '../models/models.dart';
+import 'data_change_event.dart';
+import 'merged_cell_registry.dart';
+import 'worksheet_data.dart';
 
 /// A [WorksheetData] wrapper that forwards every method to an [inner] instance.
 ///

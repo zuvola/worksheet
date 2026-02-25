@@ -1,7 +1,7 @@
 import 'dart:ui';
 
-import '../../core/models/cell_range.dart';
-import '../../interaction/controllers/selection_controller.dart';
+import '../../core/core.dart';
+import '../../interaction/interaction.dart';
 import '../painters/selection_renderer.dart';
 import 'render_layer.dart';
 

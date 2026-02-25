@@ -1,8 +1,6 @@
 import 'dart:ui';
 
-import '../../core/geometry/layout_solver.dart';
-import '../../core/models/cell_coordinate.dart';
-import '../../core/models/cell_range.dart';
+import '../../core/core.dart';
 
 /// Configuration for selection rendering appearance.
 class SelectionStyle {

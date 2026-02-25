@@ -1,8 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-import '../../core/models/cell_coordinate.dart';
-import '../../core/models/cell_range.dart';
+import '../../core/core.dart';
 import '../hit_testing/hit_tester.dart';
 
 /// The axis along which a fill drag is constrained.

@@ -2,9 +2,8 @@ import 'dart:ui';
 
 import 'package:flutter/widgets.dart';
 
-import '../core/models/cell_style.dart';
-import '../rendering/painters/header_renderer.dart';
-import '../rendering/painters/selection_renderer.dart';
+import '../core/core.dart';
+import '../rendering/rendering.dart';
 
 /// Theme data for worksheet appearance.
 ///

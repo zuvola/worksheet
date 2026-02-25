@@ -3,9 +3,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
-import '../core/geometry/layout_solver.dart';
-import '../core/geometry/zoom_transformer.dart';
-import '../rendering/tile/tile_manager.dart';
+import '../core/core.dart';
+import '../rendering/rendering.dart';
 
 /// A viewport widget for displaying worksheet tiles with 2D scrolling.
 ///

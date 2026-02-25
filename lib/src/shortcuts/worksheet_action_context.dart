@@ -1,14 +1,5 @@
-import '../core/data/formula_reference_adjuster.dart';
-import '../core/data/worksheet_data.dart';
-import '../core/geometry/layout_solver.dart';
-import '../core/models/cell_coordinate.dart';
-import '../core/models/cell_range.dart';
-import '../interaction/clipboard/clipboard_handler.dart';
-import '../interaction/controllers/edit_controller.dart';
-import '../interaction/controllers/selection_controller.dart';
-import '../interaction/undo/undo_entry.dart';
-import '../interaction/undo/undo_manager.dart';
-import '../interaction/undo/undo_snapshot.dart';
+import '../core/core.dart';
+import '../interaction/interaction.dart';
 
 /// Interface providing the dependencies that worksheet [Action] classes need.
 ///

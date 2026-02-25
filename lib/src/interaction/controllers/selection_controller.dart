@@ -2,9 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
-import '../../core/data/merged_cell_registry.dart';
-import '../../core/models/cell_coordinate.dart';
-import '../../core/models/cell_range.dart';
+import '../../core/core.dart';
 
 /// The mode of the current selection.
 enum SelectionMode {

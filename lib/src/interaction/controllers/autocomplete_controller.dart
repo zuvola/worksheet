@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import '../../core/formula/formula_autocomplete_config.dart';
-import '../../core/formula/formula_function_matcher.dart';
-import '../../core/formula/formula_function_tokenizer.dart';
+import '../../core/core.dart';
 
 /// Controls the state of the formula autocomplete dropdown.
 ///

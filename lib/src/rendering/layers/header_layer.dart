@@ -1,8 +1,7 @@
 import 'dart:ui';
 
-import '../../core/geometry/span_list.dart';
-import '../../core/models/freeze_config.dart';
-import '../../interaction/controllers/selection_controller.dart';
+import '../../core/core.dart';
+import '../../interaction/interaction.dart';
 import '../painters/header_renderer.dart';
 import 'render_layer.dart';
 

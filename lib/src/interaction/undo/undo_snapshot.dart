@@ -1,7 +1,4 @@
-import '../../core/data/worksheet_data.dart';
-import '../../core/models/cell.dart';
-import '../../core/models/cell_coordinate.dart';
-import '../../core/models/cell_range.dart';
+import '../../core/core.dart';
 
 /// Captures and restores cell state within a range for undo/redo.
 class UndoSnapshot {
