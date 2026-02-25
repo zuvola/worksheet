@@ -8,7 +8,7 @@ Add the package to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  worksheet: ^2.3.0
+  worksheet: ^3.6.0
 ```
 
 Then run:

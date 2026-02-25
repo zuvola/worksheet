@@ -9,7 +9,12 @@ Testing patterns and examples for the worksheet widget.
 3. [Mocking WorksheetData](#mocking-worksheetdata)
 4. [Simulating Pointer Gestures](#simulating-pointer-gestures)
 5. [Testing Selection Behavior](#testing-selection-behavior)
-6. [Performance Benchmark Patterns](#performance-benchmark-patterns)
+6. [Performance Benchmarks](#performance-benchmarks)
+    * [Memory Benchmarks](#memory-benchmarks)
+    * [Startup (TTFR) Benchmarks](#startup-ttfr-benchmarks)
+    * [Interaction Benchmarks](#interaction-benchmarks)
+7. [Interpreting Benchmark Results & CI/CD Integration](#interpreting-benchmark-results--cicd-integration)
+8. [Running Tests](#running-tests)
 
 ---
 
@@ -77,14 +82,14 @@ void main() {
       expect(spans.indexAtPosition(100.0), 4);  // 100 / 24 = 4.16
     });
 
-    test('indexAtPosition clamps to valid range', () {
+    test('indexAtPosition clamps to valid range', () => {
       final spans = SpanList(count: 100, defaultSize: 24.0);
 
       expect(spans.indexAtPosition(-10.0), 0);  // Clamp to first
       expect(spans.indexAtPosition(10000.0), 99);  // Clamp to last
     });
 
-    test('totalSize calculates sum of all sizes', () {
+    test('totalSize calculates sum of all sizes', () => {
       final spans = SpanList(count: 10, defaultSize: 24.0);
       expect(spans.totalSize, 240.0);  // 10 * 24
 
@@ -97,7 +102,7 @@ void main() {
       expect(customSpans.totalSize, 340.0);
     });
 
-    test('setSize updates size and recalculates cumulative', () {
+    test('setSize updates size and recalculates cumulative', () => {
       final spans = SpanList(count: 10, defaultSize: 24.0);
 
       spans.setSize(5, 48.0);
@@ -106,7 +111,7 @@ void main() {
       expect(spans.positionAt(6), 24.0 * 5 + 48.0);  // 168
     });
 
-    test('getVisibleRange returns indices in viewport', () {
+    test('getVisibleRange returns indices in viewport', () => {
       final spans = SpanList(count: 1000, defaultSize: 24.0);
 
       final range = spans.getVisibleRange(scrollOffset: 100.0, viewportSize: 200.0);
@@ -136,7 +141,7 @@ void main() {
       );
     });
 
-    test('getCellBounds returns correct rectangle', () {
+    test('getCellBounds returns correct rectangle', () => {
       final bounds = solver.getCellBounds(const CellCoordinate(5, 3));
 
       expect(bounds.left, 300.0);   // 3 columns * 100
@@ -145,42 +150,42 @@ void main() {
       expect(bounds.height, 24.0);  // Row height
     });
 
-    test('getCellAt finds cell from position', () {
+    test('getCellAt finds cell from position', () => {
       final cell = solver.getCellAt(const Offset(350.0, 130.0));
 
       expect(cell.row, 5);     // 130 / 24 = 5.4 → 5
       expect(cell.column, 3);  // 350 / 100 = 3.5 → 3
     });
 
-    test('getVisibleRows returns range in viewport', () {
+    test('getVisibleRows returns range in viewport', () => {
       final range = solver.getVisibleRows(100.0, 200.0);
 
       expect(range.startIndex, 4);   // 100 / 24 = 4.16
       expect(range.endIndex, 12);    // (100 + 200) / 24 = 12.5
     });
 
-    test('getVisibleColumns returns range in viewport', () {
+    test('getVisibleColumns returns range in viewport', () => {
       final range = solver.getVisibleColumns(250.0, 400.0);
 
       expect(range.startIndex, 2);   // 250 / 100 = 2.5
       expect(range.endIndex, 6);     // (250 + 400) / 100 = 6.5
     });
 
-    test('setRowHeight updates layout', () {
+    test('setRowHeight updates layout', () => {
       solver.setRowHeight(5, 48.0);
 
       expect(solver.getRowHeight(5), 48.0);
       expect(solver.getRowTop(6), 24.0 * 5 + 48.0);
     });
 
-    test('setColumnWidth updates layout', () {
+    test('setColumnWidth updates layout', () => {
       solver.setColumnWidth(3, 150.0);
 
       expect(solver.getColumnWidth(3), 150.0);
       expect(solver.getColumnLeft(4), 100.0 * 3 + 150.0);
     });
 
-    test('getRangeBounds calculates bounding rect', () {
+    test('getRangeBounds calculates bounding rect', () => {
       final bounds = solver.getRangeBounds(
         startRow: 2,
         startColumn: 1,
@@ -224,14 +229,14 @@ void main() {
       expect(a == c, isFalse);
     });
 
-    test('hashCode consistency', () {
+    test('hashCode consistency', () => {
       const a = CellCoordinate(5, 3);
       const b = CellCoordinate(5, 3);
 
       expect(a.hashCode, b.hashCode);
     });
 
-    test('copyWith creates modified copy', () {
+    test('copyWith creates modified copy', () => {
       const original = CellCoordinate(5, 3);
 
       expect(original.copyWith(row: 10), const CellCoordinate(10, 3));
@@ -246,7 +251,7 @@ void main() {
 
 ```dart
 void main() {
-  group('CellRange', () {
+  group('CellRange', () => {
     test('creates range from corners', () {
       const range = CellRange(2, 1, 5, 4);
 
@@ -256,7 +261,7 @@ void main() {
       expect(range.endColumn, 4);
     });
 
-    test('single cell range', () {
+    test('single cell range', () => {
       const range = CellRange.single(CellCoordinate(3, 2));
 
       expect(range.startRow, 3);
@@ -266,7 +271,7 @@ void main() {
       expect(range.isSingleCell, isTrue);
     });
 
-    test('normalizes reversed coordinates', () {
+    test('normalizes reversed coordinates', () => {
       const range = CellRange(5, 4, 2, 1);  // End before start
 
       expect(range.startRow, 2);
@@ -275,7 +280,7 @@ void main() {
       expect(range.endColumn, 4);
     });
 
-    test('contains checks if cell is in range', () {
+    test('contains checks if cell is in range', () => {
       const range = CellRange(2, 1, 5, 4);
 
       expect(range.contains(const CellCoordinate(3, 2)), isTrue);
@@ -285,14 +290,14 @@ void main() {
       expect(range.contains(const CellCoordinate(3, 5)), isFalse); // Right
     });
 
-    test('rowCount and columnCount', () {
+    test('rowCount and columnCount', () => {
       const range = CellRange(2, 1, 5, 4);
 
       expect(range.rowCount, 4);     // Rows 2, 3, 4, 5
       expect(range.columnCount, 4);  // Columns 1, 2, 3, 4
     });
 
-    test('cellCount calculates total cells', () {
+    test('cellCount calculates total cells', () => {
       const range = CellRange(0, 0, 9, 4);  // 10 rows × 5 columns
 
       expect(range.cellCount, 50);
@@ -313,7 +318,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:worksheet/worksheet.dart';
 
 void main() {
-  group('Worksheet Widget', () {
+  group('Worksheet Widget', () => {
     testWidgets('renders without error', (tester) async {
       final data = SparseWorksheetData(rowCount: 100, columnCount: 26);
       final controller = WorksheetController();
@@ -654,9 +659,8 @@ testWidgets('drag extends selection', (tester) async {
   await tester.dragFrom(startPoint, endPoint - startPoint);
   await tester.pumpAndSettle();
 
-  final range = controller.selectedRange;
-  expect(range, isNotNull);
-  expect(range!.startRow, 0);
+  final range = controller.selectedRange!;
+  expect(range.startRow, 0);
   expect(range.startColumn, 0);
   expect(range.endRow, 2);
   expect(range.endColumn, 2);
@@ -715,255 +719,6 @@ testWidgets('double tap triggers edit callback', (tester) async {
 
 ```dart
 testWidgets('scroll updates scroll position', (tester) async {
-  final data = SparseWorksheetData(rowCount: 1000, columnCount: 100);
-  final controller = WorksheetController();
-
-  await tester.pumpWidget(
-    MaterialApp(
-      home: Scaffold(
-        body: WorksheetTheme(
-          data: const WorksheetThemeData(),
-          child: Worksheet(
-            data: data,
-            controller: controller,
-            rowCount: 1000,
-            columnCount: 100,
-          ),
-        ),
-      ),
-    ),
-  );
-
-  await tester.pumpAndSettle();
-
-  final initialScrollY = controller.scrollY;
-
-  // Scroll down
-  await tester.drag(find.byType(Worksheet), const Offset(0, -200));
-  await tester.pumpAndSettle();
-
-  expect(controller.scrollY, greaterThan(initialScrollY));
-
-  controller.dispose();
-  data.dispose();
-});
-```
-
----
-
-## Testing Selection Behavior
-
-### Selection Controller Tests
-
-```dart
-void main() {
-  group('SelectionController', () {
-    late SelectionController controller;
-
-    setUp(() {
-      controller = SelectionController();
-    });
-
-    tearDown(() {
-      controller.dispose();
-    });
-
-    test('selectCell sets single cell selection', () {
-      controller.selectCell(const CellCoordinate(5, 3));
-
-      expect(controller.hasSelection, isTrue);
-      expect(controller.focus, const CellCoordinate(5, 3));
-      expect(controller.selectedRange?.isSingleCell, isTrue);
-    });
-
-    test('selectRange sets multi-cell selection', () {
-      controller.selectRange(const CellRange(2, 1, 5, 4));
-
-      expect(controller.hasSelection, isTrue);
-      expect(controller.selectedRange?.startRow, 2);
-      expect(controller.selectedRange?.endRow, 5);
-    });
-
-    test('selectRow selects entire row', () {
-      controller.selectRow(5, columnCount: 26);
-
-      final range = controller.selectedRange!;
-      expect(range.startRow, 5);
-      expect(range.endRow, 5);
-      expect(range.startColumn, 0);
-      expect(range.endColumn, 25);
-    });
-
-    test('selectColumn selects entire column', () {
-      controller.selectColumn(3, rowCount: 100);
-
-      final range = controller.selectedRange!;
-      expect(range.startColumn, 3);
-      expect(range.endColumn, 3);
-      expect(range.startRow, 0);
-      expect(range.endRow, 99);
-    });
-
-    test('clear removes selection', () {
-      controller.selectCell(const CellCoordinate(5, 3));
-      controller.clear();
-
-      expect(controller.hasSelection, isFalse);
-      expect(controller.focus, isNull);
-    });
-
-    test('moveFocus navigates cells', () {
-      controller.selectCell(const CellCoordinate(5, 5));
-
-      controller.moveFocus(rowDelta: -1, columnDelta: 0, maxRow: 99, maxColumn: 25);
-      expect(controller.focus, const CellCoordinate(4, 5));
-
-      controller.moveFocus(rowDelta: 0, columnDelta: 1, maxRow: 99, maxColumn: 25);
-      expect(controller.focus, const CellCoordinate(4, 6));
-    });
-
-    test('moveFocus extends selection when extend is true', () {
-      controller.selectCell(const CellCoordinate(5, 5));
-
-      controller.moveFocus(
-        rowDelta: 1,
-        columnDelta: 1,
-        extend: true,
-        maxRow: 99,
-        maxColumn: 25,
-      );
-
-      final range = controller.selectedRange!;
-      expect(range.startRow, 5);
-      expect(range.startColumn, 5);
-      expect(range.endRow, 6);
-      expect(range.endColumn, 6);
-    });
-
-    test('moveFocus respects boundaries', () {
-      controller.selectCell(const CellCoordinate(0, 0));
-
-      controller.moveFocus(rowDelta: -1, columnDelta: -1, maxRow: 99, maxColumn: 25);
-
-      // Should stay at (0, 0) since we can't go negative
-      expect(controller.focus, const CellCoordinate(0, 0));
-    });
-
-    test('notifies listeners on selection change', () {
-      var notified = false;
-      controller.addListener(() => notified = true);
-
-      controller.selectCell(const CellCoordinate(5, 3));
-
-      expect(notified, isTrue);
-    });
-  });
-}
-```
-
----
-
-## Performance Benchmark Patterns
-
-### Render Time Benchmark
-
-```dart
-void main() {
-  group('Performance Benchmarks', () {
-    test('tile render time under 8ms', () {
-      final data = SparseWorksheetData(rowCount: 1000, columnCount: 100);
-
-      // Populate some data
-      for (var row = 0; row < 100; row++) {
-        for (var col = 0; col < 10; col++) {
-          data[(row, col)] = Cell.text('Cell $row,$col');
-        }
-      }
-
-      final layoutSolver = LayoutSolver(
-        rows: SpanList(count: 1000, defaultSize: 24.0),
-        columns: SpanList(count: 100, defaultSize: 100.0),
-      );
-
-      final tilePainter = TilePainter(
-        data: data,
-        layoutSolver: layoutSolver,
-        showGridlines: true,
-        gridlineColor: const Color(0xFFE0E0E0),
-        backgroundColor: const Color(0xFFFFFFFF),
-        defaultTextColor: const Color(0xFF000000),
-        defaultFontSize: 14.0,
-        defaultFontFamily: 'Roboto',
-        cellPadding: 4.0,
-      );
-
-      // Measure render time
-      final stopwatch = Stopwatch()..start();
-
-      for (var i = 0; i < 10; i++) {
-        tilePainter.renderTile(
-          coordinate: TileCoordinate(0, 0),
-          bounds: const Rect.fromLTWH(0, 0, 256, 256),
-          cellRange: const CellRange(0, 0, 10, 2),
-          zoomBucket: ZoomBucket.full,
-        );
-      }
-
-      stopwatch.stop();
-
-      final avgMs = stopwatch.elapsedMilliseconds / 10;
-      print('Average tile render time: ${avgMs}ms');
-
-      expect(avgMs, lessThan(16));  // Must be under 16ms for 60fps
-
-      data.dispose();
-    });
-
-    test('SpanList lookup under 1ms for 1M rows', () {
-      final spans = SpanList(count: 1000000, defaultSize: 24.0);
-
-      final stopwatch = Stopwatch()..start();
-
-      // Perform 1000 lookups
-      for (var i = 0; i < 1000; i++) {
-        spans.indexAtPosition(i * 1000.0);
-      }
-
-      stopwatch.stop();
-
-      final avgUs = stopwatch.elapsedMicroseconds / 1000;
-      print('Average lookup time: ${avgUs}μs');
-
-      expect(avgUs, lessThan(100));  // Under 100μs per lookup
-    });
-
-    test('SparseWorksheetData memory efficiency', () {
-      final data = SparseWorksheetData(
-        rowCount: 1048576,  // 1M+ rows
-        columnCount: 16384,
-      );
-
-      // Add 100K cells
-      for (var i = 0; i < 100000; i++) {
-        data[(i, 0)] = Cell.text('Row $i');
-      }
-
-      // Memory should be O(100K), not O(17 billion)
-      // This is hard to test directly, but we can verify it doesn't crash
-
-      expect(data.getCell(const CellCoordinate(99999, 0))?.displayValue, 'Row 99999');
-      expect(data.getCell(const CellCoordinate(100000, 0)), isNull);  // Not set
-
-      data.dispose();
-    });
-  });
-}
-```
-
-### Scroll Performance Test
-
-```dart
-testWidgets('maintains 60fps during scroll', (tester) async {
   final data = SparseWorksheetData(rowCount: 10000, columnCount: 100);
 
   // Populate visible area
@@ -993,29 +748,58 @@ testWidgets('maintains 60fps during scroll', (tester) async {
 
   await tester.pumpAndSettle();
 
-  // Measure frame time during scroll
-  final frameCount = 60;
-  final stopwatch = Stopwatch()..start();
+  final initialScrollY = controller.scrollY;
 
-  for (var i = 0; i < frameCount; i++) {
-    await tester.drag(find.byType(Worksheet), const Offset(0, -50));
-    await tester.pump(const Duration(milliseconds: 16));  // 60fps frame time
-  }
+  // Scroll down
+  await tester.drag(find.byType(Worksheet), const Offset(0, -200));
+  await tester.pumpAndSettle();
 
-  stopwatch.stop();
-
-  final actualMs = stopwatch.elapsedMilliseconds;
-  final expectedMs = frameCount * 16;  // 960ms for 60 frames at 60fps
-
-  print('Scroll test: ${frameCount} frames in ${actualMs}ms (expected ~${expectedMs}ms)');
-
-  // Allow some overhead, but should be close to 60fps
-  expect(actualMs, lessThan(expectedMs * 2));
+  expect(controller.scrollY, greaterThan(initialScrollY));
 
   controller.dispose();
   data.dispose();
 });
 ```
+
+---
+
+## Performance Benchmarks
+
+### Memory Benchmarks
+
+Memory usage benchmarks ensure the widget remains efficient for large datasets. Refer to `test/benchmarks/memory_benchmark.dart` for detailed implementation.
+
+### Startup (TTFR) Benchmarks
+
+Time To First Render (TTFR) benchmarks measure how quickly the worksheet renders its initial frame. Refer to `test/benchmarks/startup_benchmark.dart` for detailed implementation.
+
+### Interaction Benchmarks
+
+Interaction benchmarks assess the responsiveness of user actions like typing, resizing, and complex selections. Refer to `test/benchmarks/interaction_benchmark.dart` for detailed implementation.
+
+---
+
+## Interpreting Benchmark Results & CI/CD Integration
+
+Performance benchmarks are critical for maintaining the responsiveness and scalability of the Worksheet widget.
+
+### Interpreting Results
+
+*   **Latency Metrics (ms, µs):** Lower is better. Compare against predefined thresholds in `GEMINI.md` to identify regressions.
+*   **Memory Usage (MB, Bytes/Cell):** Lower is better. Monitor for unexpected spikes, especially with increased data sizes. High memory usage can lead to Out-Of-Memory (OOM) errors on devices.
+    *   **Note on Memory Benchmarking in Flutter Tests:** Direct programmatic access to detailed Dart VM heap statistics (e.g., via `vm_service` package) within `flutter test` can sometimes encounter resolution issues in certain environments. When this occurs, memory assertions within `test/benchmarks/memory_benchmark.dart` may be temporarily disabled. For robust, comprehensive memory profiling, it is recommended to use external tools like Perfetto or Flutter DevTools, often integrated into a CI/CD pipeline, to collect and analyze memory traces during benchmark runs.
+*   **Frame Rate (FPS):** Higher is better (aim for 60 FPS). Drops in FPS during scrolling or animations indicate performance bottlenecks.
+
+### CI/CD Integration
+
+It is highly recommended to integrate these performance benchmarks into your Continuous Integration/Continuous Deployment (CI/CD) pipeline.
+
+1.  **Automated Execution:** Configure your CI system (e.g., GitHub Actions, GitLab CI) to run `flutter test test/benchmarks/` on every pull request or significant commit.
+2.  **Threshold Assertions:** The benchmarks contain `expect` assertions against predefined performance targets (SLAs). If a benchmark falls below its target, the CI build should fail, preventing performance regressions from being merged.
+3.  **Historical Tracking:** Consider using specialized performance tracking tools (e.g., [Flutter's `perfetto_trace_processor`](https://github.com/flutter/flutter/wiki/Performance-Tracing-with-Perfetto)) or custom scripts to collect and store benchmark results over time. This allows for:
+    *   Visualizing performance trends.
+    *   Detecting gradual performance degradation that might not trigger a single test failure.
+    *   Identifying the specific changes that introduced a regression.
 
 ---
 
@@ -1033,6 +817,9 @@ flutter test test/core/span_list_test.dart
 
 # Run tests matching pattern
 flutter test --name "SpanList"
+
+# Run all performance benchmarks
+flutter test test/benchmarks/
 
 # Generate coverage report (requires lcov)
 genhtml coverage/lcov.info -o coverage/html

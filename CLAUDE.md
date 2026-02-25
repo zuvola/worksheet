@@ -121,6 +121,9 @@ Tests: Edit lifecycle, overlay positioning, freeze behavior
 - Memory leak detection
 
 ### Performance Benchmarks
+- `test/benchmarks/memory_benchmark.dart`: Aims to measure peak memory usage and memory footprint per cell/row. Due to `vm_service` resolution issues in the test environment, memory assertions are currently disabled. Robust memory profiling requires external tools (e.g., Perfetto, Flutter DevTools) during CI/CD.
+- `test/benchmarks/startup_benchmark.dart`: Time To First Render (TTFR) for various data sizes.
+- `test/benchmarks/interaction_benchmark.dart`: Latency for common user interactions like typing and resizing.
 ```dart
 // Target metrics
 const scrollFps = 60;        // Maintain 60fps while scrolling
@@ -130,6 +133,10 @@ const hitTestUs = 100;       // Max hit test latency
 const selectionMs = 200;     // Max action on Excel-scale selection
 const autoFitMs = 200;       // Max auto-fit on 50K-cell column
 const spanRebuild100kMs = 10; // Max SpanList rebuild at 100K items
+const ttfrMs = 100;          // Max Time To First Render for typical sheet
+const memoryFootprintPerCellBytes = 10; // Max average bytes per cell
+const peakMemoryMB = 500;    // Max peak memory for large datasets (e.g., 1M cells)
+const interactionLatencyMs = 50; // Max latency for critical interactions (typing, resize)
 ```
 
 ## Critical Performance Rules
@@ -140,7 +147,10 @@ const spanRebuild100kMs = 10; // Max SpanList rebuild at 100K items
 4. **Tile size = 256px** - Optimal GPU texture size
 5. **LRU cache tiles** - Max 100 tiles in memory
 6. **Prefetch 1 ring** - Tiles beyond viewport edge
-7. **Benchmark all O(N) paths** - Add test/benchmarks/ entry for any O(N) operation on user-scale data
+7. **Monitor memory footprint** - Keep peak memory for large datasets (e.g., 1M cells) below `peakMemoryMB` and average bytes per cell below `memoryFootprintPerCellBytes`.
+8. **Target Time to First Render (TTFR)** - Ensure first frame renders within `ttfrMs` for typical worksheets.
+9. **Ensure low interaction latency** - Critical user interactions (typing, resizing, selection) should respond within `interactionLatencyMs`.
+10. **Benchmark all O(N) paths** - Add test/benchmarks/ entry for any O(N) operation on user-scale data
 
 ## Commands
 ```bash

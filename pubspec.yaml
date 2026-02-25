@@ -28,7 +28,7 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   lints: ^6.0.0
-  vm_service: ^13.0.0
+  vm_service: ^15.0.0
 
 flutter:
   uses-material-design: true

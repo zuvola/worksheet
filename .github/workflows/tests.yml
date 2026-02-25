@@ -28,6 +28,9 @@ jobs:
       - name: Run tests with coverage
         run: flutter test --coverage --exclude-tags=golden
 
+      - name: Run performance benchmarks
+        run: flutter test test/benchmarks/
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
