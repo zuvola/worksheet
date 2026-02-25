@@ -5,11 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.6.0] - 2026-02-25
+
+### Added
+- **Undo/redo for column and row resize** — drag resize, multi-select resize, and auto-fit operations now push undo entries. Ctrl+Z reverts column width and row height changes just like cell edits
+
 ## [3.5.0] - 2026-02-24
 
 ### Added
 - `Worksheet.rawData` — optional raw data source for editing. When provided, the cell editor shows values from `rawData` instead of `data`, so formula wrappers that evaluate `CellValue.formula` into computed results still let users edit the original formula text
-- **Undo/redo for column and row resize** — drag resize, multi-select resize, and auto-fit operations now push undo entries. Ctrl+Z reverts column width and row height changes just like cell edits
 - `DelegatingWorksheetData` — base class for writing `WorksheetData` wrappers with minimal boilerplate (override only the methods you need; everything else delegates to the inner data source)
 - **Undo/Redo** — `UndoManager` class provides full undo/redo support for all worksheet mutations
 - `UndoEntry` immutable model storing before/after cell snapshots, merge regions, and selection state
