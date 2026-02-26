@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worksheet/worksheet.dart';
 import 'dart:async';
@@ -79,21 +80,37 @@ class MockWorksheetData implements WorksheetData {
     _changesController.close();
   }
 
+  @override
   CellFormat? getFormat(CellCoordinate coord) => null;
+  @override
   void setFormat(CellCoordinate coord, CellFormat? format) {}
+  @override
   List<TextSpan>? getRichText(CellCoordinate coord) => null;
+  @override
   void setRichText(CellCoordinate coord, List<TextSpan>? richText) {}
+  @override
   bool hasValue(CellCoordinate coord) => getCell(coord) != null;
+  @override
   void clearRichTextInRange(CellRange range) {}
+  @override
   Iterable<MapEntry<CellCoordinate, List<TextSpan>>> getRichTextInRange(CellRange range) => const [];
+  @override
   Iterable<MapEntry<CellCoordinate, CellStyle>> getStylesInRange(CellRange range) => const [];
+  @override
   Iterable<MapEntry<CellCoordinate, CellFormat>> getFormatsInRange(CellRange range) => const [];
+  @override
   void unmergeCellsInRange(CellRange range) {}
+  @override
   void moveMerges(CellRange source, CellCoordinate destination) {}
+  @override
   void replicateMerges({required CellRange sourceRange, required CellRange targetRange, required bool vertical}) {}
+  @override
   int? findNextPopulatedRow(int column, int fromRow) => null;
+  @override
   int? findPrevPopulatedRow(int column, int fromRow) => null;
+  @override
   int? findNextPopulatedColumn(int row, int fromColumn) => null;
+  @override
   int? findPrevPopulatedColumn(int row, int fromColumn) => null;
   bool get hasFormulas => false;
   bool get hasRichText => false;
@@ -251,6 +268,88 @@ void main() {
        expect(find.byType(Worksheet), findsOneWidget);
     });
 
-    // TODO: Add benchmark for Copy-Paste of a large range
+    testWidgets('Copy-Paste of a large range latency',
+        timeout: const Timeout(Duration(seconds: 30)),
+        (WidgetTester tester) async {
+      final controller = WorksheetController();
+      final editController = EditController();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Worksheet(
+              data: MockWorksheetData(rows: 10, cols: 5),
+              controller: controller,
+              editController: editController,
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 500));
+
+      _installMockClipboard();
+      addTearDown(_removeMockClipboard);
+
+      final stopwatch = Stopwatch()..start();
+
+      // Select a 5-row x 3-column range.
+      controller.selectionController.selectRange(
+        const CellRange(0, 0, 4, 2),
+      );
+      await tester.pump();
+
+      // Copy (Ctrl+C).
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyC);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
+      // Pump twice to flush the async clipboard write (timers are faked).
+      await tester.pump();
+      await tester.pump();
+
+      // Move selection to a non-overlapping destination.
+      controller.selectionController.selectCell(
+        const CellCoordinate(6, 0),
+      );
+      await tester.pump();
+
+      // Paste (Ctrl+V).
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.control);
+      await tester.sendKeyEvent(LogicalKeyboardKey.keyV);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.control);
+      // Pump twice to flush the async clipboard read + batch update.
+      await tester.pump();
+      await tester.pump();
+
+      stopwatch.stop();
+      developer.log(
+        'Copy-Paste large range latency: ${stopwatch.elapsedMicroseconds / 1000} ms',
+        name: 'Interaction_Benchmark',
+      );
+
+      expect(find.byType(Worksheet), findsOneWidget);
+    });
   });
+}
+
+String? _mockClipboardText;
+
+void _installMockClipboard({String? initialText}) {
+  _mockClipboardText = initialText;
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(SystemChannels.platform, (call) async {
+    if (call.method == 'Clipboard.setData') {
+      final args = call.arguments as Map<dynamic, dynamic>;
+      _mockClipboardText = args['text'] as String?;
+      return null;
+    }
+    if (call.method == 'Clipboard.getData') {
+      if (_mockClipboardText == null) return null;
+      return <String, dynamic>{'text': _mockClipboardText};
+    }
+    return null;
+  });
+}
+
+void _removeMockClipboard() {
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+      .setMockMethodCallHandler(SystemChannels.platform, null);
 }

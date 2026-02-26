@@ -82,21 +82,37 @@ class MockWorksheetData implements WorksheetData {
 
   // --- Methods from WorksheetData with default implementations in the abstract class ---
   // Removed @override from these as they are not abstract and do not need to be overridden.
+  @override
   CellFormat? getFormat(CellCoordinate coord) => null;
+  @override
   void setFormat(CellCoordinate coord, CellFormat? format) {}
+  @override
   List<TextSpan>? getRichText(CellCoordinate coord) => null;
+  @override
   void setRichText(CellCoordinate coord, List<TextSpan>? richText) {}
+  @override
   bool hasValue(CellCoordinate coord) => getCell(coord) != null;
+  @override
   void clearRichTextInRange(CellRange range) {}
+  @override
   Iterable<MapEntry<CellCoordinate, List<TextSpan>>> getRichTextInRange(CellRange range) => const [];
+  @override
   Iterable<MapEntry<CellCoordinate, CellStyle>> getStylesInRange(CellRange range) => const [];
+  @override
   Iterable<MapEntry<CellCoordinate, CellFormat>> getFormatsInRange(CellRange range) => const [];
+  @override
   void unmergeCellsInRange(CellRange range) {}
+  @override
   void moveMerges(CellRange source, CellCoordinate destination) {}
+  @override
   void replicateMerges({required CellRange sourceRange, required CellRange targetRange, required bool vertical}) {}
+  @override
   int? findNextPopulatedRow(int column, int fromRow) => null;
+  @override
   int? findPrevPopulatedRow(int column, int fromRow) => null;
+  @override
   int? findNextPopulatedColumn(int row, int fromColumn) => null;
+  @override
   int? findPrevPopulatedColumn(int row, int fromColumn) => null;
 
   // Additional methods found in WorksheetData which are not abstract
