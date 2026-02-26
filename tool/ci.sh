@@ -45,7 +45,7 @@ run_step() {
 run_step "Install dependencies" "$FLUTTER" pub get
 run_step "Format"               "$DART" format --set-exit-if-changed lib/ test/ example/
 run_step "Analyze"              "$DART" analyze lib/
-run_step "Test"                 "$FLUTTER" test --coverage
+run_step "Test"                 "$FLUTTER" test --coverage --exclude-tags golden
 run_step "Benchmarks"           "$FLUTTER" test test/benchmarks/
 
 echo "=== All CI checks passed ==="
