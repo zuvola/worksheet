@@ -12,7 +12,7 @@ This document describes how to set up and contribute to the worksheet package.
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/shorn/worksheet.git
+   git clone https://github.com/sjhorn/worksheet.git
    cd worksheet
    ```
 
@@ -45,10 +45,11 @@ flutter test --coverage
 genhtml coverage/lcov.info -o coverage/html
 open coverage/html/index.html
 ```
+On Linux, use `xdg-open coverage/html/index.html`. On Windows, use `start coverage/html/index.html`.
 
 ## Code Style
 
-This project follows the official [Dart style guide](https://dart.dev/guides/language/effective-dart/style) and uses `flutter_lints` for linting.
+This project follows the official [Dart style guide](https://dart.dev/guides/language/effective-dart/style) and uses `lints` for linting.
 
 Run the analyzer:
 ```bash
@@ -162,5 +163,8 @@ dart pub publish
 
 ## Getting Help
 
-- [File an issue](https://github.com/shorn/worksheet/issues) for bugs or feature requests
+- [File an issue](https://github.com/sjhorn/worksheet/issues) for bugs or feature requests
 - See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines
+- Community standards: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- Security policy: [SECURITY.md](SECURITY.md)
+- Support: [SUPPORT.md](SUPPORT.md)

@@ -215,6 +215,10 @@ data.mergeCells(CellRange(0, 0, 0, 3));
 - [Performance](doc/PERFORMANCE.md) — Tile cache tuning and benchmarks
 - [Testing Guide](doc/TESTING.md) — Unit tests, widget tests, and benchmarks
 - [Development Guide](doc/DEVELOPMENT.md) — Contribution workflow and project structure
+- [Contributing](CONTRIBUTING.md) — How to propose changes and run checks
+- [Code of Conduct](CODE_OF_CONDUCT.md) — Community expectations
+- [Security](SECURITY.md) — Responsible disclosure
+- [Support](SUPPORT.md) — Where to ask questions
 
 ---
 

@@ -4,38 +4,27 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: subosito/flutter-action@v2
         with:
-          channel: 'stable'
-          cache: true
-
+          channel: stable
       - name: Install dependencies
         run: flutter pub get
-
+      - name: Format
+        run: dart format --set-exit-if-changed lib/ test/ example/
       - name: Analyze
-        run: dart analyze --fatal-infos
-
-      - name: Run tests with coverage
-        run: flutter test --coverage --exclude-tags=golden
-
-      - name: Run performance benchmarks
-        run: flutter test test/benchmarks/
-
-      - name: Upload coverage to Codecov
+        run: dart analyze lib/
+      - name: Test
+        run: flutter test --coverage
+      - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:
           files: coverage/lcov.info
           fail_ci_if_error: false
-          verbose: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

@@ -82,14 +82,14 @@ void main() {
       expect(spans.indexAtPosition(100.0), 4);  // 100 / 24 = 4.16
     });
 
-    test('indexAtPosition clamps to valid range', () => {
+    test('indexAtPosition clamps to valid range', () {
       final spans = SpanList(count: 100, defaultSize: 24.0);
 
       expect(spans.indexAtPosition(-10.0), 0);  // Clamp to first
       expect(spans.indexAtPosition(10000.0), 99);  // Clamp to last
     });
 
-    test('totalSize calculates sum of all sizes', () => {
+    test('totalSize calculates sum of all sizes', () {
       final spans = SpanList(count: 10, defaultSize: 24.0);
       expect(spans.totalSize, 240.0);  // 10 * 24
 
@@ -102,7 +102,7 @@ void main() {
       expect(customSpans.totalSize, 340.0);
     });
 
-    test('setSize updates size and recalculates cumulative', () => {
+    test('setSize updates size and recalculates cumulative', () {
       final spans = SpanList(count: 10, defaultSize: 24.0);
 
       spans.setSize(5, 48.0);
@@ -111,7 +111,7 @@ void main() {
       expect(spans.positionAt(6), 24.0 * 5 + 48.0);  // 168
     });
 
-    test('getVisibleRange returns indices in viewport', () => {
+    test('getVisibleRange returns indices in viewport', () {
       final spans = SpanList(count: 1000, defaultSize: 24.0);
 
       final range = spans.getVisibleRange(scrollOffset: 100.0, viewportSize: 200.0);
@@ -141,7 +141,7 @@ void main() {
       );
     });
 
-    test('getCellBounds returns correct rectangle', () => {
+    test('getCellBounds returns correct rectangle', () {
       final bounds = solver.getCellBounds(const CellCoordinate(5, 3));
 
       expect(bounds.left, 300.0);   // 3 columns * 100
@@ -150,42 +150,42 @@ void main() {
       expect(bounds.height, 24.0);  // Row height
     });
 
-    test('getCellAt finds cell from position', () => {
+    test('getCellAt finds cell from position', () {
       final cell = solver.getCellAt(const Offset(350.0, 130.0));
 
       expect(cell.row, 5);     // 130 / 24 = 5.4 → 5
       expect(cell.column, 3);  // 350 / 100 = 3.5 → 3
     });
 
-    test('getVisibleRows returns range in viewport', () => {
+    test('getVisibleRows returns range in viewport', () {
       final range = solver.getVisibleRows(100.0, 200.0);
 
       expect(range.startIndex, 4);   // 100 / 24 = 4.16
       expect(range.endIndex, 12);    // (100 + 200) / 24 = 12.5
     });
 
-    test('getVisibleColumns returns range in viewport', () => {
+    test('getVisibleColumns returns range in viewport', () {
       final range = solver.getVisibleColumns(250.0, 400.0);
 
       expect(range.startIndex, 2);   // 250 / 100 = 2.5
       expect(range.endIndex, 6);     // (250 + 400) / 100 = 6.5
     });
 
-    test('setRowHeight updates layout', () => {
+    test('setRowHeight updates layout', () {
       solver.setRowHeight(5, 48.0);
 
       expect(solver.getRowHeight(5), 48.0);
       expect(solver.getRowTop(6), 24.0 * 5 + 48.0);
     });
 
-    test('setColumnWidth updates layout', () => {
+    test('setColumnWidth updates layout', () {
       solver.setColumnWidth(3, 150.0);
 
       expect(solver.getColumnWidth(3), 150.0);
       expect(solver.getColumnLeft(4), 100.0 * 3 + 150.0);
     });
 
-    test('getRangeBounds calculates bounding rect', () => {
+    test('getRangeBounds calculates bounding rect', () {
       final bounds = solver.getRangeBounds(
         startRow: 2,
         startColumn: 1,
@@ -229,14 +229,14 @@ void main() {
       expect(a == c, isFalse);
     });
 
-    test('hashCode consistency', () => {
+    test('hashCode consistency', () {
       const a = CellCoordinate(5, 3);
       const b = CellCoordinate(5, 3);
 
       expect(a.hashCode, b.hashCode);
     });
 
-    test('copyWith creates modified copy', () => {
+    test('copyWith creates modified copy', () {
       const original = CellCoordinate(5, 3);
 
       expect(original.copyWith(row: 10), const CellCoordinate(10, 3));
@@ -251,7 +251,7 @@ void main() {
 
 ```dart
 void main() {
-  group('CellRange', () => {
+  group('CellRange', () {
     test('creates range from corners', () {
       const range = CellRange(2, 1, 5, 4);
 
@@ -261,7 +261,7 @@ void main() {
       expect(range.endColumn, 4);
     });
 
-    test('single cell range', () => {
+    test('single cell range', () {
       const range = CellRange.single(CellCoordinate(3, 2));
 
       expect(range.startRow, 3);
@@ -271,7 +271,7 @@ void main() {
       expect(range.isSingleCell, isTrue);
     });
 
-    test('normalizes reversed coordinates', () => {
+    test('normalizes reversed coordinates', () {
       const range = CellRange(5, 4, 2, 1);  // End before start
 
       expect(range.startRow, 2);
@@ -280,7 +280,7 @@ void main() {
       expect(range.endColumn, 4);
     });
 
-    test('contains checks if cell is in range', () => {
+    test('contains checks if cell is in range', () {
       const range = CellRange(2, 1, 5, 4);
 
       expect(range.contains(const CellCoordinate(3, 2)), isTrue);
@@ -290,14 +290,14 @@ void main() {
       expect(range.contains(const CellCoordinate(3, 5)), isFalse); // Right
     });
 
-    test('rowCount and columnCount', () => {
+    test('rowCount and columnCount', () {
       const range = CellRange(2, 1, 5, 4);
 
       expect(range.rowCount, 4);     // Rows 2, 3, 4, 5
       expect(range.columnCount, 4);  // Columns 1, 2, 3, 4
     });
 
-    test('cellCount calculates total cells', () => {
+    test('cellCount calculates total cells', () {
       const range = CellRange(0, 0, 9, 4);  // 10 rows × 5 columns
 
       expect(range.cellCount, 50);
@@ -318,7 +318,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:worksheet/worksheet.dart';
 
 void main() {
-  group('Worksheet Widget', () => {
+  group('Worksheet Widget', () {
     testWidgets('renders without error', (tester) async {
       final data = SparseWorksheetData(rowCount: 100, columnCount: 26);
       final controller = WorksheetController();
