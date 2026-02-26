@@ -717,29 +717,12 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
     // Autocomplete key interception: when the dropdown is visible,
     // Up/Down navigate, Tab/Enter accept, Escape dismisses.
     final ac = widget.autocompleteController;
-    if (ac != null && ac.isVisible) {
-      if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-        ac.selectNext();
-        return KeyEventResult.handled;
-      }
-      if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-        ac.selectPrevious();
-        return KeyEventResult.handled;
-      }
-      if (event.logicalKey == LogicalKeyboardKey.tab ||
-          event.logicalKey == LogicalKeyboardKey.enter ||
-          event.logicalKey == LogicalKeyboardKey.numpadEnter) {
-        final result = ac.accept();
-        if (result != null) {
-          widget.onAutocompleteAccept
-              ?.call(result.function, result.token);
-        }
-        return KeyEventResult.handled;
-      }
-      if (event.logicalKey == LogicalKeyboardKey.escape) {
-        ac.dismiss();
-        return KeyEventResult.handled;
-      }
+    if (ac != null) {
+      final acResult = ac.handleKeyEvent(
+        event,
+        onAccept: widget.onAutocompleteAccept,
+      );
+      if (acResult == KeyEventResult.handled) return acResult;
     }
 
     if (event.logicalKey == LogicalKeyboardKey.escape) {

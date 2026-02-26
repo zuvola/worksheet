@@ -1,6 +1,27 @@
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worksheet/src/core/formula/formula_autocomplete_config.dart';
+import 'package:worksheet/src/core/formula/formula_function_tokenizer.dart';
 import 'package:worksheet/src/interaction/controllers/autocomplete_controller.dart';
+
+/// Creates a [KeyDownEvent] for the given logical key.
+KeyDownEvent _keyDown(LogicalKeyboardKey key) {
+  return KeyDownEvent(
+    logicalKey: key,
+    physicalKey: PhysicalKeyboardKey.abort, // placeholder
+    timeStamp: Duration.zero,
+  );
+}
+
+/// Creates a [KeyUpEvent] for the given logical key.
+KeyUpEvent _keyUp(LogicalKeyboardKey key) {
+  return KeyUpEvent(
+    logicalKey: key,
+    physicalKey: PhysicalKeyboardKey.abort,
+    timeStamp: Duration.zero,
+  );
+}
 
 void main() {
   const functions = [
@@ -206,6 +227,166 @@ void main() {
       controller.onTextChanged('=ABS', 4);
       expect(controller.isVisible, isTrue);
       expect(controller.matches.length, 1);
+    });
+  });
+
+  group('handleKeyEvent', () {
+    test('arrowDown calls selectNext', () {
+      controller.onTextChanged('=SU', 3);
+      expect(controller.selectedIndex, 0);
+
+      final result = controller.handleKeyEvent(_keyDown(LogicalKeyboardKey.arrowDown));
+
+      expect(result, KeyEventResult.handled);
+      expect(controller.selectedIndex, 1);
+    });
+
+    test('arrowUp calls selectPrevious', () {
+      controller.onTextChanged('=SU', 3);
+      controller.selectNext(); // move to 1
+      expect(controller.selectedIndex, 1);
+
+      final result = controller.handleKeyEvent(_keyDown(LogicalKeyboardKey.arrowUp));
+
+      expect(result, KeyEventResult.handled);
+      expect(controller.selectedIndex, 0);
+    });
+
+    test('Tab accepts and invokes onAccept', () {
+      controller.onTextChanged('=SU', 3);
+
+      FormulaFunction? acceptedFn;
+      AutocompleteToken? acceptedToken;
+
+      final result = controller.handleKeyEvent(
+        _keyDown(LogicalKeyboardKey.tab),
+        onAccept: (fn, token) {
+          acceptedFn = fn;
+          acceptedToken = token;
+        },
+      );
+
+      expect(result, KeyEventResult.handled);
+      expect(controller.isVisible, isFalse);
+      expect(acceptedFn!.name, 'SUM');
+      expect(acceptedToken!.text, 'SU');
+    });
+
+    test('Enter accepts and invokes onAccept', () {
+      controller.onTextChanged('=SU', 3);
+
+      FormulaFunction? acceptedFn;
+      final result = controller.handleKeyEvent(
+        _keyDown(LogicalKeyboardKey.enter),
+        onAccept: (fn, token) => acceptedFn = fn,
+      );
+
+      expect(result, KeyEventResult.handled);
+      expect(acceptedFn!.name, 'SUM');
+    });
+
+    test('NumpadEnter accepts and invokes onAccept', () {
+      controller.onTextChanged('=SU', 3);
+
+      FormulaFunction? acceptedFn;
+      final result = controller.handleKeyEvent(
+        _keyDown(LogicalKeyboardKey.numpadEnter),
+        onAccept: (fn, token) => acceptedFn = fn,
+      );
+
+      expect(result, KeyEventResult.handled);
+      expect(acceptedFn!.name, 'SUM');
+    });
+
+    test('Escape dismisses dropdown', () {
+      controller.onTextChanged('=SU', 3);
+      expect(controller.isVisible, isTrue);
+
+      final result = controller.handleKeyEvent(_keyDown(LogicalKeyboardKey.escape));
+
+      expect(result, KeyEventResult.handled);
+      expect(controller.isVisible, isFalse);
+    });
+
+    test('returns ignored when not visible', () {
+      expect(controller.isVisible, isFalse);
+
+      final result = controller.handleKeyEvent(_keyDown(LogicalKeyboardKey.arrowDown));
+
+      expect(result, KeyEventResult.ignored);
+    });
+
+    test('returns ignored for KeyUpEvent', () {
+      controller.onTextChanged('=SU', 3);
+
+      final result = controller.handleKeyEvent(_keyUp(LogicalKeyboardKey.arrowDown));
+
+      expect(result, KeyEventResult.ignored);
+    });
+
+    test('returns ignored for unrelated keys', () {
+      controller.onTextChanged('=SU', 3);
+
+      final result = controller.handleKeyEvent(_keyDown(LogicalKeyboardKey.keyA));
+
+      expect(result, KeyEventResult.ignored);
+    });
+  });
+
+  group('applyAcceptedFunction', () {
+    late TextEditingController textController;
+
+    setUp(() {
+      textController = TextEditingController();
+    });
+
+    tearDown(() {
+      textController.dispose();
+    });
+
+    test('replaces token at start of formula', () {
+      textController.text = '=SU';
+      const token = AutocompleteToken(start: 1, end: 3, text: 'SU');
+      const fn = FormulaFunction(name: 'SUM', signature: 'SUM(n1, [n2])');
+
+      AutocompleteController.applyAcceptedFunction(textController, fn, token);
+
+      expect(textController.text, '=SUM(');
+      expect(textController.selection.baseOffset, 5);
+      expect(textController.selection.extentOffset, 5);
+    });
+
+    test('preserves text after token', () {
+      textController.text = '=SU+A1';
+      const token = AutocompleteToken(start: 1, end: 3, text: 'SU');
+      const fn = FormulaFunction(name: 'SUM', signature: 'SUM(n1, [n2])');
+
+      AutocompleteController.applyAcceptedFunction(textController, fn, token);
+
+      expect(textController.text, '=SUM(+A1');
+      expect(textController.selection.baseOffset, 5);
+    });
+
+    test('works with mid-formula token', () {
+      textController.text = '=IF(AV';
+      const token = AutocompleteToken(start: 4, end: 6, text: 'AV');
+      const fn = FormulaFunction(name: 'AVERAGE', signature: 'AVERAGE(n1, [n2])');
+
+      AutocompleteController.applyAcceptedFunction(textController, fn, token);
+
+      expect(textController.text, '=IF(AVERAGE(');
+      expect(textController.selection.baseOffset, 12);
+    });
+
+    test('cursor positioned after opening parenthesis', () {
+      textController.text = '=AB';
+      const token = AutocompleteToken(start: 1, end: 3, text: 'AB');
+      const fn = FormulaFunction(name: 'ABS', signature: 'ABS(number)');
+
+      AutocompleteController.applyAcceptedFunction(textController, fn, token);
+
+      expect(textController.text, '=ABS(');
+      expect(textController.selection, const TextSelection.collapsed(offset: 5));
     });
   });
 }

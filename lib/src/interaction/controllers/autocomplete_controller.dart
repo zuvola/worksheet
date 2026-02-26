@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 import '../../core/core.dart';
 
@@ -111,5 +112,70 @@ class AutocompleteController extends ChangeNotifier {
     _currentToken = null;
     _selectedIndex = 0;
     notifyListeners();
+  }
+
+  /// Handles a key event for autocomplete navigation and acceptance.
+  ///
+  /// Returns [KeyEventResult.handled] if the key was consumed by the
+  /// autocomplete system (arrow navigation, accept, dismiss), or
+  /// [KeyEventResult.ignored] if the key should fall through to the
+  /// caller's normal key handling.
+  ///
+  /// Only processes [KeyDownEvent]s. When the dropdown is not visible,
+  /// always returns [KeyEventResult.ignored].
+  ///
+  /// The [onAccept] callback is invoked when Tab, Enter, or NumpadEnter
+  /// is pressed and a suggestion is accepted.
+  KeyEventResult handleKeyEvent(
+    KeyEvent event, {
+    void Function(FormulaFunction fn, AutocompleteToken token)? onAccept,
+  }) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+    if (!_isVisible) return KeyEventResult.ignored;
+
+    if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+      selectNext();
+      return KeyEventResult.handled;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+      selectPrevious();
+      return KeyEventResult.handled;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.tab ||
+        event.logicalKey == LogicalKeyboardKey.enter ||
+        event.logicalKey == LogicalKeyboardKey.numpadEnter) {
+      final result = accept();
+      if (result != null) {
+        onAccept?.call(result.function, result.token);
+      }
+      return KeyEventResult.handled;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.escape) {
+      dismiss();
+      return KeyEventResult.handled;
+    }
+
+    return KeyEventResult.ignored;
+  }
+
+  /// Replaces the autocomplete [token] in [controller]'s text with
+  /// `fn.name(` and positions the cursor after the opening parenthesis.
+  ///
+  /// Works with any [TextEditingController] — not coupled to
+  /// [RichTextEditingController] or any specific widget.
+  static void applyAcceptedFunction(
+    TextEditingController controller,
+    FormulaFunction fn,
+    AutocompleteToken token,
+  ) {
+    final text = controller.text;
+    final replacement = '${fn.name}(';
+    final newText =
+        text.substring(0, token.start) + replacement + text.substring(token.end);
+    final cursorOffset = token.start + replacement.length;
+    controller.value = TextEditingValue(
+      text: newText,
+      selection: TextSelection.collapsed(offset: cursorOffset),
+    );
   }
 }
