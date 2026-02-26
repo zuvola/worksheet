@@ -18,29 +18,20 @@ void main() {
       });
 
       test('creates with custom min/max zoom', () {
-        final controller = ZoomController(
-          minZoom: 0.5,
-          maxZoom: 3.0,
-        );
+        final controller = ZoomController(minZoom: 0.5, maxZoom: 3.0);
         expect(controller.minZoom, 0.5);
         expect(controller.maxZoom, 3.0);
         controller.dispose();
       });
 
       test('clamps initial zoom to valid range', () {
-        final controller = ZoomController(
-          initialZoom: 10.0,
-          maxZoom: 4.0,
-        );
+        final controller = ZoomController(initialZoom: 10.0, maxZoom: 4.0);
         expect(controller.value, 4.0);
         controller.dispose();
       });
 
       test('clamps initial zoom to min', () {
-        final controller = ZoomController(
-          initialZoom: 0.01,
-          minZoom: 0.1,
-        );
+        final controller = ZoomController(initialZoom: 0.01, minZoom: 0.1);
         expect(controller.value, 0.1);
         controller.dispose();
       });

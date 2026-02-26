@@ -72,10 +72,7 @@ void main() {
   }
 
   setUp(() {
-    data = SparseWorksheetData(
-      rowCount: _excelRows,
-      columnCount: _excelCols,
-    );
+    data = SparseWorksheetData(rowCount: _excelRows, columnCount: _excelCols);
     selectionController = SelectionController();
     clipboardHandler = ClipboardHandler(
       data: data,
@@ -104,9 +101,11 @@ void main() {
       final sw = Stopwatch()..start();
       selectionController.selectRange(_fullSheet);
       sw.stop();
-      expect(sw.elapsedMicroseconds, lessThan(1000),
-          reason:
-              'selectRange should be O(1), took ${sw.elapsedMicroseconds}us');
+      expect(
+        sw.elapsedMicroseconds,
+        lessThan(1000),
+        reason: 'selectRange should be O(1), took ${sw.elapsedMicroseconds}us',
+      );
     });
 
     test('selectRow completes in < 1ms', () {
@@ -120,9 +119,7 @@ void main() {
 
     test('selectColumn completes in < 1ms', () {
       final sw = Stopwatch()..start();
-      selectionController.selectRange(
-        CellRange(0, 8000, _excelRows - 1, 8000),
-      );
+      selectionController.selectRange(CellRange(0, 8000, _excelRows - 1, 8000));
       sw.stop();
       expect(sw.elapsedMicroseconds, lessThan(1000));
     });
@@ -133,16 +130,22 @@ void main() {
       final sw = Stopwatch()..start();
       data.clearRange(_fullSheet);
       sw.stop();
-      expect(sw.elapsedMilliseconds, lessThan(200),
-          reason: 'clearRange took ${sw.elapsedMilliseconds}ms');
+      expect(
+        sw.elapsedMilliseconds,
+        lessThan(200),
+        reason: 'clearRange took ${sw.elapsedMilliseconds}ms',
+      );
     });
 
     test('clearRichTextInRange on full sheet completes in < 200ms', () {
       final sw = Stopwatch()..start();
       data.clearRichTextInRange(_fullSheet);
       sw.stop();
-      expect(sw.elapsedMilliseconds, lessThan(200),
-          reason: 'clearRichTextInRange took ${sw.elapsedMilliseconds}ms');
+      expect(
+        sw.elapsedMilliseconds,
+        lessThan(200),
+        reason: 'clearRichTextInRange took ${sw.elapsedMilliseconds}ms',
+      );
     });
 
     test('getStylesInRange on full sheet completes in < 200ms', () {
@@ -150,8 +153,11 @@ void main() {
       final styles = data.getStylesInRange(_fullSheet).toList();
       sw.stop();
       expect(styles.length, greaterThan(0));
-      expect(sw.elapsedMilliseconds, lessThan(200),
-          reason: 'getStylesInRange took ${sw.elapsedMilliseconds}ms');
+      expect(
+        sw.elapsedMilliseconds,
+        lessThan(200),
+        reason: 'getStylesInRange took ${sw.elapsedMilliseconds}ms',
+      );
     });
   });
 
@@ -159,15 +165,19 @@ void main() {
     test('clearStyle on full sheet completes in < 200ms', () {
       final action = ClearCellsAction(ctx);
       final sw = Stopwatch()..start();
-      action.invoke(const ClearCellsIntent(
-        clearValue: false,
-        clearStyle: true,
-        clearFormat: false,
-      ));
+      action.invoke(
+        const ClearCellsIntent(
+          clearValue: false,
+          clearStyle: true,
+          clearFormat: false,
+        ),
+      );
       sw.stop();
-      expect(sw.elapsedMilliseconds, lessThan(200),
-          reason:
-              'ClearCellsAction(clearStyle) took ${sw.elapsedMilliseconds}ms');
+      expect(
+        sw.elapsedMilliseconds,
+        lessThan(200),
+        reason: 'ClearCellsAction(clearStyle) took ${sw.elapsedMilliseconds}ms',
+      );
     });
   });
 
@@ -177,8 +187,11 @@ void main() {
       final sw = Stopwatch()..start();
       action.invoke(const ToggleBoldIntent());
       sw.stop();
-      expect(sw.elapsedMilliseconds, lessThan(200),
-          reason: 'ToggleBoldAction took ${sw.elapsedMilliseconds}ms');
+      expect(
+        sw.elapsedMilliseconds,
+        lessThan(200),
+        reason: 'ToggleBoldAction took ${sw.elapsedMilliseconds}ms',
+      );
     });
   });
 
@@ -186,12 +199,15 @@ void main() {
     test('set background color on full sheet completes in < 200ms', () {
       final action = SetCellStyleAction(ctx);
       final sw = Stopwatch()..start();
-      action.invoke(const SetCellStyleIntent(
-        CellStyle(backgroundColor: Color(0xFFFF0000)),
-      ));
+      action.invoke(
+        const SetCellStyleIntent(CellStyle(backgroundColor: Color(0xFFFF0000))),
+      );
       sw.stop();
-      expect(sw.elapsedMilliseconds, lessThan(200),
-          reason: 'SetCellStyleAction took ${sw.elapsedMilliseconds}ms');
+      expect(
+        sw.elapsedMilliseconds,
+        lessThan(200),
+        reason: 'SetCellStyleAction took ${sw.elapsedMilliseconds}ms',
+      );
     });
   });
 
@@ -202,8 +218,11 @@ void main() {
       final result = serializer.serialize(_fullSheet, data);
       sw.stop();
       expect(result.isNotEmpty, isTrue);
-      expect(sw.elapsedMilliseconds, lessThan(500),
-          reason: 'Clipboard serialize took ${sw.elapsedMilliseconds}ms');
+      expect(
+        sw.elapsedMilliseconds,
+        lessThan(500),
+        reason: 'Clipboard serialize took ${sw.elapsedMilliseconds}ms',
+      );
     });
   });
 
@@ -211,10 +230,7 @@ void main() {
     test('throws StateError for ranges > 1M cells', () {
       expect(
         () => data.batchUpdate((batch) {
-          batch.fillRangeWithCell(
-            _fullSheet,
-            null,
-          );
+          batch.fillRangeWithCell(_fullSheet, null);
         }),
         throwsStateError,
       );

@@ -11,10 +11,9 @@ class FormulaFunctionMatcher {
     FormulaAutocompleteConfig config,
   ) {
     if (token.isEmpty) return const [];
-    final results = config.functions
-        .where((fn) => config.matches(token, fn))
-        .toList()
-      ..sort((a, b) => a.name.compareTo(b.name));
+    final results =
+        config.functions.where((fn) => config.matches(token, fn)).toList()
+          ..sort((a, b) => a.name.compareTo(b.name));
     return results;
   }
 }

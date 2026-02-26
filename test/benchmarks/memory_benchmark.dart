@@ -12,7 +12,7 @@ class MockWorksheetData implements WorksheetData {
   final MergedCellRegistry mergedCells = MergedCellRegistry(); // Minimal mergedCells
 
   MockWorksheetData({this.rows = 1000, this.cols = 100})
-      : _changesController = StreamController.broadcast();
+    : _changesController = StreamController.broadcast();
 
   @override
   CellValue? getCell(CellCoordinate coord) {
@@ -40,7 +40,8 @@ class MockWorksheetData implements WorksheetData {
 
   @override
   Future<void> batchUpdateAsync(
-      Future<void> Function(WorksheetDataBatch batch) updates) async {
+    Future<void> Function(WorksheetDataBatch batch) updates,
+  ) async {
     final dummyBatch = _MockWorksheetDataBatch();
     await updates(dummyBatch);
     notifyListeners();
@@ -56,16 +57,26 @@ class MockWorksheetData implements WorksheetData {
   int get columnCount => cols;
 
   @override
-  Iterable<MapEntry<CellCoordinate, CellValue>> getCellsInRange(CellRange range) => const [];
+  Iterable<MapEntry<CellCoordinate, CellValue>> getCellsInRange(
+    CellRange range,
+  ) => const [];
 
   @override
   void clearRange(CellRange range) {}
 
   @override
-  CellRange? smartFill(CellRange range, CellCoordinate destination, [Cell? Function(CellCoordinate coord, Cell? sourceCell)? valueGenerator]) => null;
+  CellRange? smartFill(
+    CellRange range,
+    CellCoordinate destination, [
+    Cell? Function(CellCoordinate coord, Cell? sourceCell)? valueGenerator,
+  ]) => null;
 
   @override
-  void fillRange(CellCoordinate source, CellRange range, [Cell? Function(CellCoordinate coord, Cell? sourceCell)? valueGenerator]) {}
+  void fillRange(
+    CellCoordinate source,
+    CellRange range, [
+    Cell? Function(CellCoordinate coord, Cell? sourceCell)? valueGenerator,
+  ]) {}
 
   @override
   void mergeCells(CellRange range) {}
@@ -91,17 +102,27 @@ class MockWorksheetData implements WorksheetData {
   @override
   void clearRichTextInRange(CellRange range) {}
   @override
-  Iterable<MapEntry<CellCoordinate, List<TextSpan>>> getRichTextInRange(CellRange range) => const [];
+  Iterable<MapEntry<CellCoordinate, List<TextSpan>>> getRichTextInRange(
+    CellRange range,
+  ) => const [];
   @override
-  Iterable<MapEntry<CellCoordinate, CellStyle>> getStylesInRange(CellRange range) => const [];
+  Iterable<MapEntry<CellCoordinate, CellStyle>> getStylesInRange(
+    CellRange range,
+  ) => const [];
   @override
-  Iterable<MapEntry<CellCoordinate, CellFormat>> getFormatsInRange(CellRange range) => const [];
+  Iterable<MapEntry<CellCoordinate, CellFormat>> getFormatsInRange(
+    CellRange range,
+  ) => const [];
   @override
   void unmergeCellsInRange(CellRange range) {}
   @override
   void moveMerges(CellRange source, CellCoordinate destination) {}
   @override
-  void replicateMerges({required CellRange sourceRange, required CellRange targetRange, required bool vertical}) {}
+  void replicateMerges({
+    required CellRange sourceRange,
+    required CellRange targetRange,
+    required bool vertical,
+  }) {}
   @override
   int? findNextPopulatedRow(int column, int fromRow) => null;
   @override
@@ -168,19 +189,20 @@ class _MockWorksheetDataBatch implements WorksheetDataBatch {
 
 void main() {
   group('Memory Benchmarks', () {
-    testWidgets('Large worksheet renders without crash', (WidgetTester tester) async {
+    testWidgets('Large worksheet renders without crash', (
+      WidgetTester tester,
+    ) async {
       const int largeRows = 5000;
       const int largeCols = 50;
 
-      final MockWorksheetData data = MockWorksheetData(rows: largeRows, cols: largeCols);
+      final MockWorksheetData data = MockWorksheetData(
+        rows: largeRows,
+        cols: largeCols,
+      );
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: Worksheet(
-              data: data,
-            ),
-          ),
+          home: Scaffold(body: Worksheet(data: data)),
         ),
       );
       await tester.pumpAndSettle(); // Settle all animations and builds

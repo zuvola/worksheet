@@ -50,61 +50,72 @@ void main() {
   }
 
   group('Frozen panes integration', () {
-    testWidgets('frozen layer present when freezeConfig has frozen panes',
-        (tester) async {
-      await tester.pumpWidget(buildWorksheet(
-        freezeConfig: const FreezeConfig(frozenRows: 1, frozenColumns: 1),
-      ));
+    testWidgets('frozen layer present when freezeConfig has frozen panes', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildWorksheet(
+          freezeConfig: const FreezeConfig(frozenRows: 1, frozenColumns: 1),
+        ),
+      );
 
       // The widget should build without errors and display content
       expect(find.byType(Worksheet), findsOneWidget);
 
       // Verify controller has freeze config wired
-      expect(controller.freezeConfig,
-          const FreezeConfig(frozenRows: 1, frozenColumns: 1));
+      expect(
+        controller.freezeConfig,
+        const FreezeConfig(frozenRows: 1, frozenColumns: 1),
+      );
     });
 
-    testWidgets('frozen layer absent when freezeConfig is none',
-        (tester) async {
+    testWidgets('frozen layer absent when freezeConfig is none', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWorksheet());
 
       expect(find.byType(Worksheet), findsOneWidget);
       expect(controller.freezeConfig, FreezeConfig.none);
     });
 
-    testWidgets('dynamic freeze config change (none -> frozen -> none)',
-        (tester) async {
+    testWidgets('dynamic freeze config change (none -> frozen -> none)', (
+      tester,
+    ) async {
       // Start with no frozen panes
       await tester.pumpWidget(buildWorksheet());
       expect(controller.freezeConfig, FreezeConfig.none);
 
       // Switch to frozen panes
-      await tester.pumpWidget(buildWorksheet(
-        freezeConfig: const FreezeConfig(frozenRows: 2, frozenColumns: 1),
-      ));
-      expect(controller.freezeConfig,
-          const FreezeConfig(frozenRows: 2, frozenColumns: 1));
+      await tester.pumpWidget(
+        buildWorksheet(
+          freezeConfig: const FreezeConfig(frozenRows: 2, frozenColumns: 1),
+        ),
+      );
+      expect(
+        controller.freezeConfig,
+        const FreezeConfig(frozenRows: 2, frozenColumns: 1),
+      );
 
       // Switch back to none
       await tester.pumpWidget(buildWorksheet());
       expect(controller.freezeConfig, FreezeConfig.none);
     });
 
-    testWidgets('frozen rows only config builds without error',
-        (tester) async {
-      await tester.pumpWidget(buildWorksheet(
-        freezeConfig: const FreezeConfig(frozenRows: 3),
-      ));
+    testWidgets('frozen rows only config builds without error', (tester) async {
+      await tester.pumpWidget(
+        buildWorksheet(freezeConfig: const FreezeConfig(frozenRows: 3)),
+      );
 
       expect(find.byType(Worksheet), findsOneWidget);
       expect(controller.freezeConfig, const FreezeConfig(frozenRows: 3));
     });
 
-    testWidgets('frozen columns only config builds without error',
-        (tester) async {
-      await tester.pumpWidget(buildWorksheet(
-        freezeConfig: const FreezeConfig(frozenColumns: 2),
-      ));
+    testWidgets('frozen columns only config builds without error', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildWorksheet(freezeConfig: const FreezeConfig(frozenColumns: 2)),
+      );
 
       expect(find.byType(Worksheet), findsOneWidget);
       expect(controller.freezeConfig, const FreezeConfig(frozenColumns: 2));

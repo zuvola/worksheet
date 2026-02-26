@@ -16,8 +16,8 @@ class DefaultWorksheetShortcuts {
   /// Contains ~40 bindings covering navigation, selection, clipboard, and
   /// editing. Both `control` and `meta` variants are included for
   /// cross-platform compatibility.
-  static final Map<ShortcutActivator, Intent> shortcuts =
-      <ShortcutActivator, Intent>{
+  static final Map<ShortcutActivator, Intent>
+  shortcuts = <ShortcutActivator, Intent>{
     // Arrow navigation
     const SingleActivator(LogicalKeyboardKey.arrowUp):
         const MoveSelectionIntent(rowDelta: -1),
@@ -39,8 +39,9 @@ class DefaultWorksheetShortcuts {
         const MoveSelectionIntent(columnDelta: 1, extend: true),
 
     // Page navigation
-    const SingleActivator(LogicalKeyboardKey.pageUp):
-        const MoveSelectionIntent(rowDelta: -10),
+    const SingleActivator(LogicalKeyboardKey.pageUp): const MoveSelectionIntent(
+      rowDelta: -10,
+    ),
     const SingleActivator(LogicalKeyboardKey.pageDown):
         const MoveSelectionIntent(rowDelta: 10),
     const SingleActivator(LogicalKeyboardKey.pageUp, shift: true):
@@ -49,14 +50,16 @@ class DefaultWorksheetShortcuts {
         const MoveSelectionIntent(rowDelta: 10, extend: true),
 
     // Tab navigation
-    const SingleActivator(LogicalKeyboardKey.tab):
-        const MoveSelectionIntent(columnDelta: 1),
+    const SingleActivator(LogicalKeyboardKey.tab): const MoveSelectionIntent(
+      columnDelta: 1,
+    ),
     const SingleActivator(LogicalKeyboardKey.tab, shift: true):
         const MoveSelectionIntent(columnDelta: -1),
 
     // Enter navigation
-    const SingleActivator(LogicalKeyboardKey.enter):
-        const MoveSelectionIntent(rowDelta: 1),
+    const SingleActivator(LogicalKeyboardKey.enter): const MoveSelectionIntent(
+      rowDelta: 1,
+    ),
     const SingleActivator(LogicalKeyboardKey.numpadEnter):
         const MoveSelectionIntent(rowDelta: 1),
     const SingleActivator(LogicalKeyboardKey.enter, shift: true):
@@ -65,10 +68,12 @@ class DefaultWorksheetShortcuts {
         const MoveSelectionIntent(rowDelta: -1),
 
     // Home/End: row boundaries
-    const SingleActivator(LogicalKeyboardKey.home):
-        const GoToRowBoundaryIntent(end: false),
-    const SingleActivator(LogicalKeyboardKey.end):
-        const GoToRowBoundaryIntent(end: true),
+    const SingleActivator(LogicalKeyboardKey.home): const GoToRowBoundaryIntent(
+      end: false,
+    ),
+    const SingleActivator(LogicalKeyboardKey.end): const GoToRowBoundaryIntent(
+      end: true,
+    ),
     const SingleActivator(LogicalKeyboardKey.home, shift: true):
         const GoToRowBoundaryIntent(end: false, extend: true),
     const SingleActivator(LogicalKeyboardKey.end, shift: true):
@@ -118,18 +123,27 @@ class DefaultWorksheetShortcuts {
         const PasteCellsIntent(),
 
     // Delete/Backspace: clear cells
-    const SingleActivator(LogicalKeyboardKey.delete):
-        const ClearCellsIntent(),
+    const SingleActivator(LogicalKeyboardKey.delete): const ClearCellsIntent(),
     const SingleActivator(LogicalKeyboardKey.backspace):
         const ClearCellsIntent(),
 
     // Ctrl+\: clear formatting (preserve values)
-    const SingleActivator(LogicalKeyboardKey.backslash, control: true):
-        const ClearCellsIntent(
-            clearValue: false, clearStyle: true, clearFormat: true),
-    const SingleActivator(LogicalKeyboardKey.backslash, meta: true):
-        const ClearCellsIntent(
-            clearValue: false, clearStyle: true, clearFormat: true),
+    const SingleActivator(
+      LogicalKeyboardKey.backslash,
+      control: true,
+    ): const ClearCellsIntent(
+      clearValue: false,
+      clearStyle: true,
+      clearFormat: true,
+    ),
+    const SingleActivator(
+      LogicalKeyboardKey.backslash,
+      meta: true,
+    ): const ClearCellsIntent(
+      clearValue: false,
+      clearStyle: true,
+      clearFormat: true,
+    ),
 
     // Ctrl+D: fill down
     const SingleActivator(LogicalKeyboardKey.keyD, control: true):

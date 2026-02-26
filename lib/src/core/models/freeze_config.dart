@@ -16,10 +16,7 @@ class FreezeConfig {
   ///
   /// [frozenRows] defaults to 0 (no frozen rows).
   /// [frozenColumns] defaults to 0 (no frozen columns).
-  const FreezeConfig({
-    this.frozenRows = 0,
-    this.frozenColumns = 0,
-  });
+  const FreezeConfig({this.frozenRows = 0, this.frozenColumns = 0});
 
   /// Whether any rows are frozen.
   bool get hasFrozenRows => frozenRows > 0;
@@ -43,10 +40,7 @@ class FreezeConfig {
       isFrozenRow(row) || isFrozenColumn(column);
 
   /// Creates a copy with the given fields replaced.
-  FreezeConfig copyWith({
-    int? frozenRows,
-    int? frozenColumns,
-  }) {
+  FreezeConfig copyWith({int? frozenRows, int? frozenColumns}) {
     return FreezeConfig(
       frozenRows: frozenRows ?? this.frozenRows,
       frozenColumns: frozenColumns ?? this.frozenColumns,

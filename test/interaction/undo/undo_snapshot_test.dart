@@ -22,16 +22,16 @@ void main() {
       );
 
       expect(cells.length, 2);
-      expect(cells[const CellCoordinate(0, 0)]!.value,
-          const CellValue.text('Hello'));
-      expect(cells[const CellCoordinate(1, 0)]!.value,
-          CellValue.number(42));
+      expect(
+        cells[const CellCoordinate(0, 0)]!.value,
+        const CellValue.text('Hello'),
+      );
+      expect(cells[const CellCoordinate(1, 0)]!.value, CellValue.number(42));
       expect(merges, isEmpty);
     });
 
     test('capture captures styles', () {
-      const style = CellStyle(
-          backgroundColor: Color(0xFFFF0000));
+      const style = CellStyle(backgroundColor: Color(0xFFFF0000));
       data.setStyle(const CellCoordinate(0, 0), style);
 
       final (cells, _) = UndoSnapshot.capture(
@@ -87,8 +87,7 @@ void main() {
 
     test('capture builds combined Cell from value + style + format', () {
       data.setCell(const CellCoordinate(0, 0), const CellValue.text('Hi'));
-      const style = CellStyle(
-          backgroundColor: Color(0xFF00FF00));
+      const style = CellStyle(backgroundColor: Color(0xFF00FF00));
       data.setStyle(const CellCoordinate(0, 0), style);
       final format = CellFormat.percentage;
       data.setFormat(const CellCoordinate(0, 0), format);
@@ -126,15 +125,15 @@ void main() {
 
       // Restore
       UndoSnapshot.restore(data, range, cells, merges);
-      expect(data.getCell(const CellCoordinate(0, 0)),
-          const CellValue.text('A'));
-      expect(data.getCell(const CellCoordinate(0, 1)),
-          CellValue.number(10));
+      expect(
+        data.getCell(const CellCoordinate(0, 0)),
+        const CellValue.text('A'),
+      );
+      expect(data.getCell(const CellCoordinate(0, 1)), CellValue.number(10));
     });
 
     test('restore round-trip preserves styles', () {
-      const style = CellStyle(
-          backgroundColor: Color(0xFFFF0000));
+      const style = CellStyle(backgroundColor: Color(0xFFFF0000));
       data.setStyle(const CellCoordinate(0, 0), style);
       const range = CellRange(0, 0, 0, 0);
 
@@ -206,15 +205,12 @@ void main() {
         const CellCoordinate(0, 0): const Cell(value: CellValue.text('New')),
       };
 
-      UndoSnapshot.restore(
-        data,
-        const CellRange(0, 0, 0, 1),
-        snapshot,
-        [],
-      );
+      UndoSnapshot.restore(data, const CellRange(0, 0, 0, 1), snapshot, []);
 
-      expect(data.getCell(const CellCoordinate(0, 0)),
-          const CellValue.text('New'));
+      expect(
+        data.getCell(const CellCoordinate(0, 0)),
+        const CellValue.text('New'),
+      );
       // (0, 1) should be cleared since it wasn't in the snapshot
       expect(data.getCell(const CellCoordinate(0, 1)), isNull);
     });

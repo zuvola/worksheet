@@ -54,7 +54,9 @@ class TileManager {
         ? viewport.inflate(config.prefetchRings * config.tileWidth)
         : viewport;
 
-    final coordinates = getTileCoordinatesForViewport(viewport: prefetchViewport);
+    final coordinates = getTileCoordinatesForViewport(
+      viewport: prefetchViewport,
+    );
     final tiles = <Tile>[];
 
     for (final coord in coordinates) {

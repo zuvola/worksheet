@@ -21,17 +21,17 @@ void main() {
     mockClipboardText = null;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (call) async {
-      if (call.method == 'Clipboard.setData') {
-        final args = call.arguments as Map<dynamic, dynamic>;
-        mockClipboardText = args['text'] as String?;
-        return null;
-      }
-      if (call.method == 'Clipboard.getData') {
-        if (mockClipboardText == null) return null;
-        return <String, dynamic>{'text': mockClipboardText};
-      }
-      return null;
-    });
+          if (call.method == 'Clipboard.setData') {
+            final args = call.arguments as Map<dynamic, dynamic>;
+            mockClipboardText = args['text'] as String?;
+            return null;
+          }
+          if (call.method == 'Clipboard.getData') {
+            if (mockClipboardText == null) return null;
+            return <String, dynamic>{'text': mockClipboardText};
+          }
+          return null;
+        });
   }
 
   setUp(() {
@@ -70,20 +70,29 @@ void main() {
   });
 
   group('ClipboardHandler.cut', () {
-    test('writes TSV to clipboard and returns cut range without clearing', () async {
-      data[(0, 0)] = 'A'.cell;
-      data[(0, 1)] = 'B'.cell;
-      selectionController.selectRange(const CellRange(0, 0, 0, 1));
+    test(
+      'writes TSV to clipboard and returns cut range without clearing',
+      () async {
+        data[(0, 0)] = 'A'.cell;
+        data[(0, 1)] = 'B'.cell;
+        selectionController.selectRange(const CellRange(0, 0, 0, 1));
 
-      final range = await handler.cut();
+        final range = await handler.cut();
 
-      expect(mockClipboardText, 'A\tB');
-      expect(range, const CellRange(0, 0, 0, 1));
+        expect(mockClipboardText, 'A\tB');
+        expect(range, const CellRange(0, 0, 0, 1));
 
-      // Source cells should NOT be cleared (deferred cut)
-      expect(data.getCell(const CellCoordinate(0, 0)), const CellValue.text('A'));
-      expect(data.getCell(const CellCoordinate(0, 1)), const CellValue.text('B'));
-    });
+        // Source cells should NOT be cleared (deferred cut)
+        expect(
+          data.getCell(const CellCoordinate(0, 0)),
+          const CellValue.text('A'),
+        );
+        expect(
+          data.getCell(const CellCoordinate(0, 1)),
+          const CellValue.text('B'),
+        );
+      },
+    );
 
     test('does nothing with no selection', () async {
       final range = await handler.cut();
@@ -130,14 +139,22 @@ void main() {
 
       await handler.paste();
 
-      expect(data.getCell(const CellCoordinate(2, 3)),
-          const CellValue.text('X'));
-      expect(data.getCell(const CellCoordinate(2, 4)),
-          const CellValue.text('Y'));
-      expect(data.getCell(const CellCoordinate(3, 3)),
-          const CellValue.text('Z'));
-      expect(data.getCell(const CellCoordinate(3, 4)),
-          const CellValue.text('W'));
+      expect(
+        data.getCell(const CellCoordinate(2, 3)),
+        const CellValue.text('X'),
+      );
+      expect(
+        data.getCell(const CellCoordinate(2, 4)),
+        const CellValue.text('Y'),
+      );
+      expect(
+        data.getCell(const CellCoordinate(3, 3)),
+        const CellValue.text('Z'),
+      );
+      expect(
+        data.getCell(const CellCoordinate(3, 4)),
+        const CellValue.text('W'),
+      );
     });
 
     test('clamps to worksheet bounds', () async {
@@ -148,10 +165,14 @@ void main() {
       await handler.paste();
 
       // Only columns 8 and 9 should be written
-      expect(data.getCell(const CellCoordinate(0, 8)),
-          const CellValue.text('A'));
-      expect(data.getCell(const CellCoordinate(0, 9)),
-          const CellValue.text('B'));
+      expect(
+        data.getCell(const CellCoordinate(0, 8)),
+        const CellValue.text('A'),
+      );
+      expect(
+        data.getCell(const CellCoordinate(0, 9)),
+        const CellValue.text('B'),
+      );
     });
 
     test('does nothing with empty clipboard', () async {
@@ -177,10 +198,8 @@ void main() {
 
       await handler.paste();
 
-      expect(data.getCell(const CellCoordinate(0, 0)),
-          CellValue.number(42));
-      expect(data.getCell(const CellCoordinate(0, 1)),
-          CellValue.number(3.14));
+      expect(data.getCell(const CellCoordinate(0, 0)), CellValue.number(42));
+      expect(data.getCell(const CellCoordinate(0, 1)), CellValue.number(3.14));
     });
 
     test('selects the pasted area', () async {
@@ -220,10 +239,14 @@ void main() {
       await handler.paste(pendingCutRange: const CellRange(0, 0, 0, 1));
 
       // Pasted data should be at new location
-      expect(data.getCell(const CellCoordinate(2, 0)),
-          const CellValue.text('A'));
-      expect(data.getCell(const CellCoordinate(2, 1)),
-          const CellValue.text('B'));
+      expect(
+        data.getCell(const CellCoordinate(2, 0)),
+        const CellValue.text('A'),
+      );
+      expect(
+        data.getCell(const CellCoordinate(2, 1)),
+        const CellValue.text('B'),
+      );
       // Source cells should be cleared
       expect(data.getCell(const CellCoordinate(0, 0)), isNull);
       expect(data.getCell(const CellCoordinate(0, 1)), isNull);

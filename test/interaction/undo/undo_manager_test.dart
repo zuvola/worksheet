@@ -6,15 +6,15 @@ void main() {
     late UndoManager manager;
 
     UndoEntry makeEntry(String label) => UndoEntry(
-          label: label,
-          affectedRange: CellRange.single(const CellCoordinate(0, 0)),
-          cellsBefore: const {},
-          mergesBefore: const [],
-          selectionBefore: (null, null),
-          cellsAfter: const {},
-          mergesAfter: const [],
-          selectionAfter: (null, null),
-        );
+      label: label,
+      affectedRange: CellRange.single(const CellCoordinate(0, 0)),
+      cellsBefore: const {},
+      mergesBefore: const [],
+      selectionBefore: (null, null),
+      cellsAfter: const {},
+      mergesAfter: const [],
+      selectionAfter: (null, null),
+    );
 
     setUp(() {
       manager = UndoManager();

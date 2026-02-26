@@ -71,15 +71,16 @@ void main() {
 
       test('different types are not equal', () {
         const a = CellFormat(type: CellFormatType.number, formatCode: '0.00');
-        const b =
-            CellFormat(type: CellFormatType.currency, formatCode: '0.00');
+        const b = CellFormat(type: CellFormatType.currency, formatCode: '0.00');
         expect(a, isNot(equals(b)));
       });
 
       test('different codes are not equal', () {
         const a = CellFormat(type: CellFormatType.number, formatCode: '0.00');
-        const b =
-            CellFormat(type: CellFormatType.number, formatCode: '#,##0.00');
+        const b = CellFormat(
+          type: CellFormatType.number,
+          formatCode: '#,##0.00',
+        );
         expect(a, isNot(equals(b)));
       });
 
@@ -93,12 +94,9 @@ void main() {
 
     group('toString', () {
       test('includes type and format code', () {
-        expect(CellFormat.general.toString(),
-            'CellFormat(general, General)');
-        expect(CellFormat.currency.toString(),
-            contains('currency'));
-        expect(CellFormat.currency.toString(),
-            contains(r'$#,##0.00'));
+        expect(CellFormat.general.toString(), 'CellFormat(general, General)');
+        expect(CellFormat.currency.toString(), contains('currency'));
+        expect(CellFormat.currency.toString(), contains(r'$#,##0.00'));
       });
     });
   });
@@ -126,8 +124,10 @@ void main() {
       });
 
       test('#,##0 formats large number', () {
-        expect(CellFormat.integer.format(CellValue.number(1234567)),
-            '1,234,567');
+        expect(
+          CellFormat.integer.format(CellValue.number(1234567)),
+          '1,234,567',
+        );
       });
 
       test('#,##0 formats small number without separator', () {
@@ -140,13 +140,11 @@ void main() {
       });
 
       test('0.00 rounds to decimal places', () {
-        expect(
-            CellFormat.decimal.format(CellValue.number(3.14159)), '3.14');
+        expect(CellFormat.decimal.format(CellValue.number(3.14159)), '3.14');
       });
 
       test('#,##0.00 formats with thousands and decimals', () {
-        expect(
-            CellFormat.number.format(CellValue.number(1234.5)), '1,234.50');
+        expect(CellFormat.number.format(CellValue.number(1234.5)), '1,234.50');
       });
 
       test('handles zero', () {
@@ -157,35 +155,38 @@ void main() {
 
       test('handles negative numbers', () {
         expect(CellFormat.integer.format(CellValue.number(-1234)), '-1,234');
-        expect(CellFormat.number.format(CellValue.number(-1234.5)),
-            '-1,234.50');
+        expect(
+          CellFormat.number.format(CellValue.number(-1234.5)),
+          '-1,234.50',
+        );
       });
 
       test('handles very large numbers', () {
-        expect(CellFormat.integer.format(CellValue.number(1000000000)),
-            '1,000,000,000');
+        expect(
+          CellFormat.integer.format(CellValue.number(1000000000)),
+          '1,000,000,000',
+        );
       });
     });
 
     group('currency', () {
       test(r'$#,##0.00 adds dollar sign', () {
-        expect(CellFormat.currency.format(CellValue.number(1234.5)),
-            r'$1,234.50');
+        expect(
+          CellFormat.currency.format(CellValue.number(1234.5)),
+          r'$1,234.50',
+        );
       });
 
       test('handles zero', () {
-        expect(
-            CellFormat.currency.format(CellValue.number(0)), r'$0.00');
+        expect(CellFormat.currency.format(CellValue.number(0)), r'$0.00');
       });
 
       test('handles negative', () {
-        expect(CellFormat.currency.format(CellValue.number(-42)),
-            r'-$42.00');
+        expect(CellFormat.currency.format(CellValue.number(-42)), r'-$42.00');
       });
 
       test('handles small values', () {
-        expect(CellFormat.currency.format(CellValue.number(0.99)),
-            r'$0.99');
+        expect(CellFormat.currency.format(CellValue.number(0.99)), r'$0.99');
       });
     });
 
@@ -217,7 +218,8 @@ void main() {
       test('accounting positive: aligned with spaces', () {
         const fmt = CellFormat(
           type: CellFormatType.accounting,
-          formatCode: r'_("$"* #,##0.00_);_("$"* \(#,##0.00\);_("$"* "-"??_);_(@_)',
+          formatCode:
+              r'_("$"* #,##0.00_);_("$"* \(#,##0.00\);_("$"* "-"??_);_(@_)',
         );
         expect(fmt.format(CellValue.number(1234.56)), r' $ 1,234.56 ');
       });
@@ -225,7 +227,8 @@ void main() {
       test('accounting negative: parentheses with dollar', () {
         const fmt = CellFormat(
           type: CellFormatType.accounting,
-          formatCode: r'_("$"* #,##0.00_);_("$"* \(#,##0.00\);_("$"* "-"??_);_(@_)',
+          formatCode:
+              r'_("$"* #,##0.00_);_("$"* \(#,##0.00\);_("$"* "-"??_);_(@_)',
         );
         expect(fmt.format(CellValue.number(-1234.56)), r' $ (1,234.56)');
       });
@@ -233,7 +236,8 @@ void main() {
       test('accounting zero: dash with spaces', () {
         const fmt = CellFormat(
           type: CellFormatType.accounting,
-          formatCode: r'_("$"* #,##0.00_);_("$"* \(#,##0.00\);_("$"* "-"??_);_(@_)',
+          formatCode:
+              r'_("$"* #,##0.00_);_("$"* \(#,##0.00\);_("$"* "-"??_);_(@_)',
         );
         expect(fmt.format(CellValue.number(0)), r' $ -   ');
       });
@@ -241,7 +245,8 @@ void main() {
       test('accounting text section: text with alignment spaces', () {
         const fmt = CellFormat(
           type: CellFormatType.accounting,
-          formatCode: r'_("$"* #,##0.00_);_("$"* \(#,##0.00\);_("$"* "-"??_);_(@_)',
+          formatCode:
+              r'_("$"* #,##0.00_);_("$"* \(#,##0.00\);_("$"* "-"??_);_(@_)',
         );
         expect(fmt.format(CellValue.text('hello')), ' hello ');
       });
@@ -273,13 +278,14 @@ void main() {
 
     group('percentage', () {
       test('0% multiplies by 100', () {
-        expect(
-            CellFormat.percentage.format(CellValue.number(0.42)), '42%');
+        expect(CellFormat.percentage.format(CellValue.number(0.42)), '42%');
       });
 
       test('0.00% with decimals', () {
-        expect(CellFormat.percentageDecimal.format(CellValue.number(0.4256)),
-            '42.56%');
+        expect(
+          CellFormat.percentageDecimal.format(CellValue.number(0.4256)),
+          '42.56%',
+        );
       });
 
       test('handles 0', () {
@@ -295,35 +301,38 @@ void main() {
       });
 
       test('handles negative', () {
-        expect(
-            CellFormat.percentage.format(CellValue.number(-0.1)), '-10%');
+        expect(CellFormat.percentage.format(CellValue.number(-0.1)), '-10%');
       });
     });
 
     group('scientific', () {
       test('0.00E+00 basic', () {
-        expect(CellFormat.scientific.format(CellValue.number(12345)),
-            '1.23E+04');
+        expect(
+          CellFormat.scientific.format(CellValue.number(12345)),
+          '1.23E+04',
+        );
       });
 
       test('handles negative', () {
-        expect(CellFormat.scientific.format(CellValue.number(-12345)),
-            '-1.23E+04');
+        expect(
+          CellFormat.scientific.format(CellValue.number(-12345)),
+          '-1.23E+04',
+        );
       });
 
       test('handles small numbers', () {
-        expect(CellFormat.scientific.format(CellValue.number(0.00123)),
-            '1.23E-03');
+        expect(
+          CellFormat.scientific.format(CellValue.number(0.00123)),
+          '1.23E-03',
+        );
       });
 
       test('handles zero', () {
-        expect(CellFormat.scientific.format(CellValue.number(0)),
-            '0.00E+00');
+        expect(CellFormat.scientific.format(CellValue.number(0)), '0.00E+00');
       });
 
       test('handles 1', () {
-        expect(CellFormat.scientific.format(CellValue.number(1)),
-            '1.00E+00');
+        expect(CellFormat.scientific.format(CellValue.number(1)), '1.00E+00');
       });
     });
 
@@ -331,23 +340,19 @@ void main() {
       final date = DateTime(2024, 1, 15);
 
       test('yyyy-MM-dd ISO format', () {
-        expect(CellFormat.dateIso.format(CellValue.date(date)),
-            '2024-01-15');
+        expect(CellFormat.dateIso.format(CellValue.date(date)), '2024-01-15');
       });
 
       test('m/d/yyyy US format', () {
-        expect(
-            CellFormat.dateUs.format(CellValue.date(date)), '1/15/2024');
+        expect(CellFormat.dateUs.format(CellValue.date(date)), '1/15/2024');
       });
 
       test('d-mmm-yy short format', () {
-        expect(CellFormat.dateShort.format(CellValue.date(date)),
-            '15-Jan-24');
+        expect(CellFormat.dateShort.format(CellValue.date(date)), '15-Jan-24');
       });
 
       test('mmm-yy month-year format', () {
-        expect(CellFormat.dateMonthYear.format(CellValue.date(date)),
-            'Jan-24');
+        expect(CellFormat.dateMonthYear.format(CellValue.date(date)), 'Jan-24');
       });
 
       test('handles different months', () {
@@ -365,19 +370,10 @@ void main() {
       });
 
       test('mmmmm first letter of month', () {
-        const fmt = CellFormat(
-          type: CellFormatType.date,
-          formatCode: 'mmmmm',
-        );
+        const fmt = CellFormat(type: CellFormatType.date, formatCode: 'mmmmm');
         expect(fmt.format(CellValue.date(date)), 'J');
-        expect(
-          fmt.format(CellValue.date(DateTime(2024, 2, 1))),
-          'F',
-        );
-        expect(
-          fmt.format(CellValue.date(DateTime(2024, 3, 1))),
-          'M',
-        );
+        expect(fmt.format(CellValue.date(DateTime(2024, 2, 1))), 'F');
+        expect(fmt.format(CellValue.date(DateTime(2024, 3, 1))), 'M');
       });
 
       test('dddd full day name', () {
@@ -406,8 +402,10 @@ void main() {
 
       test('H:mm:ss with seconds', () {
         final date = DateTime(2024, 1, 1, 14, 30, 5);
-        expect(CellFormat.time24Seconds.format(CellValue.date(date)),
-            '14:30:05');
+        expect(
+          CellFormat.time24Seconds.format(CellValue.date(date)),
+          '14:30:05',
+        );
       });
 
       test('h:mm AM/PM 12h format', () {
@@ -418,8 +416,7 @@ void main() {
       test('handles midnight', () {
         final midnight = DateTime(2024, 1, 1, 0, 0);
         expect(CellFormat.time24.format(CellValue.date(midnight)), '0:00');
-        expect(
-            CellFormat.time12.format(CellValue.date(midnight)), '12:00 AM');
+        expect(CellFormat.time12.format(CellValue.date(midnight)), '12:00 AM');
       });
 
       test('handles noon', () {
@@ -503,8 +500,7 @@ void main() {
       });
 
       test('handles negative fractions', () {
-        expect(
-            CellFormat.fraction.format(CellValue.number(-3.5)), '-3 1/2');
+        expect(CellFormat.fraction.format(CellValue.number(-3.5)), '-3 1/2');
       });
     });
 
@@ -599,43 +595,48 @@ void main() {
 
       test('[h]:mm formats hours and minutes', () {
         final d = const Duration(hours: 2, minutes: 45);
-        expect(
-            CellFormat.durationShort.format(CellValue.duration(d)), '2:45');
+        expect(CellFormat.durationShort.format(CellValue.duration(d)), '2:45');
       });
 
       test('[m]:ss formats total minutes and seconds', () {
         final d = const Duration(hours: 1, minutes: 30, seconds: 5);
         expect(
-            CellFormat.durationMinSec.format(CellValue.duration(d)), '90:05');
+          CellFormat.durationMinSec.format(CellValue.duration(d)),
+          '90:05',
+        );
       });
 
       test('[s] formats total seconds', () {
-        const fmt =
-            CellFormat(type: CellFormatType.duration, formatCode: '[s]');
+        const fmt = CellFormat(
+          type: CellFormatType.duration,
+          formatCode: '[s]',
+        );
         final d = const Duration(minutes: 1, seconds: 30);
         expect(fmt.format(CellValue.duration(d)), '90');
       });
 
       test('large duration', () {
         final d = const Duration(hours: 100);
-        expect(
-            CellFormat.duration.format(CellValue.duration(d)), '100:00:00');
+        expect(CellFormat.duration.format(CellValue.duration(d)), '100:00:00');
       });
 
       test('zero duration', () {
-        expect(CellFormat.duration.format(CellValue.duration(Duration.zero)),
-            '0:00:00');
+        expect(
+          CellFormat.duration.format(CellValue.duration(Duration.zero)),
+          '0:00:00',
+        );
       });
 
       test('negative duration', () {
         final d = const Duration(hours: 1, minutes: 30);
-        expect(CellFormat.duration.format(CellValue.duration(-d)),
-            '-1:30:00');
+        expect(CellFormat.duration.format(CellValue.duration(-d)), '-1:30:00');
       });
 
       test('bare h:mm:ss (no brackets) works as [h]:mm:ss for duration', () {
-        const fmt =
-            CellFormat(type: CellFormatType.duration, formatCode: 'h:mm:ss');
+        const fmt = CellFormat(
+          type: CellFormatType.duration,
+          formatCode: 'h:mm:ss',
+        );
         final d = const Duration(hours: 1, minutes: 30, seconds: 5);
         expect(fmt.format(CellValue.duration(d)), '1:30:05');
       });
@@ -652,18 +653,18 @@ void main() {
       });
 
       test('format on boolean value returns TRUE/FALSE', () {
-        expect(
-            CellFormat.number.format(CellValue.boolean(true)), 'TRUE');
+        expect(CellFormat.number.format(CellValue.boolean(true)), 'TRUE');
       });
 
       test('format on error value returns error string', () {
-        expect(CellFormat.number.format(CellValue.error('#DIV/0!')),
-            '#DIV/0!');
+        expect(CellFormat.number.format(CellValue.error('#DIV/0!')), '#DIV/0!');
       });
 
       test('format on formula returns formula string', () {
-        expect(CellFormat.number.format(CellValue.formula('=SUM(A1:A10)')),
-            '=SUM(A1:A10)');
+        expect(
+          CellFormat.number.format(CellValue.formula('=SUM(A1:A10)')),
+          '=SUM(A1:A10)',
+        );
       });
     });
   });
@@ -929,10 +930,7 @@ void main() {
       });
 
       test('comma scaler with no thousands separators remaining', () {
-        const fmt = CellFormat(
-          type: CellFormatType.number,
-          formatCode: '0,',
-        );
+        const fmt = CellFormat(type: CellFormatType.number, formatCode: '0,');
         expect(fmt.format(CellValue.number(5000)), '5');
       });
 
@@ -1161,10 +1159,7 @@ void main() {
       });
 
       test('French day names', () {
-        const fmt = CellFormat(
-          type: CellFormatType.date,
-          formatCode: 'dddd',
-        );
+        const fmt = CellFormat(type: CellFormatType.date, formatCode: 'dddd');
         final date = DateTime(2024, 1, 15); // Monday
         final result = fmt.formatRich(
           CellValue.date(date),
@@ -1272,10 +1267,7 @@ void main() {
           type: CellFormatType.number,
           formatCode: r'$*-#,##0',
         );
-        final result = fmt.formatRich(
-          CellValue.number(42),
-          availableWidth: 0,
-        );
+        final result = fmt.formatRich(CellValue.number(42), availableWidth: 0);
         expect(result.text, contains('42'));
       });
 
@@ -1314,10 +1306,7 @@ void main() {
     });
 
     test('mm is context-sensitive: minute after hour', () {
-      const fmt = CellFormat(
-        type: CellFormatType.time,
-        formatCode: 'H:mm:ss',
-      );
+      const fmt = CellFormat(type: CellFormatType.time, formatCode: 'H:mm:ss');
       final date = DateTime(2024, 1, 1, 14, 30, 45);
       expect(fmt.format(CellValue.date(date)), '14:30:45');
     });
@@ -1518,10 +1507,7 @@ void main() {
     });
 
     test('0:00:00 → duration', () {
-      final result = DurationFormatDetector.detect(
-        '0:00:00',
-        Duration.zero,
-      );
+      final result = DurationFormatDetector.detect('0:00:00', Duration.zero);
       expect(result, CellFormat.duration);
     });
 
@@ -1554,14 +1540,16 @@ void main() {
     group('ISO format', () {
       test('detects yyyy-MM-dd', () {
         final result = DateFormatDetector.detect(
-          '2024-01-15', DateTime(2024, 1, 15),
+          '2024-01-15',
+          DateTime(2024, 1, 15),
         );
         expect(result, CellFormat.dateIso);
       });
 
       test('detects ISO with zero-padded month and day', () {
         final result = DateFormatDetector.detect(
-          '2024-03-05', DateTime(2024, 3, 5),
+          '2024-03-05',
+          DateTime(2024, 3, 5),
         );
         expect(result, CellFormat.dateIso);
       });
@@ -1570,28 +1558,32 @@ void main() {
     group('US numeric format', () {
       test('detects m/d/yyyy', () {
         final result = DateFormatDetector.detect(
-          '1/15/2024', DateTime(2024, 1, 15),
+          '1/15/2024',
+          DateTime(2024, 1, 15),
         );
         expect(result, CellFormat.dateUs);
       });
 
       test('detects m/d/yyyy with single-digit month and day', () {
         final result = DateFormatDetector.detect(
-          '3/5/2024', DateTime(2024, 3, 5),
+          '3/5/2024',
+          DateTime(2024, 3, 5),
         );
         expect(result, CellFormat.dateUs);
       });
 
       test('detects m-d-yyyy (US with dashes)', () {
         final result = DateFormatDetector.detect(
-          '1-15-2024', DateTime(2024, 1, 15),
+          '1-15-2024',
+          DateTime(2024, 1, 15),
         );
         expect(result, CellFormat.dateUsDash);
       });
 
       test('detects m.d.yyyy (US with dots)', () {
         final result = DateFormatDetector.detect(
-          '1.15.2024', DateTime(2024, 1, 15),
+          '1.15.2024',
+          DateTime(2024, 1, 15),
         );
         expect(result, CellFormat.dateUsDot);
       });
@@ -1600,21 +1592,27 @@ void main() {
     group('EU numeric format', () {
       test('detects d/m/yyyy with dayFirst=true', () {
         final result = DateFormatDetector.detect(
-          '15/1/2024', DateTime(2024, 1, 15), dayFirst: true,
+          '15/1/2024',
+          DateTime(2024, 1, 15),
+          dayFirst: true,
         );
         expect(result, CellFormat.dateEu);
       });
 
       test('detects d-m-yyyy with dayFirst=true', () {
         final result = DateFormatDetector.detect(
-          '15-1-2024', DateTime(2024, 1, 15), dayFirst: true,
+          '15-1-2024',
+          DateTime(2024, 1, 15),
+          dayFirst: true,
         );
         expect(result, CellFormat.dateEuDash);
       });
 
       test('detects d.m.yyyy with dayFirst=true', () {
         final result = DateFormatDetector.detect(
-          '15.1.2024', DateTime(2024, 1, 15), dayFirst: true,
+          '15.1.2024',
+          DateTime(2024, 1, 15),
+          dayFirst: true,
         );
         expect(result, CellFormat.dateEuDot);
       });
@@ -1623,35 +1621,40 @@ void main() {
     group('named month formats', () {
       test('detects d-mmm-yy (short)', () {
         final result = DateFormatDetector.detect(
-          '15-Jan-24', DateTime(2024, 1, 15),
+          '15-Jan-24',
+          DateTime(2024, 1, 15),
         );
         expect(result, CellFormat.dateShort);
       });
 
       test('detects d-mmm-yyyy (short with 4-digit year)', () {
         final result = DateFormatDetector.detect(
-          '15-Jan-2024', DateTime(2024, 1, 15),
+          '15-Jan-2024',
+          DateTime(2024, 1, 15),
         );
         expect(result, CellFormat.dateShortLong);
       });
 
       test('detects d mmmm yyyy (full month name)', () {
         final result = DateFormatDetector.detect(
-          '15 January 2024', DateTime(2024, 1, 15),
+          '15 January 2024',
+          DateTime(2024, 1, 15),
         );
         expect(result, CellFormat.dateLong);
       });
 
       test('named month is case insensitive', () {
         final result = DateFormatDetector.detect(
-          '15-jan-24', DateTime(2024, 1, 15),
+          '15-jan-24',
+          DateTime(2024, 1, 15),
         );
         expect(result, CellFormat.dateShort);
       });
 
       test('full month name is case insensitive', () {
         final result = DateFormatDetector.detect(
-          '15 january 2024', DateTime(2024, 1, 15),
+          '15 january 2024',
+          DateTime(2024, 1, 15),
         );
         expect(result, CellFormat.dateLong);
       });
@@ -1662,7 +1665,9 @@ void main() {
       test('dayFirst=false prefers US format for ambiguous date', () {
         // Parsed as March 5 (US interpretation)
         final result = DateFormatDetector.detect(
-          '3/5/2024', DateTime(2024, 3, 5), dayFirst: false,
+          '3/5/2024',
+          DateTime(2024, 3, 5),
+          dayFirst: false,
         );
         expect(result, CellFormat.dateUs);
       });
@@ -1670,7 +1675,9 @@ void main() {
       test('dayFirst=true prefers EU format for ambiguous date', () {
         // Parsed as May 3 (EU interpretation) → d/m/yyyy = 3/5/2024
         final result = DateFormatDetector.detect(
-          '3/5/2024', DateTime(2024, 5, 3), dayFirst: true,
+          '3/5/2024',
+          DateTime(2024, 5, 3),
+          dayFirst: true,
         );
         expect(result, CellFormat.dateEu);
       });
@@ -1679,14 +1686,18 @@ void main() {
     group('unambiguous dates', () {
       test('day > 12 always matches US m/d/yyyy when not dayFirst', () {
         final result = DateFormatDetector.detect(
-          '1/15/2024', DateTime(2024, 1, 15), dayFirst: false,
+          '1/15/2024',
+          DateTime(2024, 1, 15),
+          dayFirst: false,
         );
         expect(result, CellFormat.dateUs);
       });
 
       test('day > 12 matches EU d/m/yyyy when dayFirst=true', () {
         final result = DateFormatDetector.detect(
-          '15/1/2024', DateTime(2024, 1, 15), dayFirst: true,
+          '15/1/2024',
+          DateTime(2024, 1, 15),
+          dayFirst: true,
         );
         expect(result, CellFormat.dateEu);
       });
@@ -1695,22 +1706,19 @@ void main() {
     group('no match', () {
       test('returns null for unrecognized format', () {
         final result = DateFormatDetector.detect(
-          'Jan 15, 2024', DateTime(2024, 1, 15),
+          'Jan 15, 2024',
+          DateTime(2024, 1, 15),
         );
         expect(result, isNull);
       });
 
       test('returns null for empty input', () {
-        final result = DateFormatDetector.detect(
-          '', DateTime(2024, 1, 15),
-        );
+        final result = DateFormatDetector.detect('', DateTime(2024, 1, 15));
         expect(result, isNull);
       });
 
       test('returns null for whitespace-only input', () {
-        final result = DateFormatDetector.detect(
-          '   ', DateTime(2024, 1, 15),
-        );
+        final result = DateFormatDetector.detect('   ', DateTime(2024, 1, 15));
         expect(result, isNull);
       });
     });
@@ -1718,7 +1726,8 @@ void main() {
     group('whitespace handling', () {
       test('trims leading and trailing whitespace', () {
         final result = DateFormatDetector.detect(
-          '  2024-01-15  ', DateTime(2024, 1, 15),
+          '  2024-01-15  ',
+          DateTime(2024, 1, 15),
         );
         expect(result, CellFormat.dateIso);
       });
@@ -1728,8 +1737,10 @@ void main() {
       test('uses locale for month name formatting', () {
         // With German locale, month abbreviations differ
         final result = DateFormatDetector.detect(
-          '15-Jan-24', DateTime(2024, 1, 15),
-          locale: FormatLocale.deDe, dayFirst: true,
+          '15-Jan-24',
+          DateTime(2024, 1, 15),
+          locale: FormatLocale.deDe,
+          dayFirst: true,
         );
         // German locale has 'Jan' as well, so this should match
         expect(result, CellFormat.dateShort);
@@ -1837,21 +1848,25 @@ void main() {
     group('zero-padded US/EU dates', () {
       test('detects mm/dd/yyyy (zero-padded US)', () {
         final result = DateFormatDetector.detect(
-          '12/01/1977', DateTime(1977, 12, 1),
+          '12/01/1977',
+          DateTime(1977, 12, 1),
         );
         expect(result, CellFormat.dateUsPadded);
       });
 
       test('detects mm/dd/yyyy with both padded', () {
         final result = DateFormatDetector.detect(
-          '01/05/2024', DateTime(2024, 1, 5),
+          '01/05/2024',
+          DateTime(2024, 1, 5),
         );
         expect(result, CellFormat.dateUsPadded);
       });
 
       test('detects dd/mm/yyyy (zero-padded EU) with dayFirst', () {
         final result = DateFormatDetector.detect(
-          '01/12/1977', DateTime(1977, 12, 1), dayFirst: true,
+          '01/12/1977',
+          DateTime(1977, 12, 1),
+          dayFirst: true,
         );
         expect(result, CellFormat.dateEuPadded);
       });
@@ -1859,7 +1874,8 @@ void main() {
       test('non-padded still detected as m/d/yyyy', () {
         // 12/1/1977 without padding should still match dateUs
         final result = DateFormatDetector.detect(
-          '12/1/1977', DateTime(1977, 12, 1),
+          '12/1/1977',
+          DateTime(1977, 12, 1),
         );
         expect(result, CellFormat.dateUs);
       });
@@ -1875,28 +1891,32 @@ void main() {
 
       test('detects d/mmm/yyyy', () {
         final result = DateFormatDetector.detect(
-          '12/Jan/1977', DateTime(1977, 1, 12),
+          '12/Jan/1977',
+          DateTime(1977, 1, 12),
         );
         expect(result, CellFormat.dateSlashMonth);
       });
 
       test('detects d/mmm/yyyy case insensitive', () {
         final result = DateFormatDetector.detect(
-          '12/jan/1977', DateTime(1977, 1, 12),
+          '12/jan/1977',
+          DateTime(1977, 1, 12),
         );
         expect(result, CellFormat.dateSlashMonth);
       });
 
       test('detects d/mmm/yyyy with different month', () {
         final result = DateFormatDetector.detect(
-          '25/Dec/2024', DateTime(2024, 12, 25),
+          '25/Dec/2024',
+          DateTime(2024, 12, 25),
         );
         expect(result, CellFormat.dateSlashMonth);
       });
 
       test('single-digit day works', () {
         final result = DateFormatDetector.detect(
-          '5/Mar/2024', DateTime(2024, 3, 5),
+          '5/Mar/2024',
+          DateTime(2024, 3, 5),
         );
         expect(result, CellFormat.dateSlashMonth);
       });
@@ -1905,21 +1925,24 @@ void main() {
     group('yyyy-mmm-dd format', () {
       test('detects yyyy-mmm-dd', () {
         final result = DateFormatDetector.detect(
-          '2026-Jan-01', DateTime(2026, 1, 1),
+          '2026-Jan-01',
+          DateTime(2026, 1, 1),
         );
         expect(result, CellFormat.dateYearMonthDay);
       });
 
       test('detects yyyy-mmm-dd case insensitive', () {
         final result = DateFormatDetector.detect(
-          '2026-jan-01', DateTime(2026, 1, 1),
+          '2026-jan-01',
+          DateTime(2026, 1, 1),
         );
         expect(result, CellFormat.dateYearMonthDay);
       });
 
       test('detects yyyy-mmm-dd with different month', () {
         final result = DateFormatDetector.detect(
-          '2024-Mar-15', DateTime(2024, 3, 15),
+          '2024-Mar-15',
+          DateTime(2024, 3, 15),
         );
         expect(result, CellFormat.dateYearMonthDay);
       });

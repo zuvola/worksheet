@@ -5,14 +5,26 @@ import 'package:worksheet/src/core/formula/formula_function_matcher.dart';
 void main() {
   const functions = [
     FormulaFunction(name: 'ABS', signature: 'ABS(number)'),
-    FormulaFunction(name: 'AVERAGE', signature: 'AVERAGE(number1, [number2], ...)'),
+    FormulaFunction(
+      name: 'AVERAGE',
+      signature: 'AVERAGE(number1, [number2], ...)',
+    ),
     FormulaFunction(name: 'COUNT', signature: 'COUNT(value1, [value2], ...)'),
-    FormulaFunction(name: 'IF', signature: 'IF(condition, true_val, false_val)'),
+    FormulaFunction(
+      name: 'IF',
+      signature: 'IF(condition, true_val, false_val)',
+    ),
     FormulaFunction(name: 'SQRT', signature: 'SQRT(number)'),
     FormulaFunction(name: 'STDEV', signature: 'STDEV(number1, [number2], ...)'),
     FormulaFunction(name: 'SUM', signature: 'SUM(number1, [number2], ...)'),
-    FormulaFunction(name: 'SUMIF', signature: 'SUMIF(range, criteria, [sum_range])'),
-    FormulaFunction(name: 'SUMPRODUCT', signature: 'SUMPRODUCT(array1, [array2], ...)'),
+    FormulaFunction(
+      name: 'SUMIF',
+      signature: 'SUMIF(range, criteria, [sum_range])',
+    ),
+    FormulaFunction(
+      name: 'SUMPRODUCT',
+      signature: 'SUMPRODUCT(array1, [array2], ...)',
+    ),
   ];
 
   const config = FormulaAutocompleteConfig(functions: functions);

@@ -45,7 +45,8 @@ const _sampleFunctions = [
   FormulaFunction(
     name: 'FLOOR',
     signature: 'FLOOR(number, significance)',
-    description: 'Rounds a number down to the nearest multiple of significance.',
+    description:
+        'Rounds a number down to the nearest multiple of significance.',
   ),
   FormulaFunction(
     name: 'IF',
@@ -110,7 +111,8 @@ const _sampleFunctions = [
   FormulaFunction(
     name: 'VLOOKUP',
     signature: 'VLOOKUP(lookup_value, table_array, col_index, [range_lookup])',
-    description: 'Looks for a value in the first column and returns a value in the same row.',
+    description:
+        'Looks for a value in the first column and returns a value in the same row.',
   ),
 ];
 
@@ -154,9 +156,7 @@ class _AutocompleteDemoState extends State<AutocompleteDemo> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Formula Autocomplete Demo'),
-      ),
+      appBar: AppBar(title: const Text('Formula Autocomplete Demo')),
       body: WorksheetTheme(
         data: const WorksheetThemeData(),
         child: Worksheet(

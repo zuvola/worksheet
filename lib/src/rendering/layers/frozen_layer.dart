@@ -61,8 +61,8 @@ class FrozenLayer extends RenderLayer {
     this.defaultFontFamily = CellStyle.defaultFontFamily,
     this.cellPadding = 4.0,
     this.devicePixelRatio,
-  })  : _freezeConfig = freezeConfig,
-        super(enabled: freezeConfig.hasFrozenPanes) {
+  }) : _freezeConfig = freezeConfig,
+       super(enabled: freezeConfig.hasFrozenPanes) {
     _initPaints();
   }
 
@@ -139,11 +139,7 @@ class FrozenLayer extends RenderLayer {
 
     // Paint corner region (if both rows and columns are frozen)
     if (_freezeConfig.hasFrozenRows && _freezeConfig.hasFrozenColumns) {
-      _paintCorner(
-        canvas,
-        Rect.fromLTWH(0, 0, frozenColsW, frozenRowsH),
-        zoom,
-      );
+      _paintCorner(canvas, Rect.fromLTWH(0, 0, frozenColsW, frozenRowsH), zoom);
     }
 
     // Paint frozen rows (top strip, excluding corner)
@@ -151,12 +147,7 @@ class FrozenLayer extends RenderLayer {
       final rowsLeft = _freezeConfig.hasFrozenColumns ? frozenColsW : 0.0;
       _paintFrozenRows(
         canvas,
-        Rect.fromLTWH(
-          rowsLeft,
-          0,
-          viewportSize.width - rowsLeft,
-          frozenRowsH,
-        ),
+        Rect.fromLTWH(rowsLeft, 0, viewportSize.width - rowsLeft, frozenRowsH),
         scrollOffset.dx,
         zoom,
       );
@@ -167,12 +158,7 @@ class FrozenLayer extends RenderLayer {
       final colsTop = _freezeConfig.hasFrozenRows ? frozenRowsH : 0.0;
       _paintFrozenColumns(
         canvas,
-        Rect.fromLTWH(
-          0,
-          colsTop,
-          frozenColsW,
-          viewportSize.height - colsTop,
-        ),
+        Rect.fromLTWH(0, colsTop, frozenColsW, viewportSize.height - colsTop),
         scrollOffset.dy,
         zoom,
       );
@@ -301,7 +287,8 @@ class FrozenLayer extends RenderLayer {
           cellBounds.height * zoom,
         );
 
-        if (scaledBounds.right > bounds.left && scaledBounds.left < bounds.right) {
+        if (scaledBounds.right > bounds.left &&
+            scaledBounds.left < bounds.right) {
           _paintCell(canvas, renderCoord, scaledBounds, zoom);
         }
       }
@@ -364,9 +351,7 @@ class FrozenLayer extends RenderLayer {
 
     // Calculate visible row range
     final visibleRowStart = layoutSolver.getRowAt(scrollY);
-    final visibleRowEnd = layoutSolver.getRowAt(
-      scrollY + bounds.height / zoom,
-    );
+    final visibleRowEnd = layoutSolver.getRowAt(scrollY + bounds.height / zoom);
 
     final startRow = _freezeConfig.hasFrozenRows
         ? _freezeConfig.frozenRows
@@ -396,7 +381,8 @@ class FrozenLayer extends RenderLayer {
           cellBounds.height * zoom,
         );
 
-        if (scaledBounds.bottom > bounds.top && scaledBounds.top < bounds.bottom) {
+        if (scaledBounds.bottom > bounds.top &&
+            scaledBounds.top < bounds.bottom) {
           _paintCell(canvas, renderCoord, scaledBounds, zoom);
         }
       }
@@ -463,8 +449,15 @@ class FrozenLayer extends RenderLayer {
     final value = data.getCell(coord);
     if (value != null && zoom >= 0.25) {
       final format = data.getFormat(coord);
-      _paintCellContent(canvas, bounds, value, style, zoom, format,
-          coord: coord);
+      _paintCellContent(
+        canvas,
+        bounds,
+        value,
+        style,
+        zoom,
+        format,
+        coord: coord,
+      );
     }
 
     // Borders are rendered after ALL cells in _paintCorner/_paintFrozenRows/
@@ -538,16 +531,21 @@ class FrozenLayer extends RenderLayer {
         text: textSpan,
         textDirection: TextDirection.ltr,
         textAlign: _toTextAlign(
-            mergedStyle.textAlignment ??
-                CellStyle.implicitAlignment(value.type)),
+          mergedStyle.textAlignment ?? CellStyle.implicitAlignment(value.type),
+        ),
         maxLines: 1,
       )..layout();
       final textWidth = unconstrained.width;
 
       if (textWidth <= availableWidth || availableWidth <= 0) {
         // Text fits — paint normally.
-        final offset =
-            _calculateTextOffset(bounds, unconstrained, mergedStyle, padding, value);
+        final offset = _calculateTextOffset(
+          bounds,
+          unconstrained,
+          mergedStyle,
+          padding,
+          value,
+        );
         canvas.save();
         canvas.clipRect(bounds);
         unconstrained.paint(canvas, offset);
@@ -557,8 +555,8 @@ class FrozenLayer extends RenderLayer {
       }
 
       // Text overflows — compute spillover using worksheet coordinates.
-      final alignment = mergedStyle.textAlignment ??
-          CellStyle.implicitAlignment(value.type);
+      final alignment =
+          mergedStyle.textAlignment ?? CellStyle.implicitAlignment(value.type);
       final maxCol = layoutSolver.columnCount - 1;
       // Convert zoomed text width to worksheet coordinates for the calculator.
       final textWidthWs = textWidth / zoom;
@@ -586,8 +584,13 @@ class FrozenLayer extends RenderLayer {
           textDirection: TextDirection.ltr,
           maxLines: 1,
         )..layout(maxWidth: availableWidth > 0 ? availableWidth : 0.0);
-        final offset =
-            _calculateTextOffset(bounds, hashPainter, mergedStyle, padding, value);
+        final offset = _calculateTextOffset(
+          bounds,
+          hashPainter,
+          mergedStyle,
+          padding,
+          value,
+        );
         canvas.save();
         canvas.clipRect(bounds);
         hashPainter.paint(canvas, offset);
@@ -603,8 +606,7 @@ class FrozenLayer extends RenderLayer {
         // spill bounds relative to bounds by using worksheet column positions.
         final cellWsLeft = layoutSolver.getColumnLeft(coord?.column ?? 0);
         final spillWsLeft = layoutSolver.getColumnLeft(extent.startColumn);
-        final spillScreenLeft =
-            bounds.left + (spillWsLeft - cellWsLeft) * zoom;
+        final spillScreenLeft = bounds.left + (spillWsLeft - cellWsLeft) * zoom;
         final spillScreenWidth = extent.totalWidth * zoom;
 
         final spillBounds = Rect.fromLTWH(
@@ -621,17 +623,23 @@ class FrozenLayer extends RenderLayer {
 
         unconstrained.dispose();
         final spillPadding = cellPadding * zoom;
-        final spillPainter = TextPainter(
-          text: textSpan,
-          textDirection: TextDirection.ltr,
-          textAlign: _toTextAlign(alignment),
-          maxLines: 1,
-        )..layout(
-            minWidth: spillScreenWidth - 2 * spillPadding,
-            maxWidth: spillScreenWidth - 2 * spillPadding,
-          );
-        final offset =
-            _calculateTextOffset(spillBounds, spillPainter, mergedStyle, padding, value);
+        final spillPainter =
+            TextPainter(
+              text: textSpan,
+              textDirection: TextDirection.ltr,
+              textAlign: _toTextAlign(alignment),
+              maxLines: 1,
+            )..layout(
+              minWidth: spillScreenWidth - 2 * spillPadding,
+              maxWidth: spillScreenWidth - 2 * spillPadding,
+            );
+        final offset = _calculateTextOffset(
+          spillBounds,
+          spillPainter,
+          mergedStyle,
+          padding,
+          value,
+        );
         canvas.save();
         canvas.clipRect(clipRect);
         spillPainter.paint(canvas, offset);
@@ -649,7 +657,8 @@ class FrozenLayer extends RenderLayer {
       text: textSpan,
       textDirection: TextDirection.ltr,
       textAlign: _toTextAlign(
-          mergedStyle.textAlignment ?? CellStyle.implicitAlignment(value.type)),
+        mergedStyle.textAlignment ?? CellStyle.implicitAlignment(value.type),
+      ),
       maxLines: wrapText ? null : 1,
       ellipsis: wrapText ? null : '\u2026',
     );
@@ -660,7 +669,13 @@ class FrozenLayer extends RenderLayer {
       maxWidth: layoutWidth,
     );
 
-    final offset = _calculateTextOffset(bounds, textPainter, mergedStyle, padding, value);
+    final offset = _calculateTextOffset(
+      bounds,
+      textPainter,
+      mergedStyle,
+      padding,
+      value,
+    );
 
     canvas.save();
     canvas.clipRect(bounds);
@@ -736,7 +751,10 @@ class FrozenLayer extends RenderLayer {
 
     // Vertical gridlines
     for (int col = startCol; col <= endCol + 1; col++) {
-      final x = ((layoutSolver.getColumnLeft(col) - scrollX) * zoom + offsetX).roundToDouble() + 0.5;
+      final x =
+          ((layoutSolver.getColumnLeft(col) - scrollX) * zoom + offsetX)
+              .roundToDouble() +
+          0.5;
       if (x < bounds.left || x > bounds.right) continue;
 
       // Find merge regions whose interior crosses this vertical line.
@@ -755,8 +773,14 @@ class FrozenLayer extends RenderLayer {
         gaps.sort((a, b) => a.range.startRow.compareTo(b.range.startRow));
         var currentY = bounds.top;
         for (final gap in gaps) {
-          final gapTop = ((layoutSolver.getRowTop(gap.range.startRow) - scrollY) * zoom + offsetY).roundToDouble();
-          final gapBottom = ((layoutSolver.getRowTop(gap.range.endRow + 1) - scrollY) * zoom + offsetY).roundToDouble();
+          final gapTop =
+              ((layoutSolver.getRowTop(gap.range.startRow) - scrollY) * zoom +
+                      offsetY)
+                  .roundToDouble();
+          final gapBottom =
+              ((layoutSolver.getRowTop(gap.range.endRow + 1) - scrollY) * zoom +
+                      offsetY)
+                  .roundToDouble();
           if (gapTop > currentY) {
             path.moveTo(x, currentY);
             path.lineTo(x, gapTop);
@@ -772,7 +796,10 @@ class FrozenLayer extends RenderLayer {
 
     // Horizontal gridlines
     for (int row = startRow; row <= endRow + 1; row++) {
-      final y = ((layoutSolver.getRowTop(row) - scrollY) * zoom + offsetY).roundToDouble() + 0.5;
+      final y =
+          ((layoutSolver.getRowTop(row) - scrollY) * zoom + offsetY)
+              .roundToDouble() +
+          0.5;
       if (y < bounds.top || y > bounds.bottom) continue;
 
       // Find merge regions whose interior crosses this horizontal line.
@@ -791,8 +818,16 @@ class FrozenLayer extends RenderLayer {
         gaps.sort((a, b) => a.range.startColumn.compareTo(b.range.startColumn));
         var currentX = bounds.left;
         for (final gap in gaps) {
-          final gapLeft = ((layoutSolver.getColumnLeft(gap.range.startColumn) - scrollX) * zoom + offsetX).roundToDouble();
-          final gapRight = ((layoutSolver.getColumnLeft(gap.range.endColumn + 1) - scrollX) * zoom + offsetX).roundToDouble();
+          final gapLeft =
+              ((layoutSolver.getColumnLeft(gap.range.startColumn) - scrollX) *
+                          zoom +
+                      offsetX)
+                  .roundToDouble();
+          final gapRight =
+              ((layoutSolver.getColumnLeft(gap.range.endColumn + 1) - scrollX) *
+                          zoom +
+                      offsetX)
+                  .roundToDouble();
           if (gapLeft > currentX) {
             path.moveTo(currentX, y);
             path.lineTo(gapLeft, y);

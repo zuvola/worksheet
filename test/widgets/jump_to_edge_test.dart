@@ -110,51 +110,52 @@ void main() {
         // ignore: avoid_print
         print('Left-border jump: focus=$focus, ${ms}ms, editCells=$editCells');
 
-        expect(editCells, isEmpty,
-            reason: 'Desktop: should jump, not edit');
+        expect(editCells, isEmpty, reason: 'Desktop: should jump, not edit');
         expect(focus, isNotNull);
-        expect(ms, lessThan(2000),
-            reason: 'Jump took ${ms}ms — freeze detected');
+        expect(
+          ms,
+          lessThan(2000),
+          reason: 'Jump took ${ms}ms — freeze detected',
+        );
       },
     );
 
-    testWidgets(
-      'header edge double-tap triggers auto-fit < 2s',
-      (tester) async {
-        await tester.pumpWidget(buildWorksheet(mobileMode: false));
-        await tester.pump();
+    testWidgets('header edge double-tap triggers auto-fit < 2s', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildWorksheet(mobileMode: false));
+      await tester.pump();
 
-        // Select column
-        final hg = await tester.startGesture(
-          const Offset(400.0, 12.0),
-          kind: PointerDeviceKind.mouse,
-        );
-        await tester.pump(const Duration(milliseconds: 10));
-        await hg.up();
-        await tester.pump(const Duration(milliseconds: 350));
+      // Select column
+      final hg = await tester.startGesture(
+        const Offset(400.0, 12.0),
+        kind: PointerDeviceKind.mouse,
+      );
+      await tester.pump(const Duration(milliseconds: 10));
+      await hg.up();
+      await tester.pump(const Duration(milliseconds: 350));
 
-        // Double-tap column header resize edge
-        final sw = Stopwatch()..start();
-        final g1 = await tester.startGesture(
-          const Offset(449.0, 12.0),
-          kind: PointerDeviceKind.mouse,
-        );
-        await tester.pump(const Duration(milliseconds: 10));
-        await g1.up();
-        await tester.pump(const Duration(milliseconds: 50));
-        final g2 = await tester.startGesture(
-          const Offset(449.0, 12.0),
-          kind: PointerDeviceKind.mouse,
-        );
-        await tester.pump(const Duration(milliseconds: 10));
-        await g2.up();
-        await tester.pumpAndSettle(const Duration(milliseconds: 500));
-        sw.stop();
+      // Double-tap column header resize edge
+      final sw = Stopwatch()..start();
+      final g1 = await tester.startGesture(
+        const Offset(449.0, 12.0),
+        kind: PointerDeviceKind.mouse,
+      );
+      await tester.pump(const Duration(milliseconds: 10));
+      await g1.up();
+      await tester.pump(const Duration(milliseconds: 50));
+      final g2 = await tester.startGesture(
+        const Offset(449.0, 12.0),
+        kind: PointerDeviceKind.mouse,
+      );
+      await tester.pump(const Duration(milliseconds: 10));
+      await g2.up();
+      await tester.pumpAndSettle(const Duration(milliseconds: 500));
+      sw.stop();
 
-        // ignore: avoid_print
-        print('Auto-fit: ${sw.elapsedMilliseconds}ms');
-        expect(sw.elapsedMilliseconds, lessThan(2000));
-      },
-    );
+      // ignore: avoid_print
+      print('Auto-fit: ${sw.elapsedMilliseconds}ms');
+      expect(sw.elapsedMilliseconds, lessThan(2000));
+    });
   });
 }

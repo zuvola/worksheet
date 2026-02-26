@@ -90,62 +90,108 @@ class CellBorderRenderer {
 
           // Vertical perp going UP from top-edge junctions.
           final topLeftPerpUp = topEdgeRow > 0
-              ? data.getStyle(CellCoordinate(topEdgeRow - 1, leftEdgeCol))
-                  ?.borders?.left
+              ? data
+                    .getStyle(CellCoordinate(topEdgeRow - 1, leftEdgeCol))
+                    ?.borders
+                    ?.left
               : null;
           final topRightPerpUp = topEdgeRow > 0
-              ? data.getStyle(CellCoordinate(topEdgeRow - 1, rightEdgeCol))
-                  ?.borders?.right
+              ? data
+                    .getStyle(CellCoordinate(topEdgeRow - 1, rightEdgeCol))
+                    ?.borders
+                    ?.right
               : null;
           // Vertical perp going DOWN from bottom-edge junctions.
           final bottomLeftPerpDown = bottomEdgeRow < maxRow
-              ? data.getStyle(CellCoordinate(bottomEdgeRow + 1, leftEdgeCol))
-                  ?.borders?.left
+              ? data
+                    .getStyle(CellCoordinate(bottomEdgeRow + 1, leftEdgeCol))
+                    ?.borders
+                    ?.left
               : null;
           final bottomRightPerpDown = bottomEdgeRow < maxRow
-              ? data.getStyle(CellCoordinate(bottomEdgeRow + 1, rightEdgeCol))
-                  ?.borders?.right
+              ? data
+                    .getStyle(CellCoordinate(bottomEdgeRow + 1, rightEdgeCol))
+                    ?.borders
+                    ?.right
               : null;
           // Horizontal perp going LEFT from left-edge junctions.
           final topLeftPerpLeft = leftEdgeCol > 0
-              ? data.getStyle(CellCoordinate(topEdgeRow, leftEdgeCol - 1))
-                  ?.borders?.top
+              ? data
+                    .getStyle(CellCoordinate(topEdgeRow, leftEdgeCol - 1))
+                    ?.borders
+                    ?.top
               : null;
           final bottomLeftPerpLeft = leftEdgeCol > 0
-              ? data.getStyle(CellCoordinate(bottomEdgeRow, leftEdgeCol - 1))
-                  ?.borders?.bottom
+              ? data
+                    .getStyle(CellCoordinate(bottomEdgeRow, leftEdgeCol - 1))
+                    ?.borders
+                    ?.bottom
               : null;
           // Horizontal perp going RIGHT from right-edge junctions.
           final topRightPerpRight = rightEdgeCol < maxCol
-              ? data.getStyle(CellCoordinate(topEdgeRow, rightEdgeCol + 1))
-                  ?.borders?.top
+              ? data
+                    .getStyle(CellCoordinate(topEdgeRow, rightEdgeCol + 1))
+                    ?.borders
+                    ?.top
               : null;
           final bottomRightPerpRight = rightEdgeCol < maxCol
-              ? data.getStyle(CellCoordinate(bottomEdgeRow, rightEdgeCol + 1))
-                  ?.borders?.bottom
+              ? data
+                    .getStyle(CellCoordinate(bottomEdgeRow, rightEdgeCol + 1))
+                    ?.borders
+                    ?.bottom
               : null;
 
           _renderTopBorder(
-            canvas, borderPaint, data, borders, localBounds,
-            topEdgeRow, renderCoord.column, widthScale, pass,
+            canvas,
+            borderPaint,
+            data,
+            borders,
+            localBounds,
+            topEdgeRow,
+            renderCoord.column,
+            widthScale,
+            pass,
             startPerpB: topLeftPerpUp,
             endPerpB: topRightPerpUp,
           );
           _renderBottomBorder(
-            canvas, borderPaint, data, borders, localBounds,
-            bottomEdgeRow, renderCoord.column, maxRow, widthScale, pass,
+            canvas,
+            borderPaint,
+            data,
+            borders,
+            localBounds,
+            bottomEdgeRow,
+            renderCoord.column,
+            maxRow,
+            widthScale,
+            pass,
             startPerpB: bottomLeftPerpDown,
             endPerpB: bottomRightPerpDown,
           );
           _renderLeftBorder(
-            canvas, borderPaint, data, borders, localBounds,
-            renderCoord.row, leftEdgeCol, widthScale, pass,
+            canvas,
+            borderPaint,
+            data,
+            borders,
+            localBounds,
+            renderCoord.row,
+            leftEdgeCol,
+            widthScale,
+            pass,
             startPerpB: topLeftPerpLeft,
             endPerpB: bottomLeftPerpLeft,
           );
           _renderRightBorder(
-            canvas, borderPaint, data, borders, localBounds,
-            renderCoord.row, rightEdgeCol, maxCol, widthScale, pass,
+            canvas,
+            borderPaint,
+            data,
+            borders,
+            localBounds,
+            renderCoord.row,
+            rightEdgeCol,
+            maxCol,
+            widthScale,
+            pass,
             startPerpB: topRightPerpRight,
             endPerpB: bottomRightPerpRight,
           );
@@ -171,8 +217,10 @@ class CellBorderRenderer {
 
     final resolved = topEdgeRow > 0
         ? BorderResolver.resolve(
-            data.getStyle(CellCoordinate(topEdgeRow - 1, column))
-                    ?.borders?.bottom ??
+            data
+                    .getStyle(CellCoordinate(topEdgeRow - 1, column))
+                    ?.borders
+                    ?.bottom ??
                 BorderStyle.none,
             borders.top,
           )
@@ -223,10 +271,10 @@ class CellBorderRenderer {
 
     final neighborTop = bottomEdgeRow < maxRow
         ? data
-                .getStyle(CellCoordinate(bottomEdgeRow + 1, column))
-                ?.borders
-                ?.top ??
-            BorderStyle.none
+                  .getStyle(CellCoordinate(bottomEdgeRow + 1, column))
+                  ?.borders
+                  ?.top ??
+              BorderStyle.none
         : BorderStyle.none;
     final resolved = bottomEdgeRow < maxRow
         ? BorderResolver.resolve(borders.bottom, neighborTop)
@@ -278,8 +326,10 @@ class CellBorderRenderer {
 
     final resolved = leftEdgeCol > 0
         ? BorderResolver.resolve(
-            data.getStyle(CellCoordinate(row, leftEdgeCol - 1))
-                    ?.borders?.right ??
+            data
+                    .getStyle(CellCoordinate(row, leftEdgeCol - 1))
+                    ?.borders
+                    ?.right ??
                 BorderStyle.none,
             borders.left,
           )
@@ -329,11 +379,8 @@ class CellBorderRenderer {
     if (borders.right.isNone) return;
 
     final neighborLeft = rightEdgeCol < maxCol
-        ? data
-                .getStyle(CellCoordinate(row, rightEdgeCol + 1))
-                ?.borders
-                ?.left ??
-            BorderStyle.none
+        ? data.getStyle(CellCoordinate(row, rightEdgeCol + 1))?.borders?.left ??
+              BorderStyle.none
         : BorderStyle.none;
     final resolved = rightEdgeCol < maxCol
         ? BorderResolver.resolve(borders.right, neighborLeft)

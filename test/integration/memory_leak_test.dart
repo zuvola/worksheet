@@ -22,7 +22,10 @@ void main() {
       // Populate with data
       for (int row = 0; row < 100; row++) {
         for (int col = 0; col < 50; col++) {
-          data.setCell(CellCoordinate(row, col), CellValue.number(row * 100.0 + col));
+          data.setCell(
+            CellCoordinate(row, col),
+            CellValue.number(row * 100.0 + col),
+          );
         }
       }
 

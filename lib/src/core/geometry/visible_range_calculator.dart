@@ -21,7 +21,10 @@ class VisibleRangeCalculator {
   /// visible within the viewport bounds.
   CellRange getVisibleRange({required Rect viewport}) {
     final rowRange = layoutSolver.getVisibleRows(viewport.top, viewport.height);
-    final colRange = layoutSolver.getVisibleColumns(viewport.left, viewport.width);
+    final colRange = layoutSolver.getVisibleColumns(
+      viewport.left,
+      viewport.width,
+    );
 
     return CellRange(
       rowRange.startIndex,
@@ -44,9 +47,15 @@ class VisibleRangeCalculator {
     final baseRange = getVisibleRange(viewport: viewport);
 
     final startRow = math.max(0, baseRange.startRow - rowPadding);
-    final endRow = math.min(layoutSolver.rowCount - 1, baseRange.endRow + rowPadding);
+    final endRow = math.min(
+      layoutSolver.rowCount - 1,
+      baseRange.endRow + rowPadding,
+    );
     final startColumn = math.max(0, baseRange.startColumn - columnPadding);
-    final endColumn = math.min(layoutSolver.columnCount - 1, baseRange.endColumn + columnPadding);
+    final endColumn = math.min(
+      layoutSolver.columnCount - 1,
+      baseRange.endColumn + columnPadding,
+    );
 
     return CellRange(startRow, startColumn, endRow, endColumn);
   }

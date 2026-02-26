@@ -235,7 +235,9 @@ void main() {
       controller.onTextChanged('=SU', 3);
       expect(controller.selectedIndex, 0);
 
-      final result = controller.handleKeyEvent(_keyDown(LogicalKeyboardKey.arrowDown));
+      final result = controller.handleKeyEvent(
+        _keyDown(LogicalKeyboardKey.arrowDown),
+      );
 
       expect(result, KeyEventResult.handled);
       expect(controller.selectedIndex, 1);
@@ -246,7 +248,9 @@ void main() {
       controller.selectNext(); // move to 1
       expect(controller.selectedIndex, 1);
 
-      final result = controller.handleKeyEvent(_keyDown(LogicalKeyboardKey.arrowUp));
+      final result = controller.handleKeyEvent(
+        _keyDown(LogicalKeyboardKey.arrowUp),
+      );
 
       expect(result, KeyEventResult.handled);
       expect(controller.selectedIndex, 0);
@@ -302,7 +306,9 @@ void main() {
       controller.onTextChanged('=SU', 3);
       expect(controller.isVisible, isTrue);
 
-      final result = controller.handleKeyEvent(_keyDown(LogicalKeyboardKey.escape));
+      final result = controller.handleKeyEvent(
+        _keyDown(LogicalKeyboardKey.escape),
+      );
 
       expect(result, KeyEventResult.handled);
       expect(controller.isVisible, isFalse);
@@ -311,7 +317,9 @@ void main() {
     test('returns ignored when not visible', () {
       expect(controller.isVisible, isFalse);
 
-      final result = controller.handleKeyEvent(_keyDown(LogicalKeyboardKey.arrowDown));
+      final result = controller.handleKeyEvent(
+        _keyDown(LogicalKeyboardKey.arrowDown),
+      );
 
       expect(result, KeyEventResult.ignored);
     });
@@ -319,7 +327,9 @@ void main() {
     test('returns ignored for KeyUpEvent', () {
       controller.onTextChanged('=SU', 3);
 
-      final result = controller.handleKeyEvent(_keyUp(LogicalKeyboardKey.arrowDown));
+      final result = controller.handleKeyEvent(
+        _keyUp(LogicalKeyboardKey.arrowDown),
+      );
 
       expect(result, KeyEventResult.ignored);
     });
@@ -327,7 +337,9 @@ void main() {
     test('returns ignored for unrelated keys', () {
       controller.onTextChanged('=SU', 3);
 
-      final result = controller.handleKeyEvent(_keyDown(LogicalKeyboardKey.keyA));
+      final result = controller.handleKeyEvent(
+        _keyDown(LogicalKeyboardKey.keyA),
+      );
 
       expect(result, KeyEventResult.ignored);
     });
@@ -370,7 +382,10 @@ void main() {
     test('works with mid-formula token', () {
       textController.text = '=IF(AV';
       const token = AutocompleteToken(start: 4, end: 6, text: 'AV');
-      const fn = FormulaFunction(name: 'AVERAGE', signature: 'AVERAGE(n1, [n2])');
+      const fn = FormulaFunction(
+        name: 'AVERAGE',
+        signature: 'AVERAGE(n1, [n2])',
+      );
 
       AutocompleteController.applyAcceptedFunction(textController, fn, token);
 
@@ -386,7 +401,10 @@ void main() {
       AutocompleteController.applyAcceptedFunction(textController, fn, token);
 
       expect(textController.text, '=ABS(');
-      expect(textController.selection, const TextSelection.collapsed(offset: 5));
+      expect(
+        textController.selection,
+        const TextSelection.collapsed(offset: 5),
+      );
     });
   });
 }

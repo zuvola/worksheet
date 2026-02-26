@@ -26,10 +26,7 @@ class CutIndicatorLayer extends RenderLayer {
   static const double _dashLength = 6.0;
   static const double _gapLength = 4.0;
 
-  CutIndicatorLayer({
-    required this.layoutSolver,
-    this.onNeedsPaint,
-  });
+  CutIndicatorLayer({required this.layoutSolver, this.onNeedsPaint});
 
   @override
   int get order => 96;

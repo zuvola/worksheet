@@ -40,8 +40,8 @@ typedef OnAutoFitRow = void Function(int row);
 /// [from] is the starting cell (focus cell), [rowDelta] and [colDelta]
 /// indicate the direction (-1/0/+1). The widget is responsible for
 /// performing the actual data-edge scan since it has access to the data.
-typedef OnJumpToEdge = void Function(
-    CellCoordinate from, int rowDelta, int colDelta);
+typedef OnJumpToEdge =
+    void Function(CellCoordinate from, int rowDelta, int colDelta);
 
 /// Callback for selecting all cells (corner cell tap).
 typedef OnSelectAll = void Function();
@@ -124,18 +124,18 @@ class WorksheetGestureHandler {
     this.onAutoFitRow,
     this.onJumpToEdge,
     this.onSelectAll,
-  })  : _fillHandler = FillDragHandler(
-          hitTester: hitTester,
-          onFillPreviewUpdate: onFillPreviewUpdate,
-          onFillComplete: onFillComplete,
-          onFillCancel: onFillCancel,
-        ),
-        _moveHandler = MoveDragHandler(
-          hitTester: hitTester,
-          onMovePreviewUpdate: onMovePreviewUpdate,
-          onMoveComplete: onMoveComplete,
-          onMoveCancel: onMoveCancel,
-        );
+  }) : _fillHandler = FillDragHandler(
+         hitTester: hitTester,
+         onFillPreviewUpdate: onFillPreviewUpdate,
+         onFillComplete: onFillComplete,
+         onFillCancel: onFillCancel,
+       ),
+       _moveHandler = MoveDragHandler(
+         hitTester: hitTester,
+         onMovePreviewUpdate: onMovePreviewUpdate,
+         onMoveComplete: onMoveComplete,
+         onMoveCancel: onMoveCancel,
+       );
 
   /// Whether a resize operation is in progress.
   bool get isResizing => _isResizing;
@@ -184,7 +184,9 @@ class WorksheetGestureHandler {
 
     // Don't change selection when tapping fill, resize, or selection handles —
     // those are handled by onDragStart.
-    if (hit.isFillHandle || hit.isResizeHandle || hit.isSelectionBorder ||
+    if (hit.isFillHandle ||
+        hit.isResizeHandle ||
+        hit.isSelectionBorder ||
         hit.isSelectionHandle) {
       return;
     }
@@ -259,7 +261,8 @@ class WorksheetGestureHandler {
     if (hit.isSelectionBorder && onJumpToEdge != null) {
       final direction = _computeJumpDirection(position, scrollOffset, zoom);
       if (direction != null) {
-        final focus = selectionController.focus ??
+        final focus =
+            selectionController.focus ??
             selectionController.selectedRange?.topLeft;
         if (focus != null) {
           onJumpToEdge!(focus, direction.$1, direction.$2);
@@ -306,7 +309,8 @@ class WorksheetGestureHandler {
       // to selection corners and anchor at the OPPOSITE corner.
       final sel = selectionController.selectedRange;
       if (sel != null && hit.cell != null) {
-        final isTopLeft = hit.cell!.row == sel.startRow &&
+        final isTopLeft =
+            hit.cell!.row == sel.startRow &&
             hit.cell!.column == sel.startColumn;
         if (isTopLeft) {
           // Anchor at bottom-right
@@ -589,8 +593,12 @@ class WorksheetGestureHandler {
     final distLeft = (position.dx - screenTopLeft.dx).abs();
     final distRight = (position.dx - screenBottomRight.dx).abs();
 
-    final minDist = [distTop, distBottom, distLeft, distRight]
-        .reduce((a, b) => a < b ? a : b);
+    final minDist = [
+      distTop,
+      distBottom,
+      distLeft,
+      distRight,
+    ].reduce((a, b) => a < b ? a : b);
 
     if (minDist == distTop) {
       return (-1, 0);

@@ -28,10 +28,7 @@ class FormulaReferenceLayer extends RenderLayer {
   static const double _dashLength = 6.0;
   static const double _gapLength = 4.0;
 
-  FormulaReferenceLayer({
-    required this.layoutSolver,
-    this.onNeedsPaint,
-  });
+  FormulaReferenceLayer({required this.layoutSolver, this.onNeedsPaint});
 
   @override
   int get order => 95;
@@ -73,8 +70,10 @@ class FormulaReferenceLayer extends RenderLayer {
     final maxCol = layoutSolver.columnCount - 1;
     if (token.range != null) {
       final r = token.range!;
-      if (r.startRow > maxRow || r.startColumn > maxCol ||
-          r.endRow > maxRow || r.endColumn > maxCol) {
+      if (r.startRow > maxRow ||
+          r.startColumn > maxCol ||
+          r.endRow > maxRow ||
+          r.endColumn > maxCol) {
         return null;
       }
     } else {
@@ -121,18 +120,10 @@ class FormulaReferenceLayer extends RenderLayer {
     final totalDash = _dashLength + _gapLength;
     final offset = animationValue * totalDash;
 
-    _drawDashedLine(
-      canvas, paint, rect.topLeft, rect.topRight, offset,
-    );
-    _drawDashedLine(
-      canvas, paint, rect.topRight, rect.bottomRight, offset,
-    );
-    _drawDashedLine(
-      canvas, paint, rect.bottomRight, rect.bottomLeft, offset,
-    );
-    _drawDashedLine(
-      canvas, paint, rect.bottomLeft, rect.topLeft, offset,
-    );
+    _drawDashedLine(canvas, paint, rect.topLeft, rect.topRight, offset);
+    _drawDashedLine(canvas, paint, rect.topRight, rect.bottomRight, offset);
+    _drawDashedLine(canvas, paint, rect.bottomRight, rect.bottomLeft, offset);
+    _drawDashedLine(canvas, paint, rect.bottomLeft, rect.topLeft, offset);
   }
 
   void _drawDashedLine(

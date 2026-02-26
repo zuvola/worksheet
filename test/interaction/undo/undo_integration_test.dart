@@ -38,13 +38,18 @@ void main() {
       data.setCell(const CellCoordinate(0, 0), const CellValue.text('Old'));
       selection.selectCell(const CellCoordinate(0, 0));
 
-      ctx.recordUndo('Edit cell', CellRange.single(const CellCoordinate(0, 0)),
-          () {
-        data.setCell(const CellCoordinate(0, 0), const CellValue.text('New'));
-      });
+      ctx.recordUndo(
+        'Edit cell',
+        CellRange.single(const CellCoordinate(0, 0)),
+        () {
+          data.setCell(const CellCoordinate(0, 0), const CellValue.text('New'));
+        },
+      );
 
-      expect(data.getCell(const CellCoordinate(0, 0)),
-          const CellValue.text('New'));
+      expect(
+        data.getCell(const CellCoordinate(0, 0)),
+        const CellValue.text('New'),
+      );
       expect(undoManager.canUndo, isTrue);
     });
 
@@ -57,8 +62,10 @@ void main() {
       });
 
       ctx.performUndo();
-      expect(data.getCell(const CellCoordinate(0, 0)),
-          const CellValue.text('Old'));
+      expect(
+        data.getCell(const CellCoordinate(0, 0)),
+        const CellValue.text('Old'),
+      );
     });
 
     test('redo re-applies value', () {
@@ -71,8 +78,10 @@ void main() {
 
       ctx.performUndo();
       ctx.performRedo();
-      expect(data.getCell(const CellCoordinate(0, 0)),
-          const CellValue.text('New'));
+      expect(
+        data.getCell(const CellCoordinate(0, 0)),
+        const CellValue.text('New'),
+      );
     });
 
     test('undo restores selection state', () {
@@ -129,10 +138,11 @@ void main() {
       expect(data.getCell(const CellCoordinate(0, 1)), isNull);
 
       ctx.performUndo();
-      expect(data.getCell(const CellCoordinate(0, 0)),
-          const CellValue.text('Keep'));
-      expect(data.getCell(const CellCoordinate(0, 1)),
-          CellValue.number(42));
+      expect(
+        data.getCell(const CellCoordinate(0, 0)),
+        const CellValue.text('Keep'),
+      );
+      expect(data.getCell(const CellCoordinate(0, 1)), CellValue.number(42));
     });
 
     test('undo merge restores original values', () {
@@ -148,10 +158,14 @@ void main() {
 
       ctx.performUndo();
       expect(data.mergedCells.getRegion(const CellCoordinate(0, 0)), isNull);
-      expect(data.getCell(const CellCoordinate(0, 0)),
-          const CellValue.text('A'));
-      expect(data.getCell(const CellCoordinate(0, 1)),
-          const CellValue.text('B'));
+      expect(
+        data.getCell(const CellCoordinate(0, 0)),
+        const CellValue.text('A'),
+      );
+      expect(
+        data.getCell(const CellCoordinate(0, 1)),
+        const CellValue.text('B'),
+      );
     });
 
     test('undo unmerge re-merges', () {
@@ -166,22 +180,21 @@ void main() {
       expect(data.mergedCells.getRegion(const CellCoordinate(0, 0)), isNull);
 
       ctx.performUndo();
-      final region =
-          data.mergedCells.getRegion(const CellCoordinate(0, 0));
+      final region = data.mergedCells.getRegion(const CellCoordinate(0, 0));
       expect(region, isNotNull);
       expect(region!.range, const CellRange(0, 0, 1, 1));
     });
 
     test('undo style change restores original style', () {
-      const style = CellStyle(
-          backgroundColor: Color(0xFFFF0000));
+      const style = CellStyle(backgroundColor: Color(0xFFFF0000));
       data.setStyle(const CellCoordinate(0, 0), style);
       selection.selectCell(const CellCoordinate(0, 0));
 
-      ctx.recordUndo('Style', CellRange.single(const CellCoordinate(0, 0)),
-          () {
-        data.setStyle(const CellCoordinate(0, 0),
-            const CellStyle(backgroundColor: Color(0xFF00FF00)));
+      ctx.recordUndo('Style', CellRange.single(const CellCoordinate(0, 0)), () {
+        data.setStyle(
+          const CellCoordinate(0, 0),
+          const CellStyle(backgroundColor: Color(0xFF00FF00)),
+        );
       });
 
       ctx.performUndo();
@@ -226,27 +239,37 @@ void main() {
         data.setCell(const CellCoordinate(0, 0), const CellValue.text('C'));
       });
 
-      expect(data.getCell(const CellCoordinate(0, 0)),
-          const CellValue.text('C'));
+      expect(
+        data.getCell(const CellCoordinate(0, 0)),
+        const CellValue.text('C'),
+      );
 
       ctx.performUndo(); // back to B
-      expect(data.getCell(const CellCoordinate(0, 0)),
-          const CellValue.text('B'));
+      expect(
+        data.getCell(const CellCoordinate(0, 0)),
+        const CellValue.text('B'),
+      );
 
       ctx.performUndo(); // back to A
-      expect(data.getCell(const CellCoordinate(0, 0)),
-          const CellValue.text('A'));
+      expect(
+        data.getCell(const CellCoordinate(0, 0)),
+        const CellValue.text('A'),
+      );
 
       ctx.performUndo(); // back to empty
       expect(data.getCell(const CellCoordinate(0, 0)), isNull);
 
       ctx.performRedo(); // forward to A
-      expect(data.getCell(const CellCoordinate(0, 0)),
-          const CellValue.text('A'));
+      expect(
+        data.getCell(const CellCoordinate(0, 0)),
+        const CellValue.text('A'),
+      );
 
       ctx.performRedo(); // forward to B
-      expect(data.getCell(const CellCoordinate(0, 0)),
-          const CellValue.text('B'));
+      expect(
+        data.getCell(const CellCoordinate(0, 0)),
+        const CellValue.text('B'),
+      );
     });
 
     test('recordUndo without undoManager just executes mutation', () {
@@ -267,8 +290,10 @@ void main() {
         data.setCell(const CellCoordinate(0, 0), const CellValue.text('X'));
       });
 
-      expect(data.getCell(const CellCoordinate(0, 0)),
-          const CellValue.text('X'));
+      expect(
+        data.getCell(const CellCoordinate(0, 0)),
+        const CellValue.text('X'),
+      );
       // No undo stack to check
     });
 
@@ -276,10 +301,13 @@ void main() {
       data.setFormat(const CellCoordinate(0, 0), CellFormat.currency);
       selection.selectCell(const CellCoordinate(0, 0));
 
-      ctx.recordUndo('Format', CellRange.single(const CellCoordinate(0, 0)),
-          () {
-        data.setFormat(const CellCoordinate(0, 0), CellFormat.percentage);
-      });
+      ctx.recordUndo(
+        'Format',
+        CellRange.single(const CellCoordinate(0, 0)),
+        () {
+          data.setFormat(const CellCoordinate(0, 0), CellFormat.percentage);
+        },
+      );
 
       ctx.performUndo();
       expect(data.getFormat(const CellCoordinate(0, 0)), CellFormat.currency);
@@ -290,23 +318,26 @@ void main() {
       selection.selectRange(const CellRange(0, 0, 2, 0));
 
       ctx.recordUndo('Fill Down', const CellRange(0, 0, 2, 0), () {
-        data.fillRange(
-          const CellCoordinate(0, 0),
-          const CellRange(1, 0, 2, 0),
-        );
+        data.fillRange(const CellCoordinate(0, 0), const CellRange(1, 0, 2, 0));
       });
 
-      expect(data.getCell(const CellCoordinate(1, 0)),
-          const CellValue.text('Src'));
-      expect(data.getCell(const CellCoordinate(2, 0)),
-          const CellValue.text('Src'));
+      expect(
+        data.getCell(const CellCoordinate(1, 0)),
+        const CellValue.text('Src'),
+      );
+      expect(
+        data.getCell(const CellCoordinate(2, 0)),
+        const CellValue.text('Src'),
+      );
 
       ctx.performUndo();
       expect(data.getCell(const CellCoordinate(1, 0)), isNull);
       expect(data.getCell(const CellCoordinate(2, 0)), isNull);
       // Source preserved
-      expect(data.getCell(const CellCoordinate(0, 0)),
-          const CellValue.text('Src'));
+      expect(
+        data.getCell(const CellCoordinate(0, 0)),
+        const CellValue.text('Src'),
+      );
     });
 
     group('resize undo/redo', () {
@@ -336,18 +367,20 @@ void main() {
       test('undo restores row size', () {
         solver.setRowHeight(3, 50.0);
         final sel = (selection.anchor, selection.focus);
-        undoManager.push(UndoEntry(
-          label: 'Resize row',
-          affectedRange: const CellRange(0, 0, 0, 0),
-          cellsBefore: const {},
-          mergesBefore: const [],
-          selectionBefore: sel,
-          cellsAfter: const {},
-          mergesAfter: const [],
-          selectionAfter: sel,
-          rowSizesBefore: {3: 25.0},
-          rowSizesAfter: {3: 50.0},
-        ));
+        undoManager.push(
+          UndoEntry(
+            label: 'Resize row',
+            affectedRange: const CellRange(0, 0, 0, 0),
+            cellsBefore: const {},
+            mergesBefore: const [],
+            selectionBefore: sel,
+            cellsAfter: const {},
+            mergesAfter: const [],
+            selectionAfter: sel,
+            rowSizesBefore: {3: 25.0},
+            rowSizesAfter: {3: 50.0},
+          ),
+        );
 
         expect(solver.getRowHeight(3), 50.0);
 
@@ -358,18 +391,20 @@ void main() {
       test('undo restores column size', () {
         solver.setColumnWidth(2, 200.0);
         final sel = (selection.anchor, selection.focus);
-        undoManager.push(UndoEntry(
-          label: 'Resize column',
-          affectedRange: const CellRange(0, 0, 0, 0),
-          cellsBefore: const {},
-          mergesBefore: const [],
-          selectionBefore: sel,
-          cellsAfter: const {},
-          mergesAfter: const [],
-          selectionAfter: sel,
-          columnSizesBefore: {2: 100.0},
-          columnSizesAfter: {2: 200.0},
-        ));
+        undoManager.push(
+          UndoEntry(
+            label: 'Resize column',
+            affectedRange: const CellRange(0, 0, 0, 0),
+            cellsBefore: const {},
+            mergesBefore: const [],
+            selectionBefore: sel,
+            cellsAfter: const {},
+            mergesAfter: const [],
+            selectionAfter: sel,
+            columnSizesBefore: {2: 100.0},
+            columnSizesAfter: {2: 200.0},
+          ),
+        );
 
         expect(solver.getColumnWidth(2), 200.0);
 
@@ -380,18 +415,20 @@ void main() {
       test('redo re-applies resized dimensions', () {
         solver.setColumnWidth(5, 150.0);
         final sel = (selection.anchor, selection.focus);
-        undoManager.push(UndoEntry(
-          label: 'Resize column',
-          affectedRange: const CellRange(0, 0, 0, 0),
-          cellsBefore: const {},
-          mergesBefore: const [],
-          selectionBefore: sel,
-          cellsAfter: const {},
-          mergesAfter: const [],
-          selectionAfter: sel,
-          columnSizesBefore: {5: 100.0},
-          columnSizesAfter: {5: 150.0},
-        ));
+        undoManager.push(
+          UndoEntry(
+            label: 'Resize column',
+            affectedRange: const CellRange(0, 0, 0, 0),
+            cellsBefore: const {},
+            mergesBefore: const [],
+            selectionBefore: sel,
+            cellsAfter: const {},
+            mergesAfter: const [],
+            selectionAfter: sel,
+            columnSizesBefore: {5: 100.0},
+            columnSizesAfter: {5: 150.0},
+          ),
+        );
 
         ctxWithSolver.performUndo();
         expect(solver.getColumnWidth(5), 100.0);
@@ -402,78 +439,100 @@ void main() {
 
       test('resize undo entry with no cell changes still works', () {
         // Record a cell edit first
-        data.setCell(
-            const CellCoordinate(0, 0), const CellValue.text('Keep'));
+        data.setCell(const CellCoordinate(0, 0), const CellValue.text('Keep'));
         ctxWithSolver.recordUndo(
-            'Edit', CellRange.single(const CellCoordinate(0, 0)), () {
-          data.setCell(
-              const CellCoordinate(0, 0), const CellValue.text('Changed'));
-        });
+          'Edit',
+          CellRange.single(const CellCoordinate(0, 0)),
+          () {
+            data.setCell(
+              const CellCoordinate(0, 0),
+              const CellValue.text('Changed'),
+            );
+          },
+        );
 
         // Then record a resize (no cell changes)
         solver.setRowHeight(1, 40.0);
         final sel = (selection.anchor, selection.focus);
-        undoManager.push(UndoEntry(
-          label: 'Resize row',
-          affectedRange: const CellRange(0, 0, 0, 0),
-          cellsBefore: const {},
-          mergesBefore: const [],
-          selectionBefore: sel,
-          cellsAfter: const {},
-          mergesAfter: const [],
-          selectionAfter: sel,
-          rowSizesBefore: {1: 25.0},
-          rowSizesAfter: {1: 40.0},
-        ));
+        undoManager.push(
+          UndoEntry(
+            label: 'Resize row',
+            affectedRange: const CellRange(0, 0, 0, 0),
+            cellsBefore: const {},
+            mergesBefore: const [],
+            selectionBefore: sel,
+            cellsAfter: const {},
+            mergesAfter: const [],
+            selectionAfter: sel,
+            rowSizesBefore: {1: 25.0},
+            rowSizesAfter: {1: 40.0},
+          ),
+        );
 
         // Undo resize
         ctxWithSolver.performUndo();
         expect(solver.getRowHeight(1), 25.0);
         // Cell still changed
-        expect(data.getCell(const CellCoordinate(0, 0)),
-            const CellValue.text('Changed'));
+        expect(
+          data.getCell(const CellCoordinate(0, 0)),
+          const CellValue.text('Changed'),
+        );
 
         // Undo cell edit
         ctxWithSolver.performUndo();
-        expect(data.getCell(const CellCoordinate(0, 0)),
-            const CellValue.text('Keep'));
+        expect(
+          data.getCell(const CellCoordinate(0, 0)),
+          const CellValue.text('Keep'),
+        );
       });
 
-      test('existing cell-only undo entries unaffected by null size maps',
-          () {
+      test('existing cell-only undo entries unaffected by null size maps', () {
         // Use ctx with solver — null size maps should be harmless
         data.setCell(
-            const CellCoordinate(0, 0), const CellValue.text('Before'));
+          const CellCoordinate(0, 0),
+          const CellValue.text('Before'),
+        );
         ctxWithSolver.recordUndo(
-            'Edit', CellRange.single(const CellCoordinate(0, 0)), () {
-          data.setCell(
-              const CellCoordinate(0, 0), const CellValue.text('After'));
-        });
+          'Edit',
+          CellRange.single(const CellCoordinate(0, 0)),
+          () {
+            data.setCell(
+              const CellCoordinate(0, 0),
+              const CellValue.text('After'),
+            );
+          },
+        );
 
         ctxWithSolver.performUndo();
-        expect(data.getCell(const CellCoordinate(0, 0)),
-            const CellValue.text('Before'));
+        expect(
+          data.getCell(const CellCoordinate(0, 0)),
+          const CellValue.text('Before'),
+        );
 
         ctxWithSolver.performRedo();
-        expect(data.getCell(const CellCoordinate(0, 0)),
-            const CellValue.text('After'));
+        expect(
+          data.getCell(const CellCoordinate(0, 0)),
+          const CellValue.text('After'),
+        );
       });
 
       test('undo triggers invalidateAndRebuild for size changes', () {
         solver.setRowHeight(0, 60.0);
         final sel = (selection.anchor, selection.focus);
-        undoManager.push(UndoEntry(
-          label: 'Resize row',
-          affectedRange: const CellRange(0, 0, 0, 0),
-          cellsBefore: const {},
-          mergesBefore: const [],
-          selectionBefore: sel,
-          cellsAfter: const {},
-          mergesAfter: const [],
-          selectionAfter: sel,
-          rowSizesBefore: {0: 25.0},
-          rowSizesAfter: {0: 60.0},
-        ));
+        undoManager.push(
+          UndoEntry(
+            label: 'Resize row',
+            affectedRange: const CellRange(0, 0, 0, 0),
+            cellsBefore: const {},
+            mergesBefore: const [],
+            selectionBefore: sel,
+            cellsAfter: const {},
+            mergesAfter: const [],
+            selectionAfter: sel,
+            rowSizesBefore: {0: 25.0},
+            rowSizesAfter: {0: 60.0},
+          ),
+        );
 
         final beforeCount = ctxWithSolver.invalidateAndRebuildCount;
         ctxWithSolver.performUndo();

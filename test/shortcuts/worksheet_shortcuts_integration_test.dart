@@ -131,10 +131,7 @@ void main() {
       await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
       await tester.pump();
 
-      expect(
-        controller.selectedRange,
-        const CellRange(3, 3, 4, 4),
-      );
+      expect(controller.selectedRange, const CellRange(3, 3, 4, 4));
     });
   });
 
@@ -241,9 +238,9 @@ void main() {
   group('Edit and Escape', () {
     testWidgets('F2 triggers onEditCell callback', (tester) async {
       CellCoordinate? editedCell;
-      await tester.pumpWidget(buildWorksheet(
-        onEditCell: (cell) => editedCell = cell,
-      ));
+      await tester.pumpWidget(
+        buildWorksheet(onEditCell: (cell) => editedCell = cell),
+      );
       selectCell(3, 2);
       await tester.pump();
 
@@ -307,12 +304,14 @@ void main() {
   group('Consumer customization', () {
     testWidgets('custom shortcuts override defaults', (tester) async {
       // Override Enter to do nothing instead of moving down
-      await tester.pumpWidget(buildWorksheet(
-        shortcuts: {
-          const SingleActivator(LogicalKeyboardKey.enter):
-              const DoNothingAndStopPropagationIntent(),
-        },
-      ));
+      await tester.pumpWidget(
+        buildWorksheet(
+          shortcuts: {
+            const SingleActivator(LogicalKeyboardKey.enter):
+                const DoNothingAndStopPropagationIntent(),
+          },
+        ),
+      );
       selectCell(2, 2);
       await tester.pump();
 
@@ -331,16 +330,18 @@ void main() {
     testWidgets('custom actions override defaults', (tester) async {
       // Override ClearCellsAction with a custom action that tracks invocations
       var customActionInvoked = false;
-      await tester.pumpWidget(buildWorksheet(
-        actions: {
-          ClearCellsIntent: CallbackAction<ClearCellsIntent>(
-            onInvoke: (_) {
-              customActionInvoked = true;
-              return null;
-            },
-          ),
-        },
-      ));
+      await tester.pumpWidget(
+        buildWorksheet(
+          actions: {
+            ClearCellsIntent: CallbackAction<ClearCellsIntent>(
+              onInvoke: (_) {
+                customActionInvoked = true;
+                return null;
+              },
+            ),
+          },
+        ),
+      );
       data.setCell(const CellCoordinate(5, 5), CellValue.text('keep me'));
       selectCell(5, 5);
       await tester.pump();

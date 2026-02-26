@@ -45,8 +45,11 @@ void main() {
       // ignore: avoid_print
       print('SpanList setSize (10K): ${avg.toStringAsFixed(3)}ms avg');
 
-      expect(avg, lessThan(0.1),
-          reason: 'setSize at 10K spans took ${avg.toStringAsFixed(3)}ms avg');
+      expect(
+        avg,
+        lessThan(0.1),
+        reason: 'setSize at 10K spans took ${avg.toStringAsFixed(3)}ms avg',
+      );
     });
 
     test('setSize at 100K spans completes in < 0.1ms', () {
@@ -69,9 +72,11 @@ void main() {
       // ignore: avoid_print
       print('SpanList setSize (100K): ${avg.toStringAsFixed(3)}ms avg');
 
-      expect(avg, lessThan(0.1),
-          reason:
-              'setSize at 100K spans took ${avg.toStringAsFixed(3)}ms avg');
+      expect(
+        avg,
+        lessThan(0.1),
+        reason: 'setSize at 100K spans took ${avg.toStringAsFixed(3)}ms avg',
+      );
     });
 
     test('setSize at 1M spans completes in < 1ms', () {
@@ -94,8 +99,11 @@ void main() {
       // ignore: avoid_print
       print('SpanList setSize (1M): ${avg.toStringAsFixed(3)}ms avg');
 
-      expect(avg, lessThan(1.0),
-          reason: 'setSize at 1M spans took ${avg.toStringAsFixed(3)}ms avg');
+      expect(
+        avg,
+        lessThan(1.0),
+        reason: 'setSize at 1M spans took ${avg.toStringAsFixed(3)}ms avg',
+      );
     });
 
     test('construction at 1M spans completes in < 100ms', () {
@@ -111,9 +119,11 @@ void main() {
       // ignore: avoid_print
       print('SpanList construction (1M): ${avg.toStringAsFixed(3)}ms avg');
 
-      expect(avg, lessThan(100.0),
-          reason:
-              'Construction at 1M spans took ${avg.toStringAsFixed(3)}ms avg');
+      expect(
+        avg,
+        lessThan(100.0),
+        reason: 'Construction at 1M spans took ${avg.toStringAsFixed(3)}ms avg',
+      );
     });
 
     test('positionAt at 1M spans: 10K lookups < 5ms', () {
@@ -139,8 +149,11 @@ void main() {
       // ignore: avoid_print
       print('positionAt (1M, 10K lookups): ${totalMs.toStringAsFixed(3)}ms');
 
-      expect(totalMs, lessThan(5.0),
-          reason: '10K positionAt lookups took ${totalMs.toStringAsFixed(3)}ms');
+      expect(
+        totalMs,
+        lessThan(5.0),
+        reason: '10K positionAt lookups took ${totalMs.toStringAsFixed(3)}ms',
+      );
     });
 
     test('indexAtPosition at 1M spans: 10K lookups < 10ms', () {
@@ -167,11 +180,15 @@ void main() {
       final totalMs = sw.elapsedMicroseconds / 1000.0;
       // ignore: avoid_print
       print(
-          'indexAtPosition (1M, 10K lookups): ${totalMs.toStringAsFixed(3)}ms');
+        'indexAtPosition (1M, 10K lookups): ${totalMs.toStringAsFixed(3)}ms',
+      );
 
-      expect(totalMs, lessThan(10.0),
-          reason:
-              '10K indexAtPosition lookups took ${totalMs.toStringAsFixed(3)}ms');
+      expect(
+        totalMs,
+        lessThan(10.0),
+        reason:
+            '10K indexAtPosition lookups took ${totalMs.toStringAsFixed(3)}ms',
+      );
     });
   });
 
@@ -212,9 +229,13 @@ void main() {
       // ignore: avoid_print
       print('regionsInRange (100 merges): ${avg.toStringAsFixed(3)}ms avg');
 
-      expect(avg, lessThan(0.5),
-          reason: 'regionsInRange with 100 merges took '
-              '${avg.toStringAsFixed(3)}ms avg');
+      expect(
+        avg,
+        lessThan(0.5),
+        reason:
+            'regionsInRange with 100 merges took '
+            '${avg.toStringAsFixed(3)}ms avg',
+      );
     });
 
     test('regionsInRange with 1K merges completes in < 5ms', () {
@@ -238,9 +259,13 @@ void main() {
       print('regionsInRange (1K merges): ${avg.toStringAsFixed(3)}ms avg');
 
       // O(N_merges) linear scan — acceptable up to ~1K merges
-      expect(avg, lessThan(5.0),
-          reason: 'regionsInRange with 1K merges took '
-              '${avg.toStringAsFixed(3)}ms avg');
+      expect(
+        avg,
+        lessThan(5.0),
+        reason:
+            'regionsInRange with 1K merges took '
+            '${avg.toStringAsFixed(3)}ms avg',
+      );
     });
 
     test('regionsInRange with 10K merges completes in < 50ms', () {
@@ -265,9 +290,13 @@ void main() {
 
       // O(N_merges) linear scan — documents cost at 10K scale.
       // Consider R-tree if this becomes a bottleneck.
-      expect(avg, lessThan(50.0),
-          reason: 'regionsInRange with 10K merges took '
-              '${avg.toStringAsFixed(3)}ms avg');
+      expect(
+        avg,
+        lessThan(50.0),
+        reason:
+            'regionsInRange with 10K merges took '
+            '${avg.toStringAsFixed(3)}ms avg',
+      );
     });
   });
 
@@ -311,47 +340,56 @@ void main() {
       final totalMs = sw.elapsedMicroseconds / 1000.0;
       final perCallUs = sw.elapsedMicroseconds / 1000.0;
       // ignore: avoid_print
-      print('1000 repeated lookups: ${totalMs.toStringAsFixed(3)}ms total '
-          '(${perCallUs.toStringAsFixed(3)}us per call)');
+      print(
+        '1000 repeated lookups: ${totalMs.toStringAsFixed(3)}ms total '
+        '(${perCallUs.toStringAsFixed(3)}us per call)',
+      );
 
       // Cache hits are near-zero cost
-      expect(totalMs, lessThan(1.0),
-          reason:
-              '1000 repeated lookups took ${totalMs.toStringAsFixed(3)}ms');
+      expect(
+        totalMs,
+        lessThan(1.0),
+        reason: '1000 repeated lookups took ${totalMs.toStringAsFixed(3)}ms',
+      );
     });
 
-    test('1000 sequential scroll positions complete with < 50us avg per frame',
-        () {
-      const viewportHeight = 800.0;
-      const viewportWidth = 1200.0;
-      final maxScrollY = solver.totalHeight - viewportHeight;
-      final scrollStep = maxScrollY / 1000;
+    test(
+      '1000 sequential scroll positions complete with < 50us avg per frame',
+      () {
+        const viewportHeight = 800.0;
+        const viewportWidth = 1200.0;
+        final maxScrollY = solver.totalHeight - viewportHeight;
+        final scrollStep = maxScrollY / 1000;
 
-      // Warm up
-      for (int i = 0; i < 50; i++) {
-        solver.getVisibleRows(i * scrollStep, viewportHeight);
-        solver.getVisibleColumns(0, viewportWidth);
-      }
+        // Warm up
+        for (int i = 0; i < 50; i++) {
+          solver.getVisibleRows(i * scrollStep, viewportHeight);
+          solver.getVisibleColumns(0, viewportWidth);
+        }
 
-      final times = <int>[];
-      for (int i = 0; i < 1000; i++) {
-        final scrollY = i * scrollStep;
-        final sw = Stopwatch()..start();
-        solver.getVisibleRows(scrollY, viewportHeight);
-        solver.getVisibleColumns(0, viewportWidth);
-        sw.stop();
-        times.add(sw.elapsedMicroseconds);
-      }
+        final times = <int>[];
+        for (int i = 0; i < 1000; i++) {
+          final scrollY = i * scrollStep;
+          final sw = Stopwatch()..start();
+          solver.getVisibleRows(scrollY, viewportHeight);
+          solver.getVisibleColumns(0, viewportWidth);
+          sw.stop();
+          times.add(sw.elapsedMicroseconds);
+        }
 
-      final avgUs = times.reduce((a, b) => a + b) / times.length;
-      // ignore: avoid_print
-      print('Sequential scroll: ${avgUs.toStringAsFixed(1)}us avg per frame');
+        final avgUs = times.reduce((a, b) => a + b) / times.length;
+        // ignore: avoid_print
+        print('Sequential scroll: ${avgUs.toStringAsFixed(1)}us avg per frame');
 
-      // Fenwick tree O(log N) lookups — fast enough for sequential scrolling
-      expect(avgUs, lessThan(50),
+        // Fenwick tree O(log N) lookups — fast enough for sequential scrolling
+        expect(
+          avgUs,
+          lessThan(50),
           reason:
-              'Per-frame visible range took ${avgUs.toStringAsFixed(1)}us avg');
-    });
+              'Per-frame visible range took ${avgUs.toStringAsFixed(1)}us avg',
+        );
+      },
+    );
   });
 
   group('Auto-fit column scalability', () {
@@ -413,11 +451,22 @@ void main() {
       // Mimics the example app's Customer column: 50K rows, 16 unique values
       final data = SparseWorksheetData(rowCount: 50001, columnCount: 14);
       final customers = [
-        'Acme Corp', 'TechStart Inc', 'Global Industries', 'Smith & Co',
-        'Johnson LLC', 'Pacific Trading', 'Atlantic Imports',
-        'Central Services', 'Northern Supplies', 'Southern Distribution',
-        'Eastern Partners', 'Western Logistics', 'Metro Solutions',
-        'Urban Enterprises', 'Rural Products', 'Coastal Goods',
+        'Acme Corp',
+        'TechStart Inc',
+        'Global Industries',
+        'Smith & Co',
+        'Johnson LLC',
+        'Pacific Trading',
+        'Atlantic Imports',
+        'Central Services',
+        'Northern Supplies',
+        'Southern Distribution',
+        'Eastern Partners',
+        'Western Logistics',
+        'Metro Solutions',
+        'Urban Enterprises',
+        'Rural Products',
+        'Coastal Goods',
       ];
       final random = math.Random(42);
       for (var row = 1; row <= 50000; row++) {
@@ -438,8 +487,12 @@ void main() {
       // ignore: avoid_print
       print('Auto-fit 50K cells (16 unique): ${ms.toStringAsFixed(1)}ms');
 
-      expect(ms, lessThan(200.0),
-          reason: 'Auto-fit 50K cells (16 unique) took ${ms.toStringAsFixed(1)}ms');
+      expect(
+        ms,
+        lessThan(200.0),
+        reason:
+            'Auto-fit 50K cells (16 unique) took ${ms.toStringAsFixed(1)}ms',
+      );
       expect(maxWidth, greaterThan(0.0));
       data.dispose();
     });
@@ -448,10 +501,7 @@ void main() {
       // Mimics the example app's ID column: 50K rows, all unique sequential IDs
       final data = SparseWorksheetData(rowCount: 50001, columnCount: 14);
       for (var row = 1; row <= 50000; row++) {
-        data.setCell(
-          CellCoordinate(row, 0),
-          CellValue.number(row.toDouble()),
-        );
+        data.setCell(CellCoordinate(row, 0), CellValue.number(row.toDouble()));
       }
 
       // Warm up
@@ -465,8 +515,12 @@ void main() {
       // ignore: avoid_print
       print('Auto-fit 50K cells (unique IDs): ${ms.toStringAsFixed(1)}ms');
 
-      expect(ms, lessThan(200.0),
-          reason: 'Auto-fit 50K cells (unique IDs) took ${ms.toStringAsFixed(1)}ms');
+      expect(
+        ms,
+        lessThan(200.0),
+        reason:
+            'Auto-fit 50K cells (unique IDs) took ${ms.toStringAsFixed(1)}ms',
+      );
       expect(maxWidth, greaterThan(0.0));
       data.dispose();
     });
@@ -475,7 +529,13 @@ void main() {
       // Mimics the example app's Status column: 50K rows, 5 statuses,
       // ~10K "Cancelled" cells have rich text (bold + red)
       final data = SparseWorksheetData(rowCount: 50001, columnCount: 14);
-      final statuses = ['Completed', 'Pending', 'Shipped', 'Processing', 'Cancelled'];
+      final statuses = [
+        'Completed',
+        'Pending',
+        'Shipped',
+        'Processing',
+        'Cancelled',
+      ];
       final random = math.Random(42);
       for (var row = 1; row <= 50000; row++) {
         final status = statuses[random.nextInt(statuses.length)];
@@ -504,8 +564,12 @@ void main() {
       // ignore: avoid_print
       print('Auto-fit 50K cells (rich text): ${ms.toStringAsFixed(1)}ms');
 
-      expect(ms, lessThan(200.0),
-          reason: 'Auto-fit 50K cells (rich text) took ${ms.toStringAsFixed(1)}ms');
+      expect(
+        ms,
+        lessThan(200.0),
+        reason:
+            'Auto-fit 50K cells (rich text) took ${ms.toStringAsFixed(1)}ms',
+      );
       expect(maxWidth, greaterThan(0.0));
       data.dispose();
     });
@@ -517,10 +581,7 @@ void main() {
       // Jump UP from row 1048575 to find row 50000.
       final data = SparseWorksheetData(rowCount: 1048576, columnCount: 16384);
       for (var row = 0; row <= 50000; row++) {
-        data.setCell(
-          CellCoordinate(row, 3),
-          CellValue.text('Row $row'),
-        );
+        data.setCell(CellCoordinate(row, 3), CellValue.text('Row $row'));
       }
 
       // Warm up
@@ -535,8 +596,11 @@ void main() {
       print('Jump UP across 1M empty rows: ${ms.toStringAsFixed(1)}ms');
 
       expect(result, 50000);
-      expect(ms, lessThan(200.0),
-          reason: 'Jump across 1M empty rows took ${ms.toStringAsFixed(1)}ms');
+      expect(
+        ms,
+        lessThan(200.0),
+        reason: 'Jump across 1M empty rows took ${ms.toStringAsFixed(1)}ms',
+      );
       data.dispose();
     });
 
@@ -559,9 +623,11 @@ void main() {
       print('Jump RIGHT across 16K empty columns: ${ms.toStringAsFixed(1)}ms');
 
       expect(result, 16383);
-      expect(ms, lessThan(200.0),
-          reason:
-              'Jump across 16K empty columns took ${ms.toStringAsFixed(1)}ms');
+      expect(
+        ms,
+        lessThan(200.0),
+        reason: 'Jump across 16K empty columns took ${ms.toStringAsFixed(1)}ms',
+      );
       data.dispose();
     });
   });

@@ -91,12 +91,12 @@ class RenderWorksheetViewport extends RenderBox {
     required LayoutSolver layoutSolver,
     required double zoom,
     int layoutVersion = 0,
-  })  : _horizontalPosition = horizontalPosition,
-        _verticalPosition = verticalPosition,
-        _tileManager = tileManager,
-        _layoutSolver = layoutSolver,
-        _zoom = zoom,
-        _layoutVersion = layoutVersion;
+  }) : _horizontalPosition = horizontalPosition,
+       _verticalPosition = verticalPosition,
+       _tileManager = tileManager,
+       _layoutSolver = layoutSolver,
+       _zoom = zoom,
+       _layoutVersion = layoutVersion;
 
   /// The horizontal scroll position.
   ViewportOffset get horizontalPosition => _horizontalPosition;

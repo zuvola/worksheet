@@ -42,10 +42,9 @@ void main() {
       // Generate random positions within a reasonable viewport
       final positions = <Offset>[];
       for (int i = 0; i < iterations; i++) {
-        positions.add(Offset(
-          random.nextDouble() * 2000,
-          random.nextDouble() * 2000,
-        ));
+        positions.add(
+          Offset(random.nextDouble() * 2000, random.nextDouble() * 2000),
+        );
       }
 
       // Warm up
@@ -181,16 +180,20 @@ void main() {
         final isRowHeader = random.nextBool();
         if (isRowHeader) {
           // Row header area
-          positions.add(Offset(
-            random.nextDouble() * 50, // Within header width
-            30 + random.nextDouble() * 570, // Below column header
-          ));
+          positions.add(
+            Offset(
+              random.nextDouble() * 50, // Within header width
+              30 + random.nextDouble() * 570, // Below column header
+            ),
+          );
         } else {
           // Column header area
-          positions.add(Offset(
-            50 + random.nextDouble() * 750, // Right of row header
-            random.nextDouble() * 30, // Within header height
-          ));
+          positions.add(
+            Offset(
+              50 + random.nextDouble() * 750, // Right of row header
+              random.nextDouble() * 30, // Within header height
+            ),
+          );
         }
       }
 

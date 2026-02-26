@@ -100,7 +100,8 @@ class TsvClipboardSerializer implements ClipboardSerializer {
     final buffer = StringBuffer();
     for (int i = 0; i < sortedRows.length; i++) {
       if (i > 0) buffer.write('\n');
-      final rowCells = byRow[sortedRows[i]]!..sort((a, b) => a.key.compareTo(b.key));
+      final rowCells = byRow[sortedRows[i]]!
+        ..sort((a, b) => a.key.compareTo(b.key));
       for (int j = 0; j < rowCells.length; j++) {
         if (j > 0) buffer.write('\t');
         buffer.write(rowCells[j].value.displayValue);

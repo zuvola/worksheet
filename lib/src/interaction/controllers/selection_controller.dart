@@ -164,18 +164,23 @@ class SelectionController extends ChangeNotifier {
       final currentRegion = mergedCells!.getRegion(_focus!);
       if (currentRegion != null) {
         if (rowDelta > 0) {
-          newRow = (currentRegion.range.endRow + rowDelta)
-              .clamp(0, maxRow - 1);
+          newRow = (currentRegion.range.endRow + rowDelta).clamp(0, maxRow - 1);
         } else if (rowDelta < 0) {
-          newRow = (currentRegion.range.startRow + rowDelta)
-              .clamp(0, maxRow - 1);
+          newRow = (currentRegion.range.startRow + rowDelta).clamp(
+            0,
+            maxRow - 1,
+          );
         }
         if (columnDelta > 0) {
-          newCol = (currentRegion.range.endColumn + columnDelta)
-              .clamp(0, maxColumn - 1);
+          newCol = (currentRegion.range.endColumn + columnDelta).clamp(
+            0,
+            maxColumn - 1,
+          );
         } else if (columnDelta < 0) {
-          newCol = (currentRegion.range.startColumn + columnDelta)
-              .clamp(0, maxColumn - 1);
+          newCol = (currentRegion.range.startColumn + columnDelta).clamp(
+            0,
+            maxColumn - 1,
+          );
         }
       }
 

@@ -201,7 +201,8 @@ class WorksheetHitTester {
         if (position.dx >= scaledHeaderWidth + selectionBorderTolerance &&
             position.dy >= scaledHeaderHeight + selectionBorderTolerance) {
           return WorksheetHitTestResult.selectionBorder(
-              CellCoordinate(row, col));
+            CellCoordinate(row, col),
+          );
         }
       }
     }
@@ -254,10 +255,12 @@ class WorksheetHitTester {
     }
 
     // If position is in frozen region, don't apply scroll on that axis
-    final worksheetScrollX =
-        viewportX < frozenColsScreenWidth ? 0.0 : scrollOffset.dx / zoom;
-    final worksheetScrollY =
-        viewportY < frozenRowsScreenHeight ? 0.0 : scrollOffset.dy / zoom;
+    final worksheetScrollX = viewportX < frozenColsScreenWidth
+        ? 0.0
+        : scrollOffset.dx / zoom;
+    final worksheetScrollY = viewportY < frozenRowsScreenHeight
+        ? 0.0
+        : scrollOffset.dy / zoom;
 
     return Offset(
       viewportX / zoom + worksheetScrollX,

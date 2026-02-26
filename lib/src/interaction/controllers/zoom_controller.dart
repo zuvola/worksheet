@@ -31,8 +31,8 @@ class ZoomController extends ValueNotifier<double> {
     double initialZoom = 1.0,
     this.minZoom = 0.1,
     this.maxZoom = 4.0,
-  })  : _initialZoom = initialZoom.clamp(minZoom, maxZoom),
-        super(initialZoom.clamp(minZoom, maxZoom));
+  }) : _initialZoom = initialZoom.clamp(minZoom, maxZoom),
+       super(initialZoom.clamp(minZoom, maxZoom));
 
   @override
   set value(double newValue) {

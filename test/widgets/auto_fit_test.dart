@@ -62,19 +62,24 @@ void main() {
   }
 
   group('Auto-fit column via double-click', () {
-    testWidgets('auto-fit column adjusts width to match longest content',
-        (tester) async {
+    testWidgets('auto-fit column adjusts width to match longest content', (
+      tester,
+    ) async {
       data.setCell(const CellCoordinate(0, 0), CellValue.text('Short'));
       data.setCell(
-          const CellCoordinate(1, 0), CellValue.text('A much longer text'));
+        const CellCoordinate(1, 0),
+        CellValue.text('A much longer text'),
+      );
       data.setCell(const CellCoordinate(2, 0), CellValue.text('Med'));
 
       double? resizedWidth;
-      await tester.pumpWidget(buildWorksheet(
-        onResizeColumn: (column, newWidth) {
-          if (column == 0) resizedWidth = newWidth;
-        },
-      ));
+      await tester.pumpWidget(
+        buildWorksheet(
+          onResizeColumn: (column, newWidth) {
+            if (column == 0) resizedWidth = newWidth;
+          },
+        ),
+      );
       await tester.pump();
 
       // Column 0 right edge: headerWidth + colWidth = 50 + 100 = 150
@@ -86,14 +91,17 @@ void main() {
       expect(resizedWidth, greaterThan(20.0));
     });
 
-    testWidgets('auto-fit with empty column sets minimum width',
-        (tester) async {
+    testWidgets('auto-fit with empty column sets minimum width', (
+      tester,
+    ) async {
       double? resizedWidth;
-      await tester.pumpWidget(buildWorksheet(
-        onResizeColumn: (column, newWidth) {
-          if (column == 0) resizedWidth = newWidth;
-        },
-      ));
+      await tester.pumpWidget(
+        buildWorksheet(
+          onResizeColumn: (column, newWidth) {
+            if (column == 0) resizedWidth = newWidth;
+          },
+        ),
+      );
       await tester.pump();
 
       await doubleTapAt(tester, const Offset(149.0, 12.0));
@@ -102,18 +110,19 @@ void main() {
       expect(resizedWidth, equals(20.0));
     });
 
-    testWidgets('auto-fit column 2 adjusts to correct width',
-        (tester) async {
+    testWidgets('auto-fit column 2 adjusts to correct width', (tester) async {
       data.setCell(const CellCoordinate(0, 2), CellValue.text('Hello World'));
 
       double? resizedWidth;
       int? resizedColumn;
-      await tester.pumpWidget(buildWorksheet(
-        onResizeColumn: (column, newWidth) {
-          resizedColumn = column;
-          resizedWidth = newWidth;
-        },
-      ));
+      await tester.pumpWidget(
+        buildWorksheet(
+          onResizeColumn: (column, newWidth) {
+            resizedColumn = column;
+            resizedWidth = newWidth;
+          },
+        ),
+      );
       await tester.pump();
 
       // Column 2 right edge: headerWidth + 3*colWidth = 50 + 300 = 350
@@ -125,44 +134,48 @@ void main() {
     });
 
     testWidgets(
-        'auto-fit does not fire spurious resize for other selected columns',
-        (tester) async {
-      data.setCell(const CellCoordinate(0, 0), CellValue.text('Short'));
+      'auto-fit does not fire spurious resize for other selected columns',
+      (tester) async {
+        data.setCell(const CellCoordinate(0, 0), CellValue.text('Short'));
 
-      // Track ALL resize callbacks — column index and width
-      final resizes = <(int, double)>[];
-      await tester.pumpWidget(buildWorksheet(
-        onResizeColumn: (column, newWidth) {
-          resizes.add((column, newWidth));
-        },
-      ));
-      await tester.pump();
+        // Track ALL resize callbacks — column index and width
+        final resizes = <(int, double)>[];
+        await tester.pumpWidget(
+          buildWorksheet(
+            onResizeColumn: (column, newWidth) {
+              resizes.add((column, newWidth));
+            },
+          ),
+        );
+        await tester.pump();
 
-      // Select columns 0-2 (full-column selection would include col 0)
-      // First select a cell to establish a focus
-      await tester.tapAt(const Offset(100, 40));
-      await tester.pumpAndSettle();
+        // Select columns 0-2 (full-column selection would include col 0)
+        // First select a cell to establish a focus
+        await tester.tapAt(const Offset(100, 40));
+        await tester.pumpAndSettle();
 
-      // Now double-click on column 0 right edge to auto-fit
-      await doubleTapAt(tester, const Offset(149.0, 12.0));
+        // Now double-click on column 0 right edge to auto-fit
+        await doubleTapAt(tester, const Offset(149.0, 12.0));
 
-      // Only column 0 should have been resized (auto-fit)
-      // No spurious resize of other columns
-      expect(resizes.length, equals(1));
-      expect(resizes[0].$1, equals(0));
-    });
+        // Only column 0 should have been resized (auto-fit)
+        // No spurious resize of other columns
+        expect(resizes.length, equals(1));
+        expect(resizes[0].$1, equals(0));
+      },
+    );
 
-    testWidgets('auto-fit does not select column after layout change',
-        (tester) async {
+    testWidgets('auto-fit does not select column after layout change', (
+      tester,
+    ) async {
       // Regression: GestureDetector.onDoubleTapDown fires before
       // Listener.onPointerDown. Auto-fit changes the column width, so
       // the Listener's hit-test at the original position resolves to
       // columnHeader instead of columnResizeHandle → selects entire column.
       data.setCell(const CellCoordinate(0, 0), CellValue.text('Short'));
 
-      await tester.pumpWidget(buildWorksheet(
-        onResizeColumn: (column, newWidth) {},
-      ));
+      await tester.pumpWidget(
+        buildWorksheet(onResizeColumn: (column, newWidth) {}),
+      );
       await tester.pump();
 
       // Select cell (5, 5) to establish a known selection state
@@ -181,10 +194,7 @@ void main() {
       // Should still be the same single cell
       expect(selectionAfter, equals(selectionBefore));
       // Definitely should NOT be a full-column selection
-      expect(
-        selectionAfter,
-        isNot(equals(CellRange(0, 1, 99, 1))),
-      );
+      expect(selectionAfter, isNot(equals(CellRange(0, 1, 99, 1))));
     });
 
     testWidgets('auto-fit does not change scroll position', (tester) async {
@@ -205,17 +215,20 @@ void main() {
   });
 
   group('Auto-fit row via double-click', () {
-    testWidgets('auto-fit row adjusts height to match tallest content',
-        (tester) async {
+    testWidgets('auto-fit row adjusts height to match tallest content', (
+      tester,
+    ) async {
       data.setCell(const CellCoordinate(0, 0), CellValue.text('Text'));
       data.setCell(const CellCoordinate(0, 1), CellValue.text('Another'));
 
       double? resizedHeight;
-      await tester.pumpWidget(buildWorksheet(
-        onResizeRow: (row, newHeight) {
-          if (row == 0) resizedHeight = newHeight;
-        },
-      ));
+      await tester.pumpWidget(
+        buildWorksheet(
+          onResizeRow: (row, newHeight) {
+            if (row == 0) resizedHeight = newHeight;
+          },
+        ),
+      );
       await tester.pump();
 
       // Row 0 bottom edge: headerHeight + rowHeight = 24 + 24 = 48
@@ -228,31 +241,35 @@ void main() {
     });
 
     testWidgets(
-        'auto-fit row without wrapText uses single-line height for long text',
-        (tester) async {
-      // Long text that would wrap if constrained to column width
-      final longText = 'A' * 200;
-      data.setCell(const CellCoordinate(0, 0), CellValue.text(longText));
-      // wrapText defaults to false — no explicit style needed
+      'auto-fit row without wrapText uses single-line height for long text',
+      (tester) async {
+        // Long text that would wrap if constrained to column width
+        final longText = 'A' * 200;
+        data.setCell(const CellCoordinate(0, 0), CellValue.text(longText));
+        // wrapText defaults to false — no explicit style needed
 
-      double? resizedHeight;
-      await tester.pumpWidget(buildWorksheet(
-        onResizeRow: (row, newHeight) {
-          if (row == 0) resizedHeight = newHeight;
-        },
-      ));
-      await tester.pump();
+        double? resizedHeight;
+        await tester.pumpWidget(
+          buildWorksheet(
+            onResizeRow: (row, newHeight) {
+              if (row == 0) resizedHeight = newHeight;
+            },
+          ),
+        );
+        await tester.pump();
 
-      await doubleTapAt(tester, const Offset(25.0, 47.0));
+        await doubleTapAt(tester, const Offset(25.0, 47.0));
 
-      expect(resizedHeight, isNotNull);
-      // Single-line height: fontSize(14) + 2*cellPadding(4) ≈ 22,
-      // clamped to min 10. Should be well under 30.
-      expect(resizedHeight!, lessThan(30.0));
-    });
+        expect(resizedHeight, isNotNull);
+        // Single-line height: fontSize(14) + 2*cellPadding(4) ≈ 22,
+        // clamped to min 10. Should be well under 30.
+        expect(resizedHeight!, lessThan(30.0));
+      },
+    );
 
-    testWidgets('auto-fit row with wrapText uses wrapped height',
-        (tester) async {
+    testWidgets('auto-fit row with wrapText uses wrapped height', (
+      tester,
+    ) async {
       // Long text that will wrap when constrained to column width
       final longText = 'A' * 200;
       data.setCell(const CellCoordinate(0, 0), CellValue.text(longText));
@@ -262,11 +279,13 @@ void main() {
       );
 
       double? resizedHeight;
-      await tester.pumpWidget(buildWorksheet(
-        onResizeRow: (row, newHeight) {
-          if (row == 0) resizedHeight = newHeight;
-        },
-      ));
+      await tester.pumpWidget(
+        buildWorksheet(
+          onResizeRow: (row, newHeight) {
+            if (row == 0) resizedHeight = newHeight;
+          },
+        ),
+      );
       await tester.pump();
 
       await doubleTapAt(tester, const Offset(25.0, 47.0));
@@ -278,21 +297,26 @@ void main() {
   });
 
   group('Auto-fit with merged cells', () {
-    testWidgets('auto-fit anchor column considers merged cell content',
-        (tester) async {
+    testWidgets('auto-fit anchor column considers merged cell content', (
+      tester,
+    ) async {
       // Merge (0,0)–(0,2), set wide text on anchor (0,0)
       data.mergeCells(const CellRange(0, 0, 0, 2));
       data.setCell(
-          const CellCoordinate(0, 0),
-          CellValue.text(
-              'This is a very long merged cell text that spans columns'));
+        const CellCoordinate(0, 0),
+        CellValue.text(
+          'This is a very long merged cell text that spans columns',
+        ),
+      );
 
       double? resizedWidth;
-      await tester.pumpWidget(buildWorksheet(
-        onResizeColumn: (column, newWidth) {
-          if (column == 0) resizedWidth = newWidth;
-        },
-      ));
+      await tester.pumpWidget(
+        buildWorksheet(
+          onResizeColumn: (column, newWidth) {
+            if (column == 0) resizedWidth = newWidth;
+          },
+        ),
+      );
       await tester.pump();
 
       // Double-click on column 0 right edge
@@ -304,21 +328,26 @@ void main() {
       expect(resizedWidth, greaterThan(20.0));
     });
 
-    testWidgets('auto-fit non-anchor column picks up merged content',
-        (tester) async {
+    testWidgets('auto-fit non-anchor column picks up merged content', (
+      tester,
+    ) async {
       // Merge (0,0)–(0,2), set wide text on anchor (0,0)
       data.mergeCells(const CellRange(0, 0, 0, 2));
       data.setCell(
-          const CellCoordinate(0, 0),
-          CellValue.text(
-              'This is a very long merged cell text that spans columns'));
+        const CellCoordinate(0, 0),
+        CellValue.text(
+          'This is a very long merged cell text that spans columns',
+        ),
+      );
 
       double? resizedWidth;
-      await tester.pumpWidget(buildWorksheet(
-        onResizeColumn: (column, newWidth) {
-          if (column == 1) resizedWidth = newWidth;
-        },
-      ));
+      await tester.pumpWidget(
+        buildWorksheet(
+          onResizeColumn: (column, newWidth) {
+            if (column == 1) resizedWidth = newWidth;
+          },
+        ),
+      );
       await tester.pump();
 
       // Column 1 right edge: headerWidth + 2*colWidth = 50 + 200 = 250
@@ -329,23 +358,28 @@ void main() {
       expect(resizedWidth, greaterThan(20.0));
     });
 
-    testWidgets('auto-fit row considers merged cell spanning multiple rows',
-        (tester) async {
+    testWidgets('auto-fit row considers merged cell spanning multiple rows', (
+      tester,
+    ) async {
       // Merge (0,0)–(2,0), set long wrapping text on anchor
       data.mergeCells(const CellRange(0, 0, 2, 0));
-      data.setCell(const CellCoordinate(0, 0),
-          CellValue.text('A' * 200)); // long text
+      data.setCell(
+        const CellCoordinate(0, 0),
+        CellValue.text('A' * 200),
+      ); // long text
       data.setStyle(
         const CellCoordinate(0, 0),
         const CellStyle(wrapText: true),
       );
 
       double? resizedHeight;
-      await tester.pumpWidget(buildWorksheet(
-        onResizeRow: (row, newHeight) {
-          if (row == 1) resizedHeight = newHeight;
-        },
-      ));
+      await tester.pumpWidget(
+        buildWorksheet(
+          onResizeRow: (row, newHeight) {
+            if (row == 1) resizedHeight = newHeight;
+          },
+        ),
+      );
       await tester.pump();
 
       // Row 1 bottom edge: headerHeight + 2*rowHeight = 24 + 48 = 72
@@ -357,27 +391,30 @@ void main() {
     });
 
     testWidgets(
-        'merged cell content fits in other columns — no extra width needed',
-        (tester) async {
-      // Merge (0,0)–(0,2), set short text that easily fits in other columns
-      data.mergeCells(const CellRange(0, 0, 0, 2));
-      data.setCell(const CellCoordinate(0, 0), CellValue.text('Hi'));
+      'merged cell content fits in other columns — no extra width needed',
+      (tester) async {
+        // Merge (0,0)–(0,2), set short text that easily fits in other columns
+        data.mergeCells(const CellRange(0, 0, 0, 2));
+        data.setCell(const CellCoordinate(0, 0), CellValue.text('Hi'));
 
-      double? resizedWidth;
-      await tester.pumpWidget(buildWorksheet(
-        onResizeColumn: (column, newWidth) {
-          if (column == 1) resizedWidth = newWidth;
-        },
-      ));
-      await tester.pump();
+        double? resizedWidth;
+        await tester.pumpWidget(
+          buildWorksheet(
+            onResizeColumn: (column, newWidth) {
+              if (column == 1) resizedWidth = newWidth;
+            },
+          ),
+        );
+        await tester.pump();
 
-      // Column 1 right edge: headerWidth + 2*colWidth = 50 + 200 = 250
-      await doubleTapAt(tester, const Offset(249.0, 12.0));
+        // Column 1 right edge: headerWidth + 2*colWidth = 50 + 200 = 250
+        await doubleTapAt(tester, const Offset(249.0, 12.0));
 
-      expect(resizedWidth, isNotNull);
-      // Short text "Hi" fits within other columns' widths, so column 1
-      // needs only the minimum.
-      expect(resizedWidth, equals(20.0));
-    });
+        expect(resizedWidth, isNotNull);
+        // Short text "Hi" fits within other columns' widths, so column 1
+        // needs only the minimum.
+        expect(resizedWidth, equals(20.0));
+      },
+    );
   });
 }

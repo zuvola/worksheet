@@ -14,8 +14,8 @@ class TileCoordinate {
 
   /// Creates a tile coordinate at the given [row] and [column].
   TileCoordinate(this.row, this.column)
-      : assert(row >= 0, 'Row must be non-negative'),
-        assert(column >= 0, 'Column must be non-negative');
+    : assert(row >= 0, 'Row must be non-negative'),
+      assert(column >= 0, 'Column must be non-negative');
 
   /// Creates a tile coordinate from a pixel position.
   ///
@@ -28,17 +28,11 @@ class TileCoordinate {
   }) {
     final column = (x / tileWidth).floor();
     final row = (y / tileHeight).floor();
-    return TileCoordinate(
-      math.max(0, row),
-      math.max(0, column),
-    );
+    return TileCoordinate(math.max(0, row), math.max(0, column));
   }
 
   /// Returns the pixel bounds of this tile.
-  Rect pixelBounds({
-    required double tileWidth,
-    required double tileHeight,
-  }) {
+  Rect pixelBounds({required double tileWidth, required double tileHeight}) {
     return Rect.fromLTWH(
       column * tileWidth,
       row * tileHeight,
@@ -93,7 +87,9 @@ class TileCoordinate {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is TileCoordinate && other.row == row && other.column == column;
+    return other is TileCoordinate &&
+        other.row == row &&
+        other.column == column;
   }
 
   @override

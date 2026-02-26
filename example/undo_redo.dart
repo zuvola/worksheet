@@ -71,16 +71,12 @@ class _UndoRedoExampleState extends State<UndoRedoExample> {
           IconButton(
             icon: const Icon(Icons.undo),
             tooltip: 'Undo (Ctrl+Z)',
-            onPressed: _undoManager.canUndo
-                ? () => _controller.undo()
-                : null,
+            onPressed: _undoManager.canUndo ? () => _controller.undo() : null,
           ),
           IconButton(
             icon: const Icon(Icons.redo),
             tooltip: 'Redo (Ctrl+Y)',
-            onPressed: _undoManager.canRedo
-                ? () => _controller.redo()
-                : null,
+            onPressed: _undoManager.canRedo ? () => _controller.redo() : null,
           ),
 
           const VerticalDivider(width: 16),

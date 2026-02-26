@@ -52,14 +52,14 @@ void main() {
   void installMockClipboard(String text) {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (call) async {
-      if (call.method == 'Clipboard.getData') {
-        return <String, dynamic>{'text': text};
-      }
-      if (call.method == 'Clipboard.setData') {
-        return null;
-      }
-      return null;
-    });
+          if (call.method == 'Clipboard.getData') {
+            return <String, dynamic>{'text': text};
+          }
+          if (call.method == 'Clipboard.setData') {
+            return null;
+          }
+          return null;
+        });
   }
 
   /// Finds the [RenderWorksheetViewport] in the widget tree.
@@ -69,8 +69,9 @@ void main() {
   }
 
   group('Worksheet clipboard visual update', () {
-    testWidgets('paste triggers immediate repaint without needing a click',
-        (tester) async {
+    testWidgets('paste triggers immediate repaint without needing a click', (
+      tester,
+    ) async {
       installMockClipboard('Pasted');
       await tester.pumpWidget(buildWorksheet());
 
@@ -91,28 +92,31 @@ void main() {
       await tester.pump();
 
       // Data should be written
-      expect(data.getCell(const CellCoordinate(1, 1)),
-          const CellValue.text('Pasted'));
+      expect(
+        data.getCell(const CellCoordinate(1, 1)),
+        const CellValue.text('Pasted'),
+      );
 
       // Layout version should have incremented, proving repaint was triggered
       expect(renderObject.layoutVersion, greaterThan(versionBefore));
     });
 
-    testWidgets('cut triggers immediate repaint without needing a click',
-        (tester) async {
+    testWidgets('cut triggers immediate repaint without needing a click', (
+      tester,
+    ) async {
       data[(2, 2)] = 'CutMe'.cell;
 
       // Mock clipboard to capture setData
       String? clipboardContent;
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(SystemChannels.platform, (call) async {
-        if (call.method == 'Clipboard.setData') {
-          final args = call.arguments as Map<dynamic, dynamic>;
-          clipboardContent = args['text'] as String?;
-          return null;
-        }
-        return null;
-      });
+            if (call.method == 'Clipboard.setData') {
+              final args = call.arguments as Map<dynamic, dynamic>;
+              clipboardContent = args['text'] as String?;
+              return null;
+            }
+            return null;
+          });
 
       await tester.pumpWidget(buildWorksheet());
 
@@ -129,8 +133,10 @@ void main() {
       await tester.pump();
 
       // Cell should NOT be cleared yet (deferred cut — marching ants shown)
-      expect(data.getCell(const CellCoordinate(2, 2)),
-          const CellValue.text('CutMe'));
+      expect(
+        data.getCell(const CellCoordinate(2, 2)),
+        const CellValue.text('CutMe'),
+      );
 
       // Value should be on clipboard
       expect(clipboardContent, 'CutMe');
@@ -139,20 +145,21 @@ void main() {
       expect(renderObject.layoutVersion, greaterThan(versionBefore));
     });
 
-    testWidgets('copy does not change layout version (no data mutation)',
-        (tester) async {
+    testWidgets('copy does not change layout version (no data mutation)', (
+      tester,
+    ) async {
       data[(0, 0)] = 'Keep'.cell;
 
       String? clipboardContent;
       TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(SystemChannels.platform, (call) async {
-        if (call.method == 'Clipboard.setData') {
-          final args = call.arguments as Map<dynamic, dynamic>;
-          clipboardContent = args['text'] as String?;
-          return null;
-        }
-        return null;
-      });
+            if (call.method == 'Clipboard.setData') {
+              final args = call.arguments as Map<dynamic, dynamic>;
+              clipboardContent = args['text'] as String?;
+              return null;
+            }
+            return null;
+          });
 
       await tester.pumpWidget(buildWorksheet());
 
@@ -169,8 +176,10 @@ void main() {
       await tester.pump();
 
       // Data should be unchanged
-      expect(data.getCell(const CellCoordinate(0, 0)),
-          const CellValue.text('Keep'));
+      expect(
+        data.getCell(const CellCoordinate(0, 0)),
+        const CellValue.text('Keep'),
+      );
 
       // Clipboard should have the value
       expect(clipboardContent, 'Keep');

@@ -96,9 +96,7 @@ void main() {
 
       test('single-style text produces single span', () {
         const bold = TextStyle(fontWeight: FontWeight.bold);
-        controller.initFromSpans([
-          const TextSpan(text: 'Hello', style: bold),
-        ]);
+        controller.initFromSpans([const TextSpan(text: 'Hello', style: bold)]);
 
         final spans = controller.toSpans();
         expect(spans.length, 1);
@@ -116,7 +114,9 @@ void main() {
       test('returns true when spans have styles', () {
         controller.initFromSpans([
           const TextSpan(
-              text: 'Hi', style: TextStyle(fontWeight: FontWeight.bold)),
+            text: 'Hi',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           const TextSpan(text: '!'),
         ]);
         expect(controller.hasRichStyles, isTrue);
@@ -126,8 +126,10 @@ void main() {
     group('toggleBold', () {
       test('applies bold to selection', () {
         controller.initFromSpans([const TextSpan(text: 'Hello')]);
-        controller.selection =
-            const TextSelection(baseOffset: 0, extentOffset: 2);
+        controller.selection = const TextSelection(
+          baseOffset: 0,
+          extentOffset: 2,
+        );
 
         controller.toggleBold();
 
@@ -140,11 +142,11 @@ void main() {
 
       test('removes bold when all selected chars are bold', () {
         const bold = TextStyle(fontWeight: FontWeight.bold);
-        controller.initFromSpans([
-          const TextSpan(text: 'Hello', style: bold),
-        ]);
-        controller.selection =
-            const TextSelection(baseOffset: 0, extentOffset: 5);
+        controller.initFromSpans([const TextSpan(text: 'Hello', style: bold)]);
+        controller.selection = const TextSelection(
+          baseOffset: 0,
+          extentOffset: 5,
+        );
 
         controller.toggleBold();
 
@@ -168,8 +170,10 @@ void main() {
     group('toggleItalic', () {
       test('applies italic to selection', () {
         controller.initFromSpans([const TextSpan(text: 'Hello')]);
-        controller.selection =
-            const TextSelection(baseOffset: 1, extentOffset: 4);
+        controller.selection = const TextSelection(
+          baseOffset: 1,
+          extentOffset: 4,
+        );
 
         controller.toggleItalic();
 
@@ -183,8 +187,10 @@ void main() {
     group('toggleUnderline', () {
       test('applies underline to selection', () {
         controller.initFromSpans([const TextSpan(text: 'Hello')]);
-        controller.selection =
-            const TextSelection(baseOffset: 0, extentOffset: 5);
+        controller.selection = const TextSelection(
+          baseOffset: 0,
+          extentOffset: 5,
+        );
 
         controller.toggleUnderline();
 
@@ -199,8 +205,10 @@ void main() {
             style: TextStyle(decoration: TextDecoration.underline),
           ),
         ]);
-        controller.selection =
-            const TextSelection(baseOffset: 0, extentOffset: 5);
+        controller.selection = const TextSelection(
+          baseOffset: 0,
+          extentOffset: 5,
+        );
 
         controller.toggleUnderline();
 
@@ -212,8 +220,10 @@ void main() {
     group('toggleStrikethrough', () {
       test('applies strikethrough to selection', () {
         controller.initFromSpans([const TextSpan(text: 'Hello')]);
-        controller.selection =
-            const TextSelection(baseOffset: 0, extentOffset: 5);
+        controller.selection = const TextSelection(
+          baseOffset: 0,
+          extentOffset: 5,
+        );
 
         controller.toggleStrikethrough();
 
@@ -225,8 +235,10 @@ void main() {
     group('setColor', () {
       test('sets color on selection', () {
         controller.initFromSpans([const TextSpan(text: 'Hello')]);
-        controller.selection =
-            const TextSelection(baseOffset: 0, extentOffset: 3);
+        controller.selection = const TextSelection(
+          baseOffset: 0,
+          extentOffset: 3,
+        );
 
         controller.setColor(const Color(0xFFFF0000));
 
@@ -237,8 +249,7 @@ void main() {
 
       test('sets pending color on collapsed selection', () {
         controller.initFromSpans([const TextSpan(text: 'Hi')]);
-        controller.selection =
-            const TextSelection.collapsed(offset: 2);
+        controller.selection = const TextSelection.collapsed(offset: 2);
 
         controller.setColor(const Color(0xFFFF0000));
 
@@ -257,8 +268,7 @@ void main() {
 
       test('sets pending color on empty text then first character typed', () {
         controller.initFromSpans([const TextSpan(text: '')]);
-        controller.selection =
-            const TextSelection.collapsed(offset: 0);
+        controller.selection = const TextSelection.collapsed(offset: 0);
 
         controller.setColor(const Color(0xFFFF0000));
 
@@ -275,8 +285,10 @@ void main() {
     group('setFontSize', () {
       test('sets font size on selection', () {
         controller.initFromSpans([const TextSpan(text: 'Hello')]);
-        controller.selection =
-            const TextSelection(baseOffset: 0, extentOffset: 5);
+        controller.selection = const TextSelection(
+          baseOffset: 0,
+          extentOffset: 5,
+        );
 
         controller.setFontSize(24.0);
 
@@ -286,8 +298,7 @@ void main() {
 
       test('sets pending font size on collapsed selection', () {
         controller.initFromSpans([const TextSpan(text: 'Hi')]);
-        controller.selection =
-            const TextSelection.collapsed(offset: 2);
+        controller.selection = const TextSelection.collapsed(offset: 2);
 
         controller.setFontSize(24.0);
 
@@ -306,8 +317,10 @@ void main() {
     group('setFontFamily', () {
       test('sets font family on selection', () {
         controller.initFromSpans([const TextSpan(text: 'Hello')]);
-        controller.selection =
-            const TextSelection(baseOffset: 0, extentOffset: 5);
+        controller.selection = const TextSelection(
+          baseOffset: 0,
+          extentOffset: 5,
+        );
 
         controller.setFontFamily('Courier');
 
@@ -317,8 +330,7 @@ void main() {
 
       test('sets pending font family on collapsed selection', () {
         controller.initFromSpans([const TextSpan(text: 'Hi')]);
-        controller.selection =
-            const TextSelection.collapsed(offset: 2);
+        controller.selection = const TextSelection.collapsed(offset: 2);
 
         controller.setFontFamily('Courier');
 
@@ -375,9 +387,7 @@ void main() {
       });
 
       test('clearing all text results in empty styles', () {
-        controller.initFromSpans([
-          const TextSpan(text: 'Hello'),
-        ]);
+        controller.initFromSpans([const TextSpan(text: 'Hello')]);
 
         controller.value = const TextEditingValue(
           text: '',
@@ -401,20 +411,23 @@ void main() {
     });
 
     group('buildTextSpan', () {
-      testWidgets('builds plain span for text without styles',
-          (tester) async {
+      testWidgets('builds plain span for text without styles', (tester) async {
         controller.text = 'Hello';
 
-        await tester.pumpWidget(Builder(builder: (context) {
-          final span = controller.buildTextSpan(
-            context: context,
-            style: const TextStyle(fontSize: 14),
-            withComposing: false,
-          );
-          expect(span.text, 'Hello');
-          expect(span.children, isNull);
-          return const SizedBox();
-        }));
+        await tester.pumpWidget(
+          Builder(
+            builder: (context) {
+              final span = controller.buildTextSpan(
+                context: context,
+                style: const TextStyle(fontSize: 14),
+                withComposing: false,
+              );
+              expect(span.text, 'Hello');
+              expect(span.children, isNull);
+              return const SizedBox();
+            },
+          ),
+        );
       });
 
       testWidgets('builds children spans for styled text', (tester) async {
@@ -424,85 +437,102 @@ void main() {
           const TextSpan(text: 'llo'),
         ]);
 
-        await tester.pumpWidget(Builder(builder: (context) {
-          final span = controller.buildTextSpan(
-            context: context,
-            style: const TextStyle(fontSize: 14),
-            withComposing: false,
-          );
-          expect(span.children, isNotNull);
-          expect(span.children!.length, 2);
-          final first = span.children![0] as TextSpan;
-          final second = span.children![1] as TextSpan;
-          expect(first.text, 'He');
-          expect(first.style, bold);
-          expect(second.text, 'llo');
-          return const SizedBox();
-        }));
+        await tester.pumpWidget(
+          Builder(
+            builder: (context) {
+              final span = controller.buildTextSpan(
+                context: context,
+                style: const TextStyle(fontSize: 14),
+                withComposing: false,
+              );
+              expect(span.children, isNotNull);
+              expect(span.children!.length, 2);
+              final first = span.children![0] as TextSpan;
+              final second = span.children![1] as TextSpan;
+              expect(first.text, 'He');
+              expect(first.style, bold);
+              expect(second.text, 'llo');
+              return const SizedBox();
+            },
+          ),
+        );
       });
 
       testWidgets('builds plain span for empty text', (tester) async {
-        await tester.pumpWidget(Builder(builder: (context) {
-          final span = controller.buildTextSpan(
-            context: context,
-            style: const TextStyle(fontSize: 14),
-            withComposing: false,
-          );
-          expect(span.text, '');
-          return const SizedBox();
-        }));
+        await tester.pumpWidget(
+          Builder(
+            builder: (context) {
+              final span = controller.buildTextSpan(
+                context: context,
+                style: const TextStyle(fontSize: 14),
+                withComposing: false,
+              );
+              expect(span.text, '');
+              return const SizedBox();
+            },
+          ),
+        );
       });
 
-      testWidgets(
-        'first span color does not bleed into other spans',
-        (tester) async {
-          // Reproduces: cell with colored first span + uncolored later spans.
-          // The base style (parent) should use the theme default, NOT the
-          // first span's color; otherwise the uncolored spans inherit it.
-          const pink = Color(0xFFE91E63);
-          controller.initFromSpans(const [
-            TextSpan(
-              text: 'Mixed',
-              style: TextStyle(fontWeight: FontWeight.bold, color: pink),
-            ),
-            TextSpan(text: ' '),
-            TextSpan(
-              text: 'formatting',
-              style: TextStyle(fontStyle: FontStyle.italic),
-            ),
-          ]);
+      testWidgets('first span color does not bleed into other spans', (
+        tester,
+      ) async {
+        // Reproduces: cell with colored first span + uncolored later spans.
+        // The base style (parent) should use the theme default, NOT the
+        // first span's color; otherwise the uncolored spans inherit it.
+        const pink = Color(0xFFE91E63);
+        controller.initFromSpans(const [
+          TextSpan(
+            text: 'Mixed',
+            style: TextStyle(fontWeight: FontWeight.bold, color: pink),
+          ),
+          TextSpan(text: ' '),
+          TextSpan(
+            text: 'formatting',
+            style: TextStyle(fontStyle: FontStyle.italic),
+          ),
+        ]);
 
-          await tester.pumpWidget(Builder(builder: (context) {
-            // Base style uses the theme default (black), not the first span's
-            // color.  This is what CellEditorOverlay should pass.
-            final span = controller.buildTextSpan(
-              context: context,
-              style: const TextStyle(fontSize: 14, color: Color(0xFF000000)),
-              withComposing: false,
-            );
+        await tester.pumpWidget(
+          Builder(
+            builder: (context) {
+              // Base style uses the theme default (black), not the first span's
+              // color.  This is what CellEditorOverlay should pass.
+              final span = controller.buildTextSpan(
+                context: context,
+                style: const TextStyle(fontSize: 14, color: Color(0xFF000000)),
+                withComposing: false,
+              );
 
-            expect(span.children, isNotNull);
-            expect(span.children!.length, 3);
+              expect(span.children, isNotNull);
+              expect(span.children!.length, 3);
 
-            final first = span.children![0] as TextSpan;
-            final space = span.children![1] as TextSpan;
-            final third = span.children![2] as TextSpan;
+              final first = span.children![0] as TextSpan;
+              final space = span.children![1] as TextSpan;
+              final third = span.children![2] as TextSpan;
 
-            // First span keeps its explicit pink color
-            expect(first.style!.color, pink);
-            // Space and 'formatting' have no explicit color — they inherit the
-            // parent (base) style color, which must be black (theme default).
-            expect(space.style?.color, isNull,
-                reason: 'uncolored span should not have an explicit color');
-            expect(third.style?.color, isNull,
-                reason: 'uncolored span should not have an explicit color');
+              // First span keeps its explicit pink color
+              expect(first.style!.color, pink);
+              // Space and 'formatting' have no explicit color — they inherit the
+              // parent (base) style color, which must be black (theme default).
+              expect(
+                space.style?.color,
+                isNull,
+                reason: 'uncolored span should not have an explicit color',
+              );
+              expect(
+                third.style?.color,
+                isNull,
+                reason: 'uncolored span should not have an explicit color',
+              );
 
-            // The parent style must be the theme default, not pink
-            expect(span.style!.color, const Color(0xFF000000));
-            return const SizedBox();
-          }));
-        },
-      );
+              // The parent style must be the theme default, not pink
+              expect(span.style!.color, const Color(0xFF000000));
+              return const SizedBox();
+            },
+          ),
+        );
+      });
     });
 
     group('pending style (collapsed selection)', () {
@@ -550,9 +580,7 @@ void main() {
 
       test('toggling bold at bold position removes bold from pending', () {
         const bold = TextStyle(fontWeight: FontWeight.bold);
-        controller.initFromSpans([
-          const TextSpan(text: 'Hello', style: bold),
-        ]);
+        controller.initFromSpans([const TextSpan(text: 'Hello', style: bold)]);
         controller.selection = const TextSelection.collapsed(offset: 3);
 
         controller.toggleBold();
@@ -587,8 +615,10 @@ void main() {
     group('combined formatting', () {
       test('bold + italic on same selection', () {
         controller.initFromSpans([const TextSpan(text: 'Hello')]);
-        controller.selection =
-            const TextSelection(baseOffset: 0, extentOffset: 5);
+        controller.selection = const TextSelection(
+          baseOffset: 0,
+          extentOffset: 5,
+        );
 
         controller.toggleBold();
         controller.toggleItalic();
@@ -601,21 +631,23 @@ void main() {
 
       test('underline + strikethrough', () {
         controller.initFromSpans([const TextSpan(text: 'Hello')]);
-        controller.selection =
-            const TextSelection(baseOffset: 0, extentOffset: 5);
+        controller.selection = const TextSelection(
+          baseOffset: 0,
+          extentOffset: 5,
+        );
 
         controller.toggleUnderline();
         controller.toggleStrikethrough();
 
         final spans = controller.toSpans();
-        expect(spans[0].style?.decoration?.contains(TextDecoration.underline),
-            isTrue);
         expect(
-            spans[0]
-                .style
-                ?.decoration
-                ?.contains(TextDecoration.lineThrough),
-            isTrue);
+          spans[0].style?.decoration?.contains(TextDecoration.underline),
+          isTrue,
+        );
+        expect(
+          spans[0].style?.decoration?.contains(TextDecoration.lineThrough),
+          isTrue,
+        );
       });
     });
 
@@ -626,8 +658,10 @@ void main() {
           controller.initFromSpans([
             const TextSpan(text: 'Hello', style: bold),
           ]);
-          controller.selection =
-              const TextSelection(baseOffset: 0, extentOffset: 5);
+          controller.selection = const TextSelection(
+            baseOffset: 0,
+            extentOffset: 5,
+          );
 
           expect(controller.isSelectionBold, isTrue);
         });
@@ -638,8 +672,10 @@ void main() {
             const TextSpan(text: 'He', style: bold),
             const TextSpan(text: 'llo'),
           ]);
-          controller.selection =
-              const TextSelection(baseOffset: 0, extentOffset: 5);
+          controller.selection = const TextSelection(
+            baseOffset: 0,
+            extentOffset: 5,
+          );
 
           expect(controller.isSelectionBold, isFalse);
         });
@@ -683,16 +719,20 @@ void main() {
           controller.initFromSpans([
             const TextSpan(text: 'Hello', style: italic),
           ]);
-          controller.selection =
-              const TextSelection(baseOffset: 0, extentOffset: 5);
+          controller.selection = const TextSelection(
+            baseOffset: 0,
+            extentOffset: 5,
+          );
 
           expect(controller.isSelectionItalic, isTrue);
         });
 
         test('returns false when not italic', () {
           controller.initFromSpans([const TextSpan(text: 'Hello')]);
-          controller.selection =
-              const TextSelection(baseOffset: 0, extentOffset: 5);
+          controller.selection = const TextSelection(
+            baseOffset: 0,
+            extentOffset: 5,
+          );
 
           expect(controller.isSelectionItalic, isFalse);
         });
@@ -704,16 +744,20 @@ void main() {
           controller.initFromSpans([
             const TextSpan(text: 'Hello', style: underline),
           ]);
-          controller.selection =
-              const TextSelection(baseOffset: 0, extentOffset: 5);
+          controller.selection = const TextSelection(
+            baseOffset: 0,
+            extentOffset: 5,
+          );
 
           expect(controller.isSelectionUnderline, isTrue);
         });
 
         test('returns false when not underlined', () {
           controller.initFromSpans([const TextSpan(text: 'Hello')]);
-          controller.selection =
-              const TextSelection(baseOffset: 0, extentOffset: 5);
+          controller.selection = const TextSelection(
+            baseOffset: 0,
+            extentOffset: 5,
+          );
 
           expect(controller.isSelectionUnderline, isFalse);
         });
@@ -725,16 +769,20 @@ void main() {
           controller.initFromSpans([
             const TextSpan(text: 'Hello', style: strike),
           ]);
-          controller.selection =
-              const TextSelection(baseOffset: 0, extentOffset: 5);
+          controller.selection = const TextSelection(
+            baseOffset: 0,
+            extentOffset: 5,
+          );
 
           expect(controller.isSelectionStrikethrough, isTrue);
         });
 
         test('returns false when no strikethrough', () {
           controller.initFromSpans([const TextSpan(text: 'Hello')]);
-          controller.selection =
-              const TextSelection(baseOffset: 0, extentOffset: 5);
+          controller.selection = const TextSelection(
+            baseOffset: 0,
+            extentOffset: 5,
+          );
 
           expect(controller.isSelectionStrikethrough, isFalse);
         });
@@ -746,8 +794,10 @@ void main() {
           controller.initFromSpans([
             const TextSpan(text: 'Hello', style: bold),
           ]);
-          controller.selection =
-              const TextSelection(baseOffset: 0, extentOffset: 5);
+          controller.selection = const TextSelection(
+            baseOffset: 0,
+            extentOffset: 5,
+          );
 
           expect(controller.getSelectionStyle(), bold);
         });
@@ -780,11 +830,11 @@ void main() {
               TextDecoration.lineThrough,
             ]),
           );
-          controller.initFromSpans([
-            TextSpan(text: 'Hello', style: combined),
-          ]);
-          controller.selection =
-              const TextSelection(baseOffset: 0, extentOffset: 5);
+          controller.initFromSpans([TextSpan(text: 'Hello', style: combined)]);
+          controller.selection = const TextSelection(
+            baseOffset: 0,
+            extentOffset: 5,
+          );
 
           expect(controller.isSelectionUnderline, isTrue);
           expect(controller.isSelectionStrikethrough, isTrue);

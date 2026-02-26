@@ -85,12 +85,14 @@ class FormulaReferenceInserter {
         a1.rowAbsolute,
       );
 
-      final newRef = A1.fromVector(
-        a1.column,
-        a1.row,
-        columnAbsolute: newColAbs,
-        rowAbsolute: newRowAbs,
-      ).toString();
+      final newRef = A1
+          .fromVector(
+            a1.column,
+            a1.row,
+            columnAbsolute: newColAbs,
+            rowAbsolute: newRowAbs,
+          )
+          .toString();
       cycled.add(newRef);
     }
 
@@ -117,7 +119,10 @@ class FormulaReferenceInserter {
       // Replace existing token.
       final before = formula.substring(0, existing.start);
       final after = formula.substring(existing.end);
-      return (text: '$before$ref$after', cursorOffset: existing.start + ref.length);
+      return (
+        text: '$before$ref$after',
+        cursorOffset: existing.start + ref.length,
+      );
     }
 
     // Insert at cursor position.

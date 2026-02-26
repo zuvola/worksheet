@@ -81,10 +81,7 @@ void main() {
       test('disposes picture', () {
         final recorder = ui.PictureRecorder();
         final canvas = ui.Canvas(recorder);
-        canvas.drawRect(
-          const ui.Rect.fromLTWH(0, 0, 256, 256),
-          ui.Paint(),
-        );
+        canvas.drawRect(const ui.Rect.fromLTWH(0, 0, 256, 256), ui.Paint());
         final picture = recorder.endRecording();
 
         final tile = Tile(

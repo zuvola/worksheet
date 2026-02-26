@@ -457,16 +457,10 @@ void main() {
       final inner = SparseWorksheetData(rowCount: 10, columnCount: 10);
       final logged = _LoggingWrapper(inner);
 
-      logged.setCell(
-        const CellCoordinate(0, 0),
-        CellValue.number(42),
-      );
+      logged.setCell(const CellCoordinate(0, 0), CellValue.number(42));
 
       expect(logged.setCellCount, 1);
-      expect(
-        inner.getCell(const CellCoordinate(0, 0)),
-        CellValue.number(42),
-      );
+      expect(inner.getCell(const CellCoordinate(0, 0)), CellValue.number(42));
 
       inner.dispose();
     });

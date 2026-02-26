@@ -53,8 +53,9 @@ void main() {
   }
 
   group('Mobile mode configuration', () {
-    testWidgets('mobileMode: true on desktop forces mobile behavior',
-        (tester) async {
+    testWidgets('mobileMode: true on desktop forces mobile behavior', (
+      tester,
+    ) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
 
       await tester.pumpWidget(buildWorksheet(mobileMode: true));
@@ -66,8 +67,9 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('mobileMode: false on mobile forces desktop behavior',
-        (tester) async {
+    testWidgets('mobileMode: false on mobile forces desktop behavior', (
+      tester,
+    ) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
 
       await tester.pumpWidget(buildWorksheet(mobileMode: false));
@@ -79,8 +81,9 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('mobileMode: null defaults based on platform (iOS → mobile)',
-        (tester) async {
+    testWidgets('mobileMode: null defaults based on platform (iOS → mobile)', (
+      tester,
+    ) async {
       debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
 
       await tester.pumpWidget(buildWorksheet(mobileMode: null));
@@ -92,17 +95,18 @@ void main() {
     });
 
     testWidgets(
-        'mobileMode: null defaults based on platform (macOS → desktop)',
-        (tester) async {
-      debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
+      'mobileMode: null defaults based on platform (macOS → desktop)',
+      (tester) async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.macOS;
 
-      await tester.pumpWidget(buildWorksheet(mobileMode: null));
-      await tester.pump();
+        await tester.pumpWidget(buildWorksheet(mobileMode: null));
+        await tester.pump();
 
-      expect(find.byType(Worksheet), findsOneWidget);
+        expect(find.byType(Worksheet), findsOneWidget);
 
-      debugDefaultTargetPlatformOverride = null;
-    });
+        debugDefaultTargetPlatformOverride = null;
+      },
+    );
   });
 
   group('Mobile mode cell selection', () {
@@ -129,8 +133,9 @@ void main() {
       expect(controller.focusCell, equals(const CellCoordinate(0, 0)));
     });
 
-    testWidgets('tap on cell in desktop mode also selects cell',
-        (tester) async {
+    testWidgets('tap on cell in desktop mode also selects cell', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWorksheet(mobileMode: false));
       await tester.pump();
 
@@ -145,8 +150,7 @@ void main() {
 
   group('Mobile mode data population', () {
     testWidgets('mobileMode: true builds with data', (tester) async {
-      data.setCell(
-          const CellCoordinate(0, 0), CellValue.text('Hello Mobile'));
+      data.setCell(const CellCoordinate(0, 0), CellValue.text('Hello Mobile'));
 
       await tester.pumpWidget(buildWorksheet(mobileMode: true));
       await tester.pump();
@@ -262,49 +266,48 @@ void main() {
     // bottom-right corners of the selection range.
 
     testWidgets(
-        'touch drag on selection handle does not scroll in mobile mode',
-        (tester) async {
-      await tester.pumpWidget(buildWorksheet(mobileMode: true));
-      await tester.pump();
+      'touch drag on selection handle does not scroll in mobile mode',
+      (tester) async {
+        await tester.pumpWidget(buildWorksheet(mobileMode: true));
+        await tester.pump();
 
-      // Select range (1,1) to (3,3) programmatically
-      controller.selectionController.selectRange(
-        const CellRange(1, 1, 3, 3),
-      );
-      await tester.pump();
+        // Select range (1,1) to (3,3) programmatically
+        controller.selectionController.selectRange(const CellRange(1, 1, 3, 3));
+        await tester.pump();
 
-      // Record scroll position before drag
-      final scrollYBefore = controller.scrollY;
-      final scrollXBefore = controller.scrollX;
+        // Record scroll position before drag
+        final scrollYBefore = controller.scrollY;
+        final scrollXBefore = controller.scrollX;
 
-      // Bottom-right corner of selection (3,3):
-      // x = 50 + 4*100 = 450, y = 24 + 4*24 = 120
-      const handlePos = Offset(450.0, 120.0);
+        // Bottom-right corner of selection (3,3):
+        // x = 50 + 4*100 = 450, y = 24 + 4*24 = 120
+        const handlePos = Offset(450.0, 120.0);
 
-      // Start touch drag from the bottom-right handle
-      final gesture = await tester.startGesture(
-        handlePos,
-        kind: PointerDeviceKind.touch,
-      );
-      await tester.pump();
+        // Start touch drag from the bottom-right handle
+        final gesture = await tester.startGesture(
+          handlePos,
+          kind: PointerDeviceKind.touch,
+        );
+        await tester.pump();
 
-      // Drag downward 100 pixels (would scroll if not suppressed)
-      await gesture.moveBy(const Offset(0, 100));
-      await tester.pump();
-      await gesture.moveBy(const Offset(0, 100));
-      await tester.pump();
+        // Drag downward 100 pixels (would scroll if not suppressed)
+        await gesture.moveBy(const Offset(0, 100));
+        await tester.pump();
+        await gesture.moveBy(const Offset(0, 100));
+        await tester.pump();
 
-      // Scroll position should not have changed
-      expect(controller.scrollY, equals(scrollYBefore));
-      expect(controller.scrollX, equals(scrollXBefore));
+        // Scroll position should not have changed
+        expect(controller.scrollY, equals(scrollYBefore));
+        expect(controller.scrollX, equals(scrollXBefore));
 
-      await gesture.up();
-      await tester.pumpAndSettle();
-    });
+        await gesture.up();
+        await tester.pumpAndSettle();
+      },
+    );
 
-    testWidgets(
-        'touch drag on cell body scrolls normally in mobile mode',
-        (tester) async {
+    testWidgets('touch drag on cell body scrolls normally in mobile mode', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWorksheet(mobileMode: true));
       await tester.pump();
 
@@ -334,16 +337,12 @@ void main() {
       expect(controller.scrollY, greaterThan(scrollYBefore));
     });
 
-    testWidgets(
-        'scroll re-enables after handle drag ends',
-        (tester) async {
+    testWidgets('scroll re-enables after handle drag ends', (tester) async {
       await tester.pumpWidget(buildWorksheet(mobileMode: true));
       await tester.pump();
 
       // Select range (1,1) to (3,3) programmatically
-      controller.selectionController.selectRange(
-        const CellRange(1, 1, 3, 3),
-      );
+      controller.selectionController.selectRange(const CellRange(1, 1, 3, 3));
       await tester.pump();
 
       // Bottom-right handle position
@@ -384,13 +383,11 @@ void main() {
     // Layout: header width=50, header height=24, cell=100x24
     // Cell (2,2) center: x=50+2*100+50=300, y=24+2*24+12=84
 
-    testWidgets('double-tap on selected cell enters edit mode in mobile',
-        (tester) async {
+    testWidgets('double-tap on selected cell enters edit mode in mobile', (
+      tester,
+    ) async {
       editController = EditController();
-      data.setCell(
-        const CellCoordinate(2, 2),
-        CellValue.text('Test'),
-      );
+      data.setCell(const CellCoordinate(2, 2), CellValue.text('Test'));
 
       await tester.pumpWidget(
         buildWorksheet(mobileMode: true, ec: editController),
@@ -398,9 +395,7 @@ void main() {
       await tester.pump();
 
       // Pre-select the cell so it has a selection border
-      controller.selectionController.selectCell(
-        const CellCoordinate(2, 2),
-      );
+      controller.selectionController.selectCell(const CellCoordinate(2, 2));
       await tester.pump();
 
       // Double-tap at the CENTER of cell (2,2)
@@ -425,19 +420,19 @@ void main() {
       await g2.up();
       await tester.pumpAndSettle();
 
-      expect(editController!.isEditing, isTrue,
-          reason: 'Double-tap on selected cell should start editing');
-      expect(editController!.editingCell,
-          equals(const CellCoordinate(2, 2)));
+      expect(
+        editController!.isEditing,
+        isTrue,
+        reason: 'Double-tap on selected cell should start editing',
+      );
+      expect(editController!.editingCell, equals(const CellCoordinate(2, 2)));
     });
 
-    testWidgets('double-tap on unselected cell enters edit mode in mobile',
-        (tester) async {
+    testWidgets('double-tap on unselected cell enters edit mode in mobile', (
+      tester,
+    ) async {
       editController = EditController();
-      data.setCell(
-        const CellCoordinate(3, 3),
-        CellValue.text('Hello'),
-      );
+      data.setCell(const CellCoordinate(3, 3), CellValue.text('Hello'));
 
       await tester.pumpWidget(
         buildWorksheet(mobileMode: true, ec: editController),
@@ -466,10 +461,12 @@ void main() {
       await g2.up();
       await tester.pumpAndSettle();
 
-      expect(editController!.isEditing, isTrue,
-          reason: 'Double-tap on unselected cell should start editing');
-      expect(editController!.editingCell,
-          equals(const CellCoordinate(3, 3)));
+      expect(
+        editController!.isEditing,
+        isTrue,
+        reason: 'Double-tap on unselected cell should start editing',
+      );
+      expect(editController!.editingCell, equals(const CellCoordinate(3, 3)));
     });
   });
 }

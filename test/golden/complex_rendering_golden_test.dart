@@ -96,10 +96,12 @@ void main() {
       CellCoordinate(5, 4),
       const CellStyle(
         backgroundColor: Color(0xFFFFF2CC),
-        borders: CellBorders.all(BorderStyle(
-          color: Color(0xFFBF8F00),
-          lineStyle: BorderLineStyle.dashed,
-        )),
+        borders: CellBorders.all(
+          BorderStyle(
+            color: Color(0xFFBF8F00),
+            lineStyle: BorderLineStyle.dashed,
+          ),
+        ),
       ),
     );
     data.mergeCells(const CellRange(5, 4, 5, 5));
@@ -126,11 +128,16 @@ void main() {
     // Left-aligned text spilling right (col A is 90px, text is long)
     data.setCell(
       CellCoordinate(0, 0),
-      CellValue.text('This is a very long left-aligned text that should spill right'),
+      CellValue.text(
+        'This is a very long left-aligned text that should spill right',
+      ),
     );
 
     // Right-aligned text spilling left
-    data.setCell(CellCoordinate(2, 3), CellValue.text('Right-aligned spillover text'));
+    data.setCell(
+      CellCoordinate(2, 3),
+      CellValue.text('Right-aligned spillover text'),
+    );
     data.setStyle(
       CellCoordinate(2, 3),
       const CellStyle(textAlignment: CellTextAlignment.right),
@@ -156,11 +163,13 @@ void main() {
     // Numeric overflow → ###### hash fill in narrow column
     data.setCell(CellCoordinate(1, 6), CellValue.number(123456789.99));
 
-    await tester.pumpWidget(goldenWorksheetApp(
-      data: data,
-      readOnly: true,
-      customColumnWidths: {6: 30}, // narrow column for hash fill
-    ));
+    await tester.pumpWidget(
+      goldenWorksheetApp(
+        data: data,
+        readOnly: true,
+        customColumnWidths: {6: 30}, // narrow column for hash fill
+      ),
+    );
     await tester.pumpAndSettle();
 
     await expectLater(
@@ -184,10 +193,9 @@ void main() {
     data.setStyle(
       CellCoordinate(0, 0),
       const CellStyle(
-        borders: CellBorders.all(BorderStyle(
-          lineStyle: BorderLineStyle.solid,
-          width: 1.0,
-        )),
+        borders: CellBorders.all(
+          BorderStyle(lineStyle: BorderLineStyle.solid, width: 1.0),
+        ),
       ),
     );
 
@@ -196,10 +204,9 @@ void main() {
     data.setStyle(
       CellCoordinate(0, 2),
       const CellStyle(
-        borders: CellBorders.all(BorderStyle(
-          lineStyle: BorderLineStyle.dashed,
-          width: 1.0,
-        )),
+        borders: CellBorders.all(
+          BorderStyle(lineStyle: BorderLineStyle.dashed, width: 1.0),
+        ),
       ),
     );
 
@@ -208,10 +215,9 @@ void main() {
     data.setStyle(
       CellCoordinate(0, 4),
       const CellStyle(
-        borders: CellBorders.all(BorderStyle(
-          lineStyle: BorderLineStyle.dotted,
-          width: 1.0,
-        )),
+        borders: CellBorders.all(
+          BorderStyle(lineStyle: BorderLineStyle.dotted, width: 1.0),
+        ),
       ),
     );
 
@@ -220,10 +226,9 @@ void main() {
     data.setStyle(
       CellCoordinate(0, 6),
       const CellStyle(
-        borders: CellBorders.all(BorderStyle(
-          lineStyle: BorderLineStyle.double,
-          width: 1.0,
-        )),
+        borders: CellBorders.all(
+          BorderStyle(lineStyle: BorderLineStyle.double, width: 1.0),
+        ),
       ),
     );
 
@@ -293,10 +298,22 @@ void main() {
       CellCoordinate(4, 4),
       const CellStyle(
         borders: CellBorders(
-          top: BorderStyle(lineStyle: BorderLineStyle.solid, color: Color(0xFFFF0000)),
-          right: BorderStyle(lineStyle: BorderLineStyle.dashed, color: Color(0xFF00FF00)),
-          bottom: BorderStyle(lineStyle: BorderLineStyle.dotted, color: Color(0xFF0000FF)),
-          left: BorderStyle(lineStyle: BorderLineStyle.double, color: Color(0xFFFF00FF)),
+          top: BorderStyle(
+            lineStyle: BorderLineStyle.solid,
+            color: Color(0xFFFF0000),
+          ),
+          right: BorderStyle(
+            lineStyle: BorderLineStyle.dashed,
+            color: Color(0xFF00FF00),
+          ),
+          bottom: BorderStyle(
+            lineStyle: BorderLineStyle.dotted,
+            color: Color(0xFF0000FF),
+          ),
+          left: BorderStyle(
+            lineStyle: BorderLineStyle.double,
+            color: Color(0xFFFF00FF),
+          ),
         ),
       ),
     );
@@ -307,9 +324,9 @@ void main() {
       data.setStyle(
         CellCoordinate(6, col),
         const CellStyle(
-          borders: CellBorders.all(BorderStyle(
-            lineStyle: BorderLineStyle.double,
-          )),
+          borders: CellBorders.all(
+            BorderStyle(lineStyle: BorderLineStyle.double),
+          ),
         ),
       );
     }
@@ -334,7 +351,10 @@ void main() {
     final data = SparseWorksheetData(rowCount: 20, columnCount: 10);
 
     // Multi-span rich text: bold + italic + underline + color in one cell
-    data.setCell(CellCoordinate(0, 0), CellValue.text('Bold Italic Underline Color'));
+    data.setCell(
+      CellCoordinate(0, 0),
+      CellValue.text('Bold Italic Underline Color'),
+    );
     data.setRichText(CellCoordinate(0, 0), [
       const TextSpan(
         text: 'Bold ',
@@ -403,17 +423,11 @@ void main() {
     data.setRichText(CellCoordinate(5, 0), [
       const TextSpan(
         text: 'Merged ',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
       ),
       const TextSpan(
         text: 'Rich Text ',
-        style: TextStyle(
-          fontStyle: FontStyle.italic,
-          color: Color(0xFF4472C4),
-        ),
+        style: TextStyle(fontStyle: FontStyle.italic, color: Color(0xFF4472C4)),
       ),
       const TextSpan(
         text: 'Cell',
@@ -436,11 +450,9 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(goldenWorksheetApp(
-      data: data,
-      readOnly: true,
-      defaultColumnWidth: 100,
-    ));
+    await tester.pumpWidget(
+      goldenWorksheetApp(data: data, readOnly: true, defaultColumnWidth: 100),
+    );
     await tester.pumpAndSettle();
 
     await expectLater(
@@ -462,7 +474,9 @@ void main() {
     // Wrapped text with top vertical alignment in tall row
     data.setCell(
       CellCoordinate(0, 0),
-      CellValue.text('This is wrapped text with top vertical alignment in a tall row'),
+      CellValue.text(
+        'This is wrapped text with top vertical alignment in a tall row',
+      ),
     );
     data.setStyle(
       CellCoordinate(0, 0),
@@ -501,12 +515,11 @@ void main() {
     // Wrapped text clipped at standard row height (row 2 is not tall)
     data.setCell(
       CellCoordinate(2, 0),
-      CellValue.text('This wrapped text is clipped because the row height is standard'),
+      CellValue.text(
+        'This wrapped text is clipped because the row height is standard',
+      ),
     );
-    data.setStyle(
-      CellCoordinate(2, 0),
-      const CellStyle(wrapText: true),
-    );
+    data.setStyle(CellCoordinate(2, 0), const CellStyle(wrapText: true));
 
     // Wrapped text with center horizontal alignment
     data.setCell(
@@ -547,11 +560,13 @@ void main() {
       const TextSpan(text: 'wrapped text here for combo test'),
     ]);
 
-    await tester.pumpWidget(goldenWorksheetApp(
-      data: data,
-      readOnly: true,
-      customRowHeights: {0: 80, 4: 70},
-    ));
+    await tester.pumpWidget(
+      goldenWorksheetApp(
+        data: data,
+        readOnly: true,
+        customRowHeights: {0: 80, 4: 70},
+      ),
+    );
     await tester.pumpAndSettle();
 
     await expectLater(
@@ -588,10 +603,7 @@ void main() {
     data.setFormat(CellCoordinate(1, 1), CellFormat.percentageDecimal);
 
     // Date format
-    data.setCell(
-      CellCoordinate(2, 1),
-      CellValue.date(DateTime(2024, 3, 15)),
-    );
+    data.setCell(CellCoordinate(2, 1), CellValue.date(DateTime(2024, 3, 15)));
     data.setFormat(CellCoordinate(2, 1), CellFormat.dateShortLong);
 
     // Scientific format
@@ -630,11 +642,9 @@ void main() {
     data.setCell(CellCoordinate(1, 3), CellValue.number(3.14));
     data.setCell(CellCoordinate(2, 3), CellValue.text('Left'));
 
-    await tester.pumpWidget(goldenWorksheetApp(
-      data: data,
-      readOnly: true,
-      defaultColumnWidth: 100,
-    ));
+    await tester.pumpWidget(
+      goldenWorksheetApp(data: data, readOnly: true, defaultColumnWidth: 100),
+    );
     await tester.pumpAndSettle();
 
     await expectLater(
@@ -710,7 +720,14 @@ void main() {
     data.mergeCells(const CellRange(3, 0, 3, 5));
 
     // --- Column headers ---
-    final colHeaders = ['Item', 'Description', 'Qty', 'Unit Price', 'Total', 'Notes'];
+    final colHeaders = [
+      'Item',
+      'Description',
+      'Qty',
+      'Unit Price',
+      'Total',
+      'Notes',
+    ];
     for (var col = 0; col < colHeaders.length; col++) {
       data.setCell(CellCoordinate(4, col), CellValue.text(colHeaders[col]));
       data.setStyle(
@@ -763,8 +780,10 @@ void main() {
         style: TextStyle(fontWeight: FontWeight.bold),
       ),
     ]);
-    final grandTotal =
-        items.fold<double>(0, (sum, item) => sum + item.$3 * item.$4);
+    final grandTotal = items.fold<double>(
+      0,
+      (sum, item) => sum + item.$3 * item.$4,
+    );
     data.setCell(CellCoordinate(8, 4), CellValue.number(grandTotal));
     data.setFormat(CellCoordinate(8, 4), CellFormat.currency);
     data.setStyle(
@@ -797,10 +816,12 @@ void main() {
         wrapText: true,
         verticalAlignment: CellVerticalAlignment.top,
         backgroundColor: Color(0xFFFFF9E6),
-        borders: CellBorders.all(BorderStyle(
-          lineStyle: BorderLineStyle.dashed,
-          color: Color(0xFFBF8F00),
-        )),
+        borders: CellBorders.all(
+          BorderStyle(
+            lineStyle: BorderLineStyle.dashed,
+            color: Color(0xFFBF8F00),
+          ),
+        ),
       ),
     );
     data.mergeCells(const CellRange(10, 0, 11, 5));
@@ -834,13 +855,15 @@ void main() {
       ),
     );
 
-    await tester.pumpWidget(goldenWorksheetApp(
-      data: data,
-      readOnly: true,
-      defaultColumnWidth: 100,
-      customColumnWidths: {7: 30}, // narrow for hash fill
-      customRowHeights: {0: 40, 10: 50, 11: 50},
-    ));
+    await tester.pumpWidget(
+      goldenWorksheetApp(
+        data: data,
+        readOnly: true,
+        defaultColumnWidth: 100,
+        customColumnWidths: {7: 30}, // narrow for hash fill
+        customRowHeights: {0: 40, 10: 50, 11: 50},
+      ),
+    );
     await tester.pumpAndSettle();
 
     await expectLater(

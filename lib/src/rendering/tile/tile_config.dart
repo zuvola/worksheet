@@ -23,9 +23,9 @@ class TileConfig {
     this.tileSize = 256,
     this.maxCachedTiles = 100,
     this.prefetchRings = 1,
-  })  : assert(tileSize > 0, 'Tile size must be positive'),
-        assert(maxCachedTiles > 0, 'Max cached tiles must be positive'),
-        assert(prefetchRings >= 0, 'Prefetch rings must be non-negative');
+  }) : assert(tileSize > 0, 'Tile size must be positive'),
+       assert(maxCachedTiles > 0, 'Max cached tiles must be positive'),
+       assert(prefetchRings >= 0, 'Prefetch rings must be non-negative');
 
   /// The tile width in pixels.
   double get tileWidth => tileSize.toDouble();

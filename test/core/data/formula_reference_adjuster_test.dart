@@ -125,10 +125,7 @@ void main() {
 
     group('complex formulas', () {
       test('multiple references adjusted', () {
-        expect(
-          defaultFormulaReferenceAdjuster('=A1+B2*C3', 1, 0),
-          '=A2+B3*C4',
-        );
+        expect(defaultFormulaReferenceAdjuster('=A1+B2*C3', 1, 0), '=A2+B3*C4');
       });
 
       test('mixed absolute and relative', () {
@@ -148,25 +145,16 @@ void main() {
 
     group('out of bounds → #REF!', () {
       test('negative column produces #REF!', () {
-        expect(
-          defaultFormulaReferenceAdjuster('=A1', 0, -1),
-          '=#REF!',
-        );
+        expect(defaultFormulaReferenceAdjuster('=A1', 0, -1), '=#REF!');
       });
 
       test('negative row produces #REF!', () {
-        expect(
-          defaultFormulaReferenceAdjuster('=A1', -1, 0),
-          '=#REF!',
-        );
+        expect(defaultFormulaReferenceAdjuster('=A1', -1, 0), '=#REF!');
       });
 
       test('partial out of bounds in expression', () {
         // A1 col 0 + (-1) = -1 → #REF!, B1 col 1 + (-1) = 0 → A1
-        expect(
-          defaultFormulaReferenceAdjuster('=A1+B1', 0, -1),
-          '=#REF!+A1',
-        );
+        expect(defaultFormulaReferenceAdjuster('=A1+B1', 0, -1), '=#REF!+A1');
       });
     });
 
@@ -189,10 +177,7 @@ void main() {
       });
 
       test('only string, no refs', () {
-        expect(
-          defaultFormulaReferenceAdjuster('="Hello"', 1, 0),
-          '="Hello"',
-        );
+        expect(defaultFormulaReferenceAdjuster('="Hello"', 1, 0), '="Hello"');
       });
 
       test('ref before and after string', () {

@@ -87,10 +87,7 @@ class ZoomTransformer {
   /// At 2x zoom, a screen position of (200, 100) corresponds to
   /// worksheet position (100, 50).
   Offset screenToWorksheet(Offset screenPoint) {
-    return Offset(
-      screenPoint.dx / _scale,
-      screenPoint.dy / _scale,
-    );
+    return Offset(screenPoint.dx / _scale, screenPoint.dy / _scale);
   }
 
   /// Converts a worksheet coordinate to screen coordinate.
@@ -98,10 +95,7 @@ class ZoomTransformer {
   /// At 2x zoom, a worksheet position of (100, 50) appears at
   /// screen position (200, 100).
   Offset worksheetToScreen(Offset worksheetPoint) {
-    return Offset(
-      worksheetPoint.dx * _scale,
-      worksheetPoint.dy * _scale,
-    );
+    return Offset(worksheetPoint.dx * _scale, worksheetPoint.dy * _scale);
   }
 
   /// Converts a screen rect to worksheet coordinates.
@@ -126,18 +120,12 @@ class ZoomTransformer {
 
   /// Converts a screen size to worksheet size.
   Size screenToWorksheetSize(Size screenSize) {
-    return Size(
-      screenSize.width / _scale,
-      screenSize.height / _scale,
-    );
+    return Size(screenSize.width / _scale, screenSize.height / _scale);
   }
 
   /// Converts a worksheet size to screen size.
   Size worksheetToScreenSize(Size worksheetSize) {
-    return Size(
-      worksheetSize.width * _scale,
-      worksheetSize.height * _scale,
-    );
+    return Size(worksheetSize.width * _scale, worksheetSize.height * _scale);
   }
 
   /// Scales a value from worksheet to screen space.

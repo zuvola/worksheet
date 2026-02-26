@@ -14,7 +14,11 @@ void main() {
   late HeaderRenderer headerRenderer;
   late SelectionController selectionController;
 
-  SpanRange getVisibleColumns(double scrollX, double viewportWidth, double zoom) {
+  SpanRange getVisibleColumns(
+    double scrollX,
+    double viewportWidth,
+    double zoom,
+  ) {
     final startX = scrollX / zoom;
     final endX = startX + viewportWidth / zoom;
     return layoutSolver.getVisibleColumns(startX, endX - startX);

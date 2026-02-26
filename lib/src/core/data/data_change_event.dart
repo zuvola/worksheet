@@ -64,50 +64,32 @@ class DataChangeEvent {
 
   /// Creates an event for a cell value change.
   factory DataChangeEvent.cellValue(CellCoordinate coord) {
-    return DataChangeEvent._(
-      type: DataChangeType.cellValue,
-      cell: coord,
-    );
+    return DataChangeEvent._(type: DataChangeType.cellValue, cell: coord);
   }
 
   /// Creates an event for a cell style change.
   factory DataChangeEvent.cellStyle(CellCoordinate coord) {
-    return DataChangeEvent._(
-      type: DataChangeType.cellStyle,
-      cell: coord,
-    );
+    return DataChangeEvent._(type: DataChangeType.cellStyle, cell: coord);
   }
 
   /// Creates an event for a cell format change.
   factory DataChangeEvent.cellFormat(CellCoordinate coord) {
-    return DataChangeEvent._(
-      type: DataChangeType.cellFormat,
-      cell: coord,
-    );
+    return DataChangeEvent._(type: DataChangeType.cellFormat, cell: coord);
   }
 
   /// Creates an event for a range change.
   factory DataChangeEvent.range(CellRange range) {
-    return DataChangeEvent._(
-      type: DataChangeType.range,
-      range: range,
-    );
+    return DataChangeEvent._(type: DataChangeType.range, range: range);
   }
 
   /// Creates an event for a row insertion.
   factory DataChangeEvent.rowInserted(int index) {
-    return DataChangeEvent._(
-      type: DataChangeType.rowInserted,
-      rowIndex: index,
-    );
+    return DataChangeEvent._(type: DataChangeType.rowInserted, rowIndex: index);
   }
 
   /// Creates an event for a row deletion.
   factory DataChangeEvent.rowDeleted(int index) {
-    return DataChangeEvent._(
-      type: DataChangeType.rowDeleted,
-      rowIndex: index,
-    );
+    return DataChangeEvent._(type: DataChangeType.rowDeleted, rowIndex: index);
   }
 
   /// Creates an event for a column insertion.
@@ -128,18 +110,12 @@ class DataChangeEvent {
 
   /// Creates an event for a cell merge.
   factory DataChangeEvent.merge(CellRange range) {
-    return DataChangeEvent._(
-      type: DataChangeType.merge,
-      range: range,
-    );
+    return DataChangeEvent._(type: DataChangeType.merge, range: range);
   }
 
   /// Creates an event for a cell unmerge.
   factory DataChangeEvent.unmerge(CellRange range) {
-    return DataChangeEvent._(
-      type: DataChangeType.unmerge,
-      range: range,
-    );
+    return DataChangeEvent._(type: DataChangeType.unmerge, range: range);
   }
 
   /// Creates an event for a full data reset.

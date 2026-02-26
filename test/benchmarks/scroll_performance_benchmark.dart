@@ -41,10 +41,7 @@ void main() {
     data = SparseWorksheetData(rowCount: 10000, columnCount: 1000);
     for (int row = 0; row < 1000; row += 10) {
       for (int col = 0; col < 100; col += 5) {
-        data.setCell(
-          CellCoordinate(row, col),
-          CellValue.text('R${row}C$col'),
-        );
+        data.setCell(CellCoordinate(row, col), CellValue.text('R${row}C$col'));
       }
     }
   });
@@ -58,12 +55,18 @@ void main() {
 
       // Simulate scrolling through the worksheet
       for (int i = 0; i < iterations; i++) {
-        final scrollY = (i * 50.0) % (layoutSolver.totalHeight - viewportHeight);
+        final scrollY =
+            (i * 50.0) % (layoutSolver.totalHeight - viewportHeight);
         final scrollX = (i * 30.0) % (layoutSolver.totalWidth - viewportWidth);
 
         final stopwatch = Stopwatch()..start();
         rangeCalculator.getVisibleRange(
-          viewport: Rect.fromLTWH(scrollX, scrollY, viewportWidth, viewportHeight),
+          viewport: Rect.fromLTWH(
+            scrollX,
+            scrollY,
+            viewportWidth,
+            viewportHeight,
+          ),
         );
         stopwatch.stop();
         times.add(stopwatch.elapsedMicroseconds);
@@ -172,8 +175,10 @@ void main() {
 
         for (int i = 0; i < iterations; i++) {
           // At different zoom levels, the content spans different pixel areas
-          final maxScrollY = (layoutSolver.totalHeight * zoom - viewportHeight).clamp(0.0, double.infinity);
-          final maxScrollX = (layoutSolver.totalWidth * zoom - viewportWidth).clamp(0.0, double.infinity);
+          final maxScrollY = (layoutSolver.totalHeight * zoom - viewportHeight)
+              .clamp(0.0, double.infinity);
+          final maxScrollX = (layoutSolver.totalWidth * zoom - viewportWidth)
+              .clamp(0.0, double.infinity);
           final scrollY = maxScrollY > 0 ? (i * 100.0) % maxScrollY : 0.0;
           final scrollX = maxScrollX > 0 ? (i * 80.0) % maxScrollX : 0.0;
 
@@ -185,7 +190,12 @@ void main() {
 
           final stopwatch = Stopwatch()..start();
           rangeCalculator.getVisibleRange(
-            viewport: Rect.fromLTWH(contentLeft, contentTop, contentWidth, contentHeight),
+            viewport: Rect.fromLTWH(
+              contentLeft,
+              contentTop,
+              contentWidth,
+              contentHeight,
+            ),
           );
           stopwatch.stop();
           times.add(stopwatch.elapsedMicroseconds);
@@ -193,7 +203,9 @@ void main() {
 
         final avgUs = times.reduce((a, b) => a + b) / times.length;
         // ignore: avoid_print
-        print('Visible range at zoom $zoom: ${(avgUs / 1000).toStringAsFixed(3)} ms avg');
+        print(
+          'Visible range at zoom $zoom: ${(avgUs / 1000).toStringAsFixed(3)} ms avg',
+        );
 
         expect(avgUs / 1000, lessThan(2.0));
       }

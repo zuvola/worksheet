@@ -263,7 +263,10 @@ void main() {
       });
 
       test('error value', () {
-        expect(CellValue.error('#DIV/0!').toString(), 'CellValue.error(#DIV/0!)');
+        expect(
+          CellValue.error('#DIV/0!').toString(),
+          'CellValue.error(#DIV/0!)',
+        );
       });
     });
 
@@ -331,18 +334,16 @@ void main() {
         });
 
         test('=SUM(A1:A5) with allowFormulas:false becomes text', () {
-          final result =
-              CellValue.parse('=SUM(A1:A5)', allowFormulas: false);
+          final result = CellValue.parse('=SUM(A1:A5)', allowFormulas: false);
           expect(result, const CellValue.text('=SUM(A1:A5)'));
         });
 
         test('=IMPORTRANGE(...) with allowFormulas:false becomes text', () {
-          final result = CellValue.parse('=IMPORTRANGE("url","A1")',
-              allowFormulas: false);
-          expect(
-            result,
-            const CellValue.text('=IMPORTRANGE("url","A1")'),
+          final result = CellValue.parse(
+            '=IMPORTRANGE("url","A1")',
+            allowFormulas: false,
           );
+          expect(result, const CellValue.text('=IMPORTRANGE("url","A1")'));
         });
       });
 
@@ -445,10 +446,8 @@ void main() {
         });
 
         test('15/01/2025 with dayFirst parser is Jan 15', () {
-          final parser =
-              AnyDate(info: const DateParserInfo(dayFirst: true));
-          final result =
-              CellValue.parse('15/01/2025', dateParser: parser);
+          final parser = AnyDate(info: const DateParserInfo(dayFirst: true));
+          final result = CellValue.parse('15/01/2025', dateParser: parser);
           expect(result!.isDate, isTrue);
           expect(result.asDateTime, DateTime(2025, 1, 15));
         });
@@ -465,8 +464,10 @@ void main() {
         test('1:30:05 parses as duration', () {
           final result = CellValue.parse('1:30:05');
           expect(result!.isDuration, isTrue);
-          expect(result.asDuration,
-              const Duration(hours: 1, minutes: 30, seconds: 5));
+          expect(
+            result.asDuration,
+            const Duration(hours: 1, minutes: 30, seconds: 5),
+          );
         });
 
         test('0:45 parses as duration (h:mm)', () {
@@ -478,8 +479,7 @@ void main() {
         test('-1:30:00 parses as negative duration', () {
           final result = CellValue.parse('-1:30:00');
           expect(result!.isDuration, isTrue);
-          expect(result.asDuration,
-              const Duration(hours: -1, minutes: -30));
+          expect(result.asDuration, const Duration(hours: -1, minutes: -30));
         });
 
         test('100:00:00 parses as 100 hours', () {
@@ -501,8 +501,7 @@ void main() {
         test('14:30 parses as duration, not date', () {
           final result = CellValue.parse('14:30');
           expect(result!.isDuration, isTrue);
-          expect(result.asDuration,
-              const Duration(hours: 14, minutes: 30));
+          expect(result.asDuration, const Duration(hours: 14, minutes: 30));
         });
 
         test('0:00:00 parses as zero duration', () {
@@ -514,8 +513,7 @@ void main() {
         test('1:00:59 parses correctly', () {
           final result = CellValue.parse('1:00:59');
           expect(result!.isDuration, isTrue);
-          expect(result.asDuration,
-              const Duration(hours: 1, seconds: 59));
+          expect(result.asDuration, const Duration(hours: 1, seconds: 59));
         });
 
         test('1:00:60 returns null (invalid seconds)', () {
@@ -530,13 +528,14 @@ void main() {
         });
 
         test('text with whitespace is trimmed', () {
-          expect(
-              CellValue.parse(' hello '), const CellValue.text('hello'));
+          expect(CellValue.parse(' hello '), const CellValue.text('hello'));
         });
 
         test('non-date non-number string is text', () {
-          expect(CellValue.parse('abc123xyz'),
-              const CellValue.text('abc123xyz'));
+          expect(
+            CellValue.parse('abc123xyz'),
+            const CellValue.text('abc123xyz'),
+          );
         });
       });
     });

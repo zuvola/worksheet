@@ -18,10 +18,8 @@ void applyOuterBorder(SparseWorksheetData data, CellRange range) {
 
       // For merged anchors, use the merge region's extent to determine
       // which edges touch the selection perimeter.
-      final int effectiveEndRow =
-          region != null ? region.range.endRow : row;
-      final int effectiveEndCol =
-          region != null ? region.range.endColumn : col;
+      final int effectiveEndRow = region != null ? region.range.endRow : row;
+      final int effectiveEndCol = region != null ? region.range.endColumn : col;
 
       final top = row == range.startRow
           ? const BorderStyle()
@@ -36,12 +34,15 @@ void applyOuterBorder(SparseWorksheetData data, CellRange range) {
           ? const BorderStyle()
           : BorderStyle.none;
 
-      final borders =
-          CellBorders(top: top, right: right, bottom: bottom, left: left);
+      final borders = CellBorders(
+        top: top,
+        right: right,
+        bottom: bottom,
+        left: left,
+      );
       final style = CellStyle(borders: borders);
       final current = data.getStyle(coord);
-      final merged =
-          current != null ? current.merge(style) : style;
+      final merged = current != null ? current.merge(style) : style;
       data.setStyle(coord, merged);
     }
   }
@@ -57,12 +58,15 @@ void mergeAndClearBorders(SparseWorksheetData data, CellRange range) {
     for (final coord in range.cells) {
       final style = data.getStyle(coord);
       if (style != null && style.borders != null && !style.borders!.isNone) {
-        batch.setStyle(coord, CellStyle(
-          backgroundColor: style.backgroundColor,
-          textAlignment: style.textAlignment,
-          verticalAlignment: style.verticalAlignment,
-          wrapText: style.wrapText,
-        ));
+        batch.setStyle(
+          coord,
+          CellStyle(
+            backgroundColor: style.backgroundColor,
+            textAlignment: style.textAlignment,
+            verticalAlignment: style.verticalAlignment,
+            wrapText: style.wrapText,
+          ),
+        );
       }
     }
   });
@@ -78,7 +82,6 @@ void main() {
   tearDown(() => data.dispose());
 
   group('outer border on merged cells', () {
-
     test('3x3 merge gets borders on all four sides of the anchor', () {
       // Merge a 3x3 region: rows 0-2, cols 0-2
       const mergeRange = CellRange(0, 0, 2, 2);
@@ -89,8 +92,7 @@ void main() {
 
       // The anchor (0,0) should have borders on ALL four sides,
       // because the merge region spans the entire selection.
-      final anchorBorders =
-          data.getStyle(const CellCoordinate(0, 0))?.borders;
+      final anchorBorders = data.getStyle(const CellCoordinate(0, 0))?.borders;
       expect(anchorBorders, isNotNull, reason: 'anchor should have borders');
       expect(anchorBorders!.top.isNone, isFalse, reason: 'top border');
       expect(anchorBorders.bottom.isNone, isFalse, reason: 'bottom border');
@@ -109,8 +111,7 @@ void main() {
       // Anchor of the merge at (0,1) should get top + right borders
       // (bottom edge of merge is row 1 = selection endRow,
       //  right edge of merge is col 2 = selection endColumn)
-      final anchorBorders =
-          data.getStyle(const CellCoordinate(0, 1))?.borders;
+      final anchorBorders = data.getStyle(const CellCoordinate(0, 1))?.borders;
       expect(anchorBorders, isNotNull);
       expect(anchorBorders!.top.isNone, isFalse, reason: 'top border');
       expect(anchorBorders.right.isNone, isFalse, reason: 'right border');
@@ -163,8 +164,11 @@ void main() {
         final style = data.getStyle(coord);
         final hasBorders =
             style != null && style.borders != null && !style.borders!.isNone;
-        expect(hasBorders, isFalse,
-            reason: '$coord should have no borders after merge');
+        expect(
+          hasBorders,
+          isFalse,
+          reason: '$coord should have no borders after merge',
+        );
       }
     });
 
@@ -176,8 +180,7 @@ void main() {
 
       // When the anchor's style changes, getRegion should return the
       // full merge so the widget can invalidate all overlapping tiles.
-      final region =
-          data.mergedCells.getRegion(const CellCoordinate(0, 0));
+      final region = data.mergedCells.getRegion(const CellCoordinate(0, 0));
       expect(region, isNotNull);
       expect(region!.range, mergeRange);
 

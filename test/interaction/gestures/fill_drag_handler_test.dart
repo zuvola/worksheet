@@ -135,30 +135,32 @@ void main() {
         expect(previewRanges, isEmpty);
       });
 
-      test('single-cell source allows free expansion without axis constraint',
-          () {
-        final singleHandler = FillDragHandler(
-          hitTester: hitTester,
-          onFillPreviewUpdate: (range) => previewRanges.add(range),
-          onFillComplete: (source, dest) {},
-          onFillCancel: () {},
-        );
+      test(
+        'single-cell source allows free expansion without axis constraint',
+        () {
+          final singleHandler = FillDragHandler(
+            hitTester: hitTester,
+            onFillPreviewUpdate: (range) => previewRanges.add(range),
+            onFillComplete: (source, dest) {},
+            onFillCancel: () {},
+          );
 
-        singleHandler.start(
-          const CellRange(2, 2, 2, 2),
-          const Offset(349.0, 101.0),
-        );
+          singleHandler.start(
+            const CellRange(2, 2, 2, 2),
+            const Offset(349.0, 101.0),
+          );
 
-        // Drag diagonally to (5, 4): screen (500, 162)
-        singleHandler.update(const Offset(500.0, 162.0), Offset.zero, 1.0);
+          // Drag diagonally to (5, 4): screen (500, 162)
+          singleHandler.update(const Offset(500.0, 162.0), Offset.zero, 1.0);
 
-        expect(previewRanges, hasLength(1));
-        final preview = previewRanges.last;
-        expect(preview.startRow, 2);
-        expect(preview.startColumn, 2);
-        expect(preview.endRow, 5);
-        expect(preview.endColumn, 4);
-      });
+          expect(previewRanges, hasLength(1));
+          final preview = previewRanges.last;
+          expect(preview.startRow, 2);
+          expect(preview.startColumn, 2);
+          expect(preview.endRow, 5);
+          expect(preview.endColumn, 4);
+        },
+      );
     });
 
     group('completion', () {

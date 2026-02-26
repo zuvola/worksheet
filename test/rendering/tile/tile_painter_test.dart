@@ -26,10 +26,7 @@ void main() {
         rows: SpanList(count: 1000, defaultSize: 24.0),
         columns: SpanList(count: 100, defaultSize: 100.0),
       );
-      painter = TilePainter(
-        data: data,
-        layoutSolver: layoutSolver,
-      );
+      painter = TilePainter(data: data, layoutSolver: layoutSolver);
     });
 
     tearDown(() {
@@ -74,9 +71,7 @@ void main() {
       data.setCell(CellCoordinate(0, 0), CellValue.text('Styled'));
       data.setStyle(
         CellCoordinate(0, 0),
-        const CellStyle(
-          backgroundColor: Color(0xFFFFFF00),
-        ),
+        const CellStyle(backgroundColor: Color(0xFFFFFF00)),
       );
       data.setRichText(CellCoordinate(0, 0), [
         const TextSpan(
@@ -265,7 +260,9 @@ void main() {
 
       test('renders formatted date values', () {
         data.setCell(
-            CellCoordinate(0, 0), CellValue.date(DateTime(2024, 1, 15)));
+          CellCoordinate(0, 0),
+          CellValue.date(DateTime(2024, 1, 15)),
+        );
         data.setFormat(CellCoordinate(0, 0), CellFormat.dateIso);
 
         final picture = painter.renderTile(
@@ -373,9 +370,7 @@ void main() {
       test('borders hidden below 40% zoom', () {
         data.setStyle(
           CellCoordinate(0, 0),
-          const CellStyle(
-            borders: CellBorders.all(BorderStyle(width: 2.0)),
-          ),
+          const CellStyle(borders: CellBorders.all(BorderStyle(width: 2.0))),
         );
 
         // Should not throw at low zoom levels
@@ -506,9 +501,7 @@ void main() {
         data.setStyle(
           const CellCoordinate(0, 0),
           const CellStyle(
-            borders: CellBorders.all(
-              BorderStyle(color: Color(0xFF000000)),
-            ),
+            borders: CellBorders.all(BorderStyle(color: Color(0xFF000000))),
           ),
         );
 
@@ -622,7 +615,9 @@ void main() {
       test('text value does NOT show hash fill', () {
         layoutSolver.setColumnWidth(0, 30.0);
         data.setCell(
-            CellCoordinate(0, 0), CellValue.text('Long text that overflows'));
+          CellCoordinate(0, 0),
+          CellValue.text('Long text that overflows'),
+        );
 
         final picture = painter.renderTile(
           coordinate: TileCoordinate(0, 0),
@@ -640,8 +635,10 @@ void main() {
     group('text spillover', () {
       test('left-aligned text renders into adjacent empty cells', () {
         // Put long text in col 0, cols 1-2 are empty
-        data.setCell(CellCoordinate(0, 0),
-            CellValue.text('This is a very long text that should spill'));
+        data.setCell(
+          CellCoordinate(0, 0),
+          CellValue.text('This is a very long text that should spill'),
+        );
 
         final picture = painter.renderTile(
           coordinate: TileCoordinate(0, 0),
@@ -655,8 +652,10 @@ void main() {
       });
 
       test('right-aligned text renders into adjacent empty left cells', () {
-        data.setCell(CellCoordinate(0, 3),
-            CellValue.text('This is a very long text that should spill left'));
+        data.setCell(
+          CellCoordinate(0, 3),
+          CellValue.text('This is a very long text that should spill left'),
+        );
         data.setStyle(
           CellCoordinate(0, 3),
           const CellStyle(textAlignment: CellTextAlignment.right),
@@ -674,8 +673,10 @@ void main() {
       });
 
       test('center-aligned text renders both directions', () {
-        data.setCell(CellCoordinate(0, 3),
-            CellValue.text('Center text that spills in both directions'));
+        data.setCell(
+          CellCoordinate(0, 3),
+          CellValue.text('Center text that spills in both directions'),
+        );
         data.setStyle(
           CellCoordinate(0, 3),
           const CellStyle(textAlignment: CellTextAlignment.center),
@@ -693,8 +694,10 @@ void main() {
       });
 
       test('spillover stops at non-empty adjacent cell', () {
-        data.setCell(CellCoordinate(0, 0),
-            CellValue.text('Very long text attempting to spill over'));
+        data.setCell(
+          CellCoordinate(0, 0),
+          CellValue.text('Very long text attempting to spill over'),
+        );
         data.setCell(CellCoordinate(0, 1), CellValue.text('Blocker'));
 
         final picture = painter.renderTile(
@@ -709,12 +712,11 @@ void main() {
       });
 
       test('wrap text cell does not spill', () {
-        data.setCell(CellCoordinate(0, 0),
-            CellValue.text('Long wrapped text stays in cell'));
-        data.setStyle(
+        data.setCell(
           CellCoordinate(0, 0),
-          const CellStyle(wrapText: true),
+          CellValue.text('Long wrapped text stays in cell'),
         );
+        data.setStyle(CellCoordinate(0, 0), const CellStyle(wrapText: true));
 
         final picture = painter.renderTile(
           coordinate: TileCoordinate(0, 0),
@@ -729,18 +731,17 @@ void main() {
 
       test('spillover from cell outside tile range renders into tile', () {
         // Cell at col 0 has long text, tile starts at col 1
-        data.setCell(CellCoordinate(0, 0),
-            CellValue.text('This text is very long and spills into columns 1 2 3 4'));
+        data.setCell(
+          CellCoordinate(0, 0),
+          CellValue.text(
+            'This text is very long and spills into columns 1 2 3 4',
+          ),
+        );
 
         // Tile covers cols 1-5 — cell 0 is outside tile range but spills in
         final picture = painter.renderTile(
           coordinate: TileCoordinate(0, 1),
-          bounds: ui.Rect.fromLTWH(
-            layoutSolver.getColumnLeft(1),
-            0,
-            500,
-            256,
-          ),
+          bounds: ui.Rect.fromLTWH(layoutSolver.getColumnLeft(1), 0, 500, 256),
           cellRange: CellRange(0, 1, 5, 5),
           zoomBucket: ZoomBucket.full,
         );

@@ -8,7 +8,10 @@ void main() {
     test('has all expected values', () {
       expect(ScrollbarVisibility.values, hasLength(3));
       expect(ScrollbarVisibility.values, contains(ScrollbarVisibility.always));
-      expect(ScrollbarVisibility.values, contains(ScrollbarVisibility.onScroll));
+      expect(
+        ScrollbarVisibility.values,
+        contains(ScrollbarVisibility.onScroll),
+      );
       expect(ScrollbarVisibility.values, contains(ScrollbarVisibility.never));
     });
   });

@@ -56,8 +56,16 @@ void main() {
         // Tap on cell (0, 0) - positioned at (50, 30) plus cell area
         final position = const Offset(60.0, 40.0);
 
-        handler.onTapDown(position: position, scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onTapUp(position: position, scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onTapDown(
+          position: position,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+        handler.onTapUp(
+          position: position,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
 
         expect(selectionController.hasSelection, isTrue);
         expect(selectionController.focus, equals(CellCoordinate(0, 0)));
@@ -65,15 +73,31 @@ void main() {
 
       test('tap on different cell changes selection', () {
         // First select cell (0, 0)
-        handler.onTapDown(position: const Offset(60.0, 40.0), scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onTapUp(position: const Offset(60.0, 40.0), scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onTapDown(
+          position: const Offset(60.0, 40.0),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+        handler.onTapUp(
+          position: const Offset(60.0, 40.0),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
 
         // Then tap on cell (1, 1) - center of cell
         // Column 1: x = 100..200 (worksheet), screen x = 150..250
         // Row 1: y = 24..48 (worksheet), screen y = 54..78
         // Center: (200, 66) — well away from any fill handle
-        handler.onTapDown(position: const Offset(200.0, 66.0), scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onTapUp(position: const Offset(200.0, 66.0), scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onTapDown(
+          position: const Offset(200.0, 66.0),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+        handler.onTapUp(
+          position: const Offset(200.0, 66.0),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
 
         expect(selectionController.focus, equals(CellCoordinate(1, 1)));
       });
@@ -147,60 +171,71 @@ void main() {
         expect(selectionController.focus, equals(CellCoordinate(2, 2)));
       });
 
-      test('non-shift click after shift-extended selection resets to single cell', () {
-        // Select cell (0, 0)
-        handler.onTapDown(
-          position: const Offset(60.0, 40.0),
-          scrollOffset: Offset.zero,
-          zoom: 1.0,
-        );
-        handler.onDragStart(
-          position: const Offset(60.0, 40.0),
-          scrollOffset: Offset.zero,
-          zoom: 1.0,
-        );
-        handler.onDragEnd();
+      test(
+        'non-shift click after shift-extended selection resets to single cell',
+        () {
+          // Select cell (0, 0)
+          handler.onTapDown(
+            position: const Offset(60.0, 40.0),
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
+          handler.onDragStart(
+            position: const Offset(60.0, 40.0),
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
+          handler.onDragEnd();
 
-        // Shift+click to extend to (2, 2)
-        handler.onTapDown(
-          position: const Offset(260.0, 82.0),
-          scrollOffset: Offset.zero,
-          zoom: 1.0,
-          isShiftPressed: true,
-        );
-        handler.onDragStart(
-          position: const Offset(260.0, 82.0),
-          scrollOffset: Offset.zero,
-          zoom: 1.0,
-          isShiftPressed: true,
-        );
-        handler.onDragEnd();
+          // Shift+click to extend to (2, 2)
+          handler.onTapDown(
+            position: const Offset(260.0, 82.0),
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+            isShiftPressed: true,
+          );
+          handler.onDragStart(
+            position: const Offset(260.0, 82.0),
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+            isShiftPressed: true,
+          );
+          handler.onDragEnd();
 
-        // Verify extended selection
-        expect(selectionController.selectedRange!.endRow, equals(2));
-        expect(selectionController.selectedRange!.endColumn, equals(2));
+          // Verify extended selection
+          expect(selectionController.selectedRange!.endRow, equals(2));
+          expect(selectionController.selectedRange!.endColumn, equals(2));
 
-        // Normal click on cell (1, 1) — should reset to single cell
-        handler.onTapDown(
-          position: const Offset(200.0, 66.0),
-          scrollOffset: Offset.zero,
-          zoom: 1.0,
-        );
-        handler.onDragStart(
-          position: const Offset(200.0, 66.0),
-          scrollOffset: Offset.zero,
-          zoom: 1.0,
-        );
-        handler.onDragEnd();
+          // Normal click on cell (1, 1) — should reset to single cell
+          handler.onTapDown(
+            position: const Offset(200.0, 66.0),
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
+          handler.onDragStart(
+            position: const Offset(200.0, 66.0),
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
+          handler.onDragEnd();
 
-        expect(selectionController.anchor, equals(CellCoordinate(1, 1)));
-        expect(selectionController.focus, equals(CellCoordinate(1, 1)));
-      });
+          expect(selectionController.anchor, equals(CellCoordinate(1, 1)));
+          expect(selectionController.focus, equals(CellCoordinate(1, 1)));
+        },
+      );
 
       test('tap outside worksheet area does nothing', () {
         // Tap at negative coordinates (should not select)
-        handler.onTapDown(position: const Offset(-10.0, -10.0), scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onTapUp(position: const Offset(-10.0, -10.0), scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onTapDown(
+          position: const Offset(-10.0, -10.0),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+        handler.onTapUp(
+          position: const Offset(-10.0, -10.0),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
 
         expect(selectionController.hasSelection, isFalse);
       });
@@ -242,14 +277,22 @@ void main() {
       test('double tap on cell triggers edit callback', () {
         final position = const Offset(60.0, 40.0);
 
-        handler.onDoubleTap(position: position, scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onDoubleTap(
+          position: position,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
 
         expect(lastEditCell, equals(CellCoordinate(0, 0)));
       });
 
       test('double tap outside cell area does not trigger edit', () {
         // Double tap in header area
-        handler.onDoubleTap(position: const Offset(25.0, 15.0), scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onDoubleTap(
+          position: const Offset(25.0, 15.0),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
 
         expect(lastEditCell, isNull);
       });
@@ -260,8 +303,16 @@ void main() {
         const startPos = Offset(60.0, 40.0);
         const endPos = Offset(155.0, 60.0);
 
-        handler.onDragStart(position: startPos, scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onDragUpdate(position: endPos, scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onDragStart(
+          position: startPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+        handler.onDragUpdate(
+          position: endPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
         handler.onDragEnd();
 
         expect(selectionController.hasSelection, isTrue);
@@ -275,8 +326,16 @@ void main() {
         // Cell (2, 2) is at worksheet (200, 48), screen = (250, 78)
         const endPos = Offset(255.0, 82.0);
 
-        handler.onDragStart(position: startPos, scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onDragUpdate(position: endPos, scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onDragStart(
+          position: startPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+        handler.onDragUpdate(
+          position: endPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
         handler.onDragEnd();
 
         final range = selectionController.selectedRange!;
@@ -291,8 +350,16 @@ void main() {
       test('tap on row header selects entire row', () {
         // Row header area - x < headerWidth (50), y > headerHeight (30)
         // Row 0 at y = 30 + 0 = 30
-        handler.onTapDown(position: const Offset(25.0, 40.0), scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onTapUp(position: const Offset(25.0, 40.0), scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onTapDown(
+          position: const Offset(25.0, 40.0),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+        handler.onTapUp(
+          position: const Offset(25.0, 40.0),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
 
         expect(selectionController.hasSelection, isTrue);
         final range = selectionController.selectedRange!;
@@ -305,8 +372,16 @@ void main() {
       test('tap on column header selects entire column', () {
         // Column header area - x > headerWidth (50), y < headerHeight (30)
         // Column 0 starts at x = 50
-        handler.onTapDown(position: const Offset(60.0, 15.0), scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onTapUp(position: const Offset(60.0, 15.0), scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onTapDown(
+          position: const Offset(60.0, 15.0),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+        handler.onTapUp(
+          position: const Offset(60.0, 15.0),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
 
         expect(selectionController.hasSelection, isTrue);
         final range = selectionController.selectedRange!;
@@ -327,8 +402,16 @@ void main() {
         const startPos = Offset(25.0, 53.0);
         const endPos = Offset(25.0, 73.0); // Drag down 20 pixels
 
-        handler.onDragStart(position: startPos, scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onDragUpdate(position: endPos, scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onDragStart(
+          position: startPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+        handler.onDragUpdate(
+          position: endPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
         handler.onDragEnd();
 
         expect(lastResizeRow, equals(0));
@@ -344,8 +427,16 @@ void main() {
         const startPos = Offset(149.0, 15.0);
         const endPos = Offset(179.0, 15.0); // Drag right 30 pixels
 
-        handler.onDragStart(position: startPos, scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onDragUpdate(position: endPos, scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onDragStart(
+          position: startPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+        handler.onDragUpdate(
+          position: endPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
         handler.onDragEnd();
 
         expect(lastResizeColumn, equals(0));
@@ -362,8 +453,16 @@ void main() {
         // So position (150, 60) should still hit cell (0, 0)
         final position = const Offset(150.0, 60.0);
 
-        handler.onTapDown(position: position, scrollOffset: Offset.zero, zoom: 2.0);
-        handler.onTapUp(position: position, scrollOffset: Offset.zero, zoom: 2.0);
+        handler.onTapDown(
+          position: position,
+          scrollOffset: Offset.zero,
+          zoom: 2.0,
+        );
+        handler.onTapUp(
+          position: position,
+          scrollOffset: Offset.zero,
+          zoom: 2.0,
+        );
 
         expect(selectionController.focus, equals(CellCoordinate(0, 0)));
       });
@@ -375,8 +474,16 @@ void main() {
         final scrollOffset = const Offset(100.0, 48.0);
         final position = const Offset(55.0, 35.0);
 
-        handler.onTapDown(position: position, scrollOffset: scrollOffset, zoom: 1.0);
-        handler.onTapUp(position: position, scrollOffset: scrollOffset, zoom: 1.0);
+        handler.onTapDown(
+          position: position,
+          scrollOffset: scrollOffset,
+          zoom: 1.0,
+        );
+        handler.onTapUp(
+          position: position,
+          scrollOffset: scrollOffset,
+          zoom: 1.0,
+        );
 
         // At scroll (100, 48): viewport origin (50, 30) shows worksheet (100, 48)
         // Position (55, 35) = viewport (5, 5) = worksheet (105, 53)
@@ -390,7 +497,11 @@ void main() {
       expect(handler.isResizing, isFalse);
       expect(handler.isSelectingRange, isFalse);
 
-      handler.onDragStart(position: const Offset(60.0, 40.0), scrollOffset: Offset.zero, zoom: 1.0);
+      handler.onDragStart(
+        position: const Offset(60.0, 40.0),
+        scrollOffset: Offset.zero,
+        zoom: 1.0,
+      );
       expect(handler.isSelectingRange, isTrue);
 
       handler.onDragEnd();
@@ -410,7 +521,11 @@ void main() {
       });
 
       test('drag end resets state correctly', () {
-        handler.onDragStart(position: const Offset(60.0, 40.0), scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onDragStart(
+          position: const Offset(60.0, 40.0),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
         expect(handler.isSelectingRange, isTrue);
 
         handler.onDragEnd();
@@ -435,8 +550,16 @@ void main() {
         // End drag on row 2 header (y = 30 + 2*24 = 78)
         const endPos = Offset(25.0, 82.0);
 
-        handler.onDragStart(position: startPos, scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onDragUpdate(position: endPos, scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onDragStart(
+          position: startPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+        handler.onDragUpdate(
+          position: endPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
         handler.onDragEnd();
 
         final range = selectionController.selectedRange!;
@@ -452,8 +575,16 @@ void main() {
         // End drag on row 0 header
         const endPos = Offset(25.0, 40.0);
 
-        handler.onDragStart(position: startPos, scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onDragUpdate(position: endPos, scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onDragStart(
+          position: startPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+        handler.onDragUpdate(
+          position: endPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
         handler.onDragEnd();
 
         final range = selectionController.selectedRange!;
@@ -471,8 +602,16 @@ void main() {
         // End drag on column 2 header (x = 50 + 2*100 + 50 = 300)
         const endPos = Offset(260.0, 15.0);
 
-        handler.onDragStart(position: startPos, scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onDragUpdate(position: endPos, scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onDragStart(
+          position: startPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+        handler.onDragUpdate(
+          position: endPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
         handler.onDragEnd();
 
         final range = selectionController.selectedRange!;
@@ -488,8 +627,16 @@ void main() {
         // End drag on column 0 header
         const endPos = Offset(60.0, 15.0);
 
-        handler.onDragStart(position: startPos, scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onDragUpdate(position: endPos, scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onDragStart(
+          position: startPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+        handler.onDragUpdate(
+          position: endPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
         handler.onDragEnd();
 
         final range = selectionController.selectedRange!;
@@ -525,8 +672,16 @@ void main() {
         const startPos = Offset(25.0, 53.0);
         const endPos = Offset(25.0, 73.0);
 
-        noCallbackHandler.onDragStart(position: startPos, scrollOffset: Offset.zero, zoom: 1.0);
-        noCallbackHandler.onDragUpdate(position: endPos, scrollOffset: Offset.zero, zoom: 1.0);
+        noCallbackHandler.onDragStart(
+          position: startPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+        noCallbackHandler.onDragUpdate(
+          position: endPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
         noCallbackHandler.onDragEnd();
 
         // Should complete without throwing
@@ -539,7 +694,11 @@ void main() {
         // Row resize handle position
         const startPos = Offset(25.0, 53.0);
 
-        handler.onDragStart(position: startPos, scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onDragStart(
+          position: startPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
         expect(handler.isResizing, isTrue);
         expect(handler.isSelectingRange, isFalse);
 
@@ -555,8 +714,16 @@ void main() {
         const startPos = Offset(25.0, 106.0);
         const endPos = Offset(25.0, 146.0); // 40 pixel drag
 
-        handler.onDragStart(position: startPos, scrollOffset: Offset.zero, zoom: 2.0);
-        handler.onDragUpdate(position: endPos, scrollOffset: Offset.zero, zoom: 2.0);
+        handler.onDragStart(
+          position: startPos,
+          scrollOffset: Offset.zero,
+          zoom: 2.0,
+        );
+        handler.onDragUpdate(
+          position: endPos,
+          scrollOffset: Offset.zero,
+          zoom: 2.0,
+        );
         handler.onDragEnd();
 
         expect(lastResizeRow, equals(0));
@@ -626,45 +793,48 @@ void main() {
         expect(previewRange!.endRow, greaterThanOrEqualTo(3));
       });
 
-      test('drag end calls onFillComplete with source range and destination', () {
-        selectionController.selectRange(const CellRange(0, 0, 2, 2));
+      test(
+        'drag end calls onFillComplete with source range and destination',
+        () {
+          selectionController.selectRange(const CellRange(0, 0, 2, 2));
 
-        CellRange? completedSource;
-        CellCoordinate? completedDest;
+          CellRange? completedSource;
+          CellCoordinate? completedDest;
 
-        final fillHandler = WorksheetGestureHandler(
-          hitTester: hitTester,
-          selectionController: selectionController,
-          onFillPreviewUpdate: (range) {},
-          onFillComplete: (source, dest) {
-            completedSource = source;
-            completedDest = dest;
-          },
-          onFillCancel: () {},
-        );
+          final fillHandler = WorksheetGestureHandler(
+            hitTester: hitTester,
+            selectionController: selectionController,
+            onFillPreviewUpdate: (range) {},
+            onFillComplete: (source, dest) {
+              completedSource = source;
+              completedDest = dest;
+            },
+            onFillCancel: () {},
+          );
 
-        // Start at fill handle
-        const startPos = Offset(349.0, 101.0);
-        fillHandler.onDragStart(
-          position: startPos,
-          scrollOffset: Offset.zero,
-          zoom: 1.0,
-        );
+          // Start at fill handle
+          const startPos = Offset(349.0, 101.0);
+          fillHandler.onDragStart(
+            position: startPos,
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
 
-        // Drag down
-        const updatePos = Offset(155.0, 138.0);
-        fillHandler.onDragUpdate(
-          position: updatePos,
-          scrollOffset: Offset.zero,
-          zoom: 1.0,
-        );
+          // Drag down
+          const updatePos = Offset(155.0, 138.0);
+          fillHandler.onDragUpdate(
+            position: updatePos,
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
 
-        fillHandler.onDragEnd();
+          fillHandler.onDragEnd();
 
-        expect(completedSource, const CellRange(0, 0, 2, 2));
-        expect(completedDest, isNotNull);
-        expect(fillHandler.isFilling, isFalse);
-      });
+          expect(completedSource, const CellRange(0, 0, 2, 2));
+          expect(completedDest, isNotNull);
+          expect(fillHandler.isFilling, isFalse);
+        },
+      );
 
       test('onTapDown on fill handle does not collapse selection', () {
         selectionController.selectRange(const CellRange(0, 0, 2, 2));
@@ -1023,43 +1193,46 @@ void main() {
         expect(preview.endColumn, greaterThan(2));
       });
 
-      test('single-cell source allows free expansion without axis constraint', () {
-        // Select a single cell
-        selectionController.selectRange(const CellRange(2, 2, 2, 2));
-        final singleCellPreviewRanges = <CellRange>[];
+      test(
+        'single-cell source allows free expansion without axis constraint',
+        () {
+          // Select a single cell
+          selectionController.selectRange(const CellRange(2, 2, 2, 2));
+          final singleCellPreviewRanges = <CellRange>[];
 
-        final singleHandler = WorksheetGestureHandler(
-          hitTester: hitTester,
-          selectionController: selectionController,
-          onFillPreviewUpdate: (range) => singleCellPreviewRanges.add(range),
-          onFillComplete: (source, dest) {},
-          onFillCancel: () {},
-        );
+          final singleHandler = WorksheetGestureHandler(
+            hitTester: hitTester,
+            selectionController: selectionController,
+            onFillPreviewUpdate: (range) => singleCellPreviewRanges.add(range),
+            onFillComplete: (source, dest) {},
+            onFillCancel: () {},
+          );
 
-        // Fill handle for single cell (2,2): row 2 ends at 72, col 2 ends at 300
-        // Screen: (350, 102)
-        singleHandler.onDragStart(
-          position: const Offset(349.0, 101.0),
-          scrollOffset: Offset.zero,
-          zoom: 1.0,
-        );
+          // Fill handle for single cell (2,2): row 2 ends at 72, col 2 ends at 300
+          // Screen: (350, 102)
+          singleHandler.onDragStart(
+            position: const Offset(349.0, 101.0),
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
 
-        // Drag diagonally to (5, 4): both row and column outside source
-        // Screen: (50 + 4*100 + 50, 30 + 5*24 + 12) = (500, 162)
-        singleHandler.onDragUpdate(
-          position: const Offset(500.0, 162.0),
-          scrollOffset: Offset.zero,
-          zoom: 1.0,
-        );
+          // Drag diagonally to (5, 4): both row and column outside source
+          // Screen: (50 + 4*100 + 50, 30 + 5*24 + 12) = (500, 162)
+          singleHandler.onDragUpdate(
+            position: const Offset(500.0, 162.0),
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
 
-        expect(singleCellPreviewRanges, hasLength(1));
-        final preview = singleCellPreviewRanges.last;
-        // Should expand freely in both dimensions
-        expect(preview.startRow, 2);
-        expect(preview.startColumn, 2);
-        expect(preview.endRow, 5);
-        expect(preview.endColumn, 4);
-      });
+          expect(singleCellPreviewRanges, hasLength(1));
+          final preview = singleCellPreviewRanges.last;
+          // Should expand freely in both dimensions
+          expect(preview.startRow, 2);
+          expect(preview.startColumn, 2);
+          expect(preview.endRow, 5);
+          expect(preview.endColumn, 4);
+        },
+      );
 
       test('fill complete reports constrained destination', () {
         startFillDrag();
@@ -1087,8 +1260,16 @@ void main() {
         const startPos = Offset(60.0, 40.0); // Cell (0, 0)
         const endPos = Offset(25.0, 60.0); // Row header area
 
-        handler.onDragStart(position: startPos, scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onDragUpdate(position: endPos, scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onDragStart(
+          position: startPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+        handler.onDragUpdate(
+          position: endPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
         handler.onDragEnd();
 
         // Selection should be from the cells, not row headers
@@ -1101,8 +1282,16 @@ void main() {
         // Cell area position at row 1: y = 30 + 24 + 12 = 66
         const endPos = Offset(200.0, 66.0); // Deep in cell area, row 1
 
-        handler.onDragStart(position: startPos, scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onDragUpdate(position: endPos, scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onDragStart(
+          position: startPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
+        handler.onDragUpdate(
+          position: endPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
         handler.onDragEnd();
 
         final range = selectionController.selectedRange!;
@@ -1113,50 +1302,76 @@ void main() {
         expect(range.endColumn, equals(25)); // All 26 columns
       });
 
-      test('drag from column header to cell area stays as full column selection', () {
-        // Start in column header (column 0), drag into cell area
-        const startPos = Offset(60.0, 15.0); // Column header, column 0
-        // Cell area position at column 2: x = 50 + 200 + 50 = 300
-        const endPos = Offset(300.0, 200.0); // Deep in cell area, column 2
+      test(
+        'drag from column header to cell area stays as full column selection',
+        () {
+          // Start in column header (column 0), drag into cell area
+          const startPos = Offset(60.0, 15.0); // Column header, column 0
+          // Cell area position at column 2: x = 50 + 200 + 50 = 300
+          const endPos = Offset(300.0, 200.0); // Deep in cell area, column 2
 
-        handler.onDragStart(position: startPos, scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onDragUpdate(position: endPos, scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onDragEnd();
+          handler.onDragStart(
+            position: startPos,
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
+          handler.onDragUpdate(
+            position: endPos,
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
+          handler.onDragEnd();
 
-        final range = selectionController.selectedRange!;
-        // Should be full column selection (columns 0-2, all rows)
-        expect(range.startColumn, equals(0));
-        expect(range.endColumn, equals(2));
-        expect(range.startRow, equals(0));
-        expect(range.endRow, equals(99)); // All 100 rows
-      });
+          final range = selectionController.selectedRange!;
+          // Should be full column selection (columns 0-2, all rows)
+          expect(range.startColumn, equals(0));
+          expect(range.endColumn, equals(2));
+          expect(range.startRow, equals(0));
+          expect(range.endRow, equals(99)); // All 100 rows
+        },
+      );
 
-      test('drag from row header to column header area stays as row selection', () {
-        // Start in row header (row 2), drag to column header area
-        const startPos = Offset(25.0, 82.0); // Row header, row 2
-        // Column header area: y < 30, x > 50
-        const endPos = Offset(200.0, 15.0); // Column header area
+      test(
+        'drag from row header to column header area stays as row selection',
+        () {
+          // Start in row header (row 2), drag to column header area
+          const startPos = Offset(25.0, 82.0); // Row header, row 2
+          // Column header area: y < 30, x > 50
+          const endPos = Offset(200.0, 15.0); // Column header area
 
-        handler.onDragStart(position: startPos, scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onDragUpdate(position: endPos, scrollOffset: Offset.zero, zoom: 1.0);
-        handler.onDragEnd();
+          handler.onDragStart(
+            position: startPos,
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
+          handler.onDragUpdate(
+            position: endPos,
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
+          handler.onDragEnd();
 
-        final range = selectionController.selectedRange!;
-        // The y position in column header area maps to a negative worksheet y
-        // which returns row -1, so the selection should not update.
-        // The initial selection from onDragStart (row 2) should remain.
-        expect(range.startRow, equals(2));
-        expect(range.endRow, equals(2));
-        expect(range.startColumn, equals(0));
-        expect(range.endColumn, equals(25));
-      });
+          final range = selectionController.selectedRange!;
+          // The y position in column header area maps to a negative worksheet y
+          // which returns row -1, so the selection should not update.
+          // The initial selection from onDragStart (row 2) should remain.
+          expect(range.startRow, equals(2));
+          expect(range.endRow, equals(2));
+          expect(range.startColumn, equals(0));
+          expect(range.endColumn, equals(25));
+        },
+      );
 
       test('row header drag with multiple updates through cell area', () {
         // Simulate a drag that starts in row header, moves through cell area,
         // then continues further down
         const startPos = Offset(25.0, 40.0); // Row header, row 0
 
-        handler.onDragStart(position: startPos, scrollOffset: Offset.zero, zoom: 1.0);
+        handler.onDragStart(
+          position: startPos,
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        );
 
         // Drag drifts into cell area at row 1
         handler.onDragUpdate(
@@ -1227,49 +1442,51 @@ void main() {
         expect(autoFitRow, equals(0));
       });
 
-      test('auto-fit double-click resets drag state so onDragEnd is a no-op',
-          () {
-        // Simulates the real double-click sequence:
-        // 1. Listener.onPointerDown → onDragStart (sets _isResizing)
-        // 2. GestureDetector.onDoubleTapDown → onDoubleTap (auto-fit)
-        // 3. Listener.onPointerUp → onDragEnd
-        // Without the fix, step 3 would fire onResizeColumnEnd.
-        int? autoFitColumn;
-        bool resizeEndCalled = false;
-        final handler = WorksheetGestureHandler(
-          hitTester: hitTester,
-          selectionController: selectionController,
-          onAutoFitColumn: (col) => autoFitColumn = col,
-          onResizeColumnEnd: (col) => resizeEndCalled = true,
-        );
+      test(
+        'auto-fit double-click resets drag state so onDragEnd is a no-op',
+        () {
+          // Simulates the real double-click sequence:
+          // 1. Listener.onPointerDown → onDragStart (sets _isResizing)
+          // 2. GestureDetector.onDoubleTapDown → onDoubleTap (auto-fit)
+          // 3. Listener.onPointerUp → onDragEnd
+          // Without the fix, step 3 would fire onResizeColumnEnd.
+          int? autoFitColumn;
+          bool resizeEndCalled = false;
+          final handler = WorksheetGestureHandler(
+            hitTester: hitTester,
+            selectionController: selectionController,
+            onAutoFitColumn: (col) => autoFitColumn = col,
+            onResizeColumnEnd: (col) => resizeEndCalled = true,
+          );
 
-        // Column 0 right edge: headerWidth(50) + colWidth(100) = 150
-        // Near the right border at y=15 (in column header)
-        const pos = Offset(149.0, 15.0);
+          // Column 0 right edge: headerWidth(50) + colWidth(100) = 150
+          // Near the right border at y=15 (in column header)
+          const pos = Offset(149.0, 15.0);
 
-        // Step 1: onDragStart (from Listener.onPointerDown)
-        handler.onDragStart(
-          position: pos,
-          scrollOffset: Offset.zero,
-          zoom: 1.0,
-        );
-        expect(handler.isResizing, isTrue);
+          // Step 1: onDragStart (from Listener.onPointerDown)
+          handler.onDragStart(
+            position: pos,
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
+          expect(handler.isResizing, isTrue);
 
-        // Step 2: onDoubleTap (from GestureDetector.onDoubleTapDown)
-        handler.onDoubleTap(
-          position: pos,
-          scrollOffset: Offset.zero,
-          zoom: 1.0,
-        );
-        expect(autoFitColumn, equals(0));
-        // Drag state should be reset
-        expect(handler.isResizing, isFalse);
+          // Step 2: onDoubleTap (from GestureDetector.onDoubleTapDown)
+          handler.onDoubleTap(
+            position: pos,
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
+          expect(autoFitColumn, equals(0));
+          // Drag state should be reset
+          expect(handler.isResizing, isFalse);
 
-        // Step 3: onDragEnd (from Listener.onPointerUp)
-        handler.onDragEnd();
-        // Must NOT fire onResizeColumnEnd
-        expect(resizeEndCalled, isFalse);
-      });
+          // Step 3: onDragEnd (from Listener.onPointerUp)
+          handler.onDragEnd();
+          // Must NOT fire onResizeColumnEnd
+          expect(resizeEndCalled, isFalse);
+        },
+      );
 
       test('double-click on cell does not fire auto-fit', () {
         int? autoFitColumn;
@@ -1511,36 +1728,39 @@ void main() {
         expect(jumpColDelta, equals(0));
       });
 
-      test('double-click on right edge fires onJumpToEdge with right direction', () {
-        selectionController.selectRange(const CellRange(2, 2, 4, 4));
+      test(
+        'double-click on right edge fires onJumpToEdge with right direction',
+        () {
+          selectionController.selectRange(const CellRange(2, 2, 4, 4));
 
-        CellCoordinate? jumpFrom;
-        int? jumpRowDelta;
-        int? jumpColDelta;
-        final jumpHandler = WorksheetGestureHandler(
-          hitTester: hitTester,
-          selectionController: selectionController,
-          onJumpToEdge: (from, rowDelta, colDelta) {
-            jumpFrom = from;
-            jumpRowDelta = rowDelta;
-            jumpColDelta = colDelta;
-          },
-        );
+          CellCoordinate? jumpFrom;
+          int? jumpRowDelta;
+          int? jumpColDelta;
+          final jumpHandler = WorksheetGestureHandler(
+            hitTester: hitTester,
+            selectionController: selectionController,
+            onJumpToEdge: (from, rowDelta, colDelta) {
+              jumpFrom = from;
+              jumpRowDelta = rowDelta;
+              jumpColDelta = colDelta;
+            },
+          );
 
-        // Right edge of selection (2,2)-(4,4):
-        // Col 4 ends at x=500, screen x = 50 + 500 = 550
-        // Row 3 center y = 30 + 3*24 + 12 = 114
-        const rightEdgePos = Offset(549.0, 114.0);
-        jumpHandler.onDoubleTap(
-          position: rightEdgePos,
-          scrollOffset: Offset.zero,
-          zoom: 1.0,
-        );
+          // Right edge of selection (2,2)-(4,4):
+          // Col 4 ends at x=500, screen x = 50 + 500 = 550
+          // Row 3 center y = 30 + 3*24 + 12 = 114
+          const rightEdgePos = Offset(549.0, 114.0);
+          jumpHandler.onDoubleTap(
+            position: rightEdgePos,
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
 
-        expect(jumpFrom, isNotNull);
-        expect(jumpRowDelta, equals(0));
-        expect(jumpColDelta, equals(1));
-      });
+          expect(jumpFrom, isNotNull);
+          expect(jumpRowDelta, equals(0));
+          expect(jumpColDelta, equals(1));
+        },
+      );
 
       test('double-click on bottom edge fires jump down', () {
         selectionController.selectRange(const CellRange(2, 2, 4, 4));
@@ -1766,8 +1986,7 @@ void main() {
         expect(handler.isSelectingRange, isTrue);
 
         // Anchor should now be at top-left (1,1)
-        expect(selectionController.anchor,
-            equals(const CellCoordinate(1, 1)));
+        expect(selectionController.anchor, equals(const CellCoordinate(1, 1)));
       });
 
       test('top-left handle anchors at bottom-right corner', () {
@@ -1802,8 +2021,7 @@ void main() {
         );
 
         // Anchor should now be at bottom-right (3,3)
-        expect(selectionController.anchor,
-            equals(const CellCoordinate(3, 3)));
+        expect(selectionController.anchor, equals(const CellCoordinate(3, 3)));
       });
 
       test('dragging handle extends selection to new cell', () {
@@ -1981,98 +2199,98 @@ void main() {
         expect(range.endColumn, equals(0));
       });
 
-      test('cancelDrag during fill calls onFillCancel and restores selection',
-          () {
-        bool fillCancelCalled = false;
-        bool fillCompleteCalled = false;
+      test(
+        'cancelDrag during fill calls onFillCancel and restores selection',
+        () {
+          bool fillCancelCalled = false;
+          bool fillCompleteCalled = false;
 
-        final fillHandler = WorksheetGestureHandler(
-          hitTester: hitTester,
-          selectionController: selectionController,
-          onFillComplete: (source, dest) => fillCompleteCalled = true,
-          onFillCancel: () => fillCancelCalled = true,
-        );
+          final fillHandler = WorksheetGestureHandler(
+            hitTester: hitTester,
+            selectionController: selectionController,
+            onFillComplete: (source, dest) => fillCompleteCalled = true,
+            onFillCancel: () => fillCancelCalled = true,
+          );
 
-        // Select range (0,0) to (1,1)
-        selectionController.selectRange(
-          const CellRange(0, 0, 1, 1),
-        );
-        final originalRange = selectionController.selectedRange;
+          // Select range (0,0) to (1,1)
+          selectionController.selectRange(const CellRange(0, 0, 1, 1));
+          final originalRange = selectionController.selectedRange;
 
-        // Start fill drag from fill handle
-        // Fill handle is at bottom-right of (1,1):
-        // x = 50 + 2*100 = 250, y = 30 + 2*24 = 78
-        fillHandler.onDragStart(
-          position: const Offset(250.0, 78.0),
-          scrollOffset: Offset.zero,
-          zoom: 1.0,
-        );
-        expect(fillHandler.isFilling, isTrue);
+          // Start fill drag from fill handle
+          // Fill handle is at bottom-right of (1,1):
+          // x = 50 + 2*100 = 250, y = 30 + 2*24 = 78
+          fillHandler.onDragStart(
+            position: const Offset(250.0, 78.0),
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
+          expect(fillHandler.isFilling, isTrue);
 
-        // Update fill drag
-        fillHandler.onDragUpdate(
-          position: const Offset(250.0, 120.0),
-          scrollOffset: Offset.zero,
-          zoom: 1.0,
-        );
+          // Update fill drag
+          fillHandler.onDragUpdate(
+            position: const Offset(250.0, 120.0),
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
 
-        // Cancel
-        expect(fillHandler.cancelDrag(), isTrue);
-        expect(fillCancelCalled, isTrue);
-        expect(fillCompleteCalled, isFalse);
-        expect(fillHandler.isDragging, isFalse);
+          // Cancel
+          expect(fillHandler.cancelDrag(), isTrue);
+          expect(fillCancelCalled, isTrue);
+          expect(fillCompleteCalled, isFalse);
+          expect(fillHandler.isDragging, isFalse);
 
-        // Selection restored
-        expect(selectionController.selectedRange, equals(originalRange));
-      });
+          // Selection restored
+          expect(selectionController.selectedRange, equals(originalRange));
+        },
+      );
 
-      test('cancelDrag during move calls onMoveCancel and restores selection',
-          () {
-        bool moveCancelCalled = false;
-        bool moveCompleteCalled = false;
+      test(
+        'cancelDrag during move calls onMoveCancel and restores selection',
+        () {
+          bool moveCancelCalled = false;
+          bool moveCompleteCalled = false;
 
-        final moveHandler = WorksheetGestureHandler(
-          hitTester: hitTester,
-          selectionController: selectionController,
-          onMoveComplete: (source, dest) => moveCompleteCalled = true,
-          onMoveCancel: () => moveCancelCalled = true,
-        );
+          final moveHandler = WorksheetGestureHandler(
+            hitTester: hitTester,
+            selectionController: selectionController,
+            onMoveComplete: (source, dest) => moveCompleteCalled = true,
+            onMoveCancel: () => moveCancelCalled = true,
+          );
 
-        // Select range (0,0) to (1,1)
-        selectionController.selectRange(
-          const CellRange(0, 0, 1, 1),
-        );
+          // Select range (0,0) to (1,1)
+          selectionController.selectRange(const CellRange(0, 0, 1, 1));
 
-        // Start move drag from selection border.
-        // Selection (0,0)-(1,1) screen bounds: TL=(50,30), BR=(250,78).
-        // Border tolerance=4 → outerRect=(46,26,254,82), innerRect=(54,34,246,74).
-        // Use bottom edge: position (100,77) — in outer, not in inner, and
-        // far enough from headers (>= 30+4=34).
-        moveHandler.onDragStart(
-          position: const Offset(100.0, 77.0),
-          scrollOffset: Offset.zero,
-          zoom: 1.0,
-        );
-        expect(moveHandler.isMoving, isTrue);
+          // Start move drag from selection border.
+          // Selection (0,0)-(1,1) screen bounds: TL=(50,30), BR=(250,78).
+          // Border tolerance=4 → outerRect=(46,26,254,82), innerRect=(54,34,246,74).
+          // Use bottom edge: position (100,77) — in outer, not in inner, and
+          // far enough from headers (>= 30+4=34).
+          moveHandler.onDragStart(
+            position: const Offset(100.0, 77.0),
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
+          expect(moveHandler.isMoving, isTrue);
 
-        // Update move drag
-        moveHandler.onDragUpdate(
-          position: const Offset(300.0, 100.0),
-          scrollOffset: Offset.zero,
-          zoom: 1.0,
-        );
+          // Update move drag
+          moveHandler.onDragUpdate(
+            position: const Offset(300.0, 100.0),
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
 
-        // Cancel
-        expect(moveHandler.cancelDrag(), isTrue);
-        expect(moveCancelCalled, isTrue);
-        expect(moveCompleteCalled, isFalse);
-        expect(moveHandler.isDragging, isFalse);
+          // Cancel
+          expect(moveHandler.cancelDrag(), isTrue);
+          expect(moveCancelCalled, isTrue);
+          expect(moveCompleteCalled, isFalse);
+          expect(moveHandler.isDragging, isFalse);
 
-        // Selection restored to original range
-        final range = selectionController.selectedRange!;
-        expect(range.startRow, equals(0));
-        expect(range.endRow, equals(1));
-      });
+          // Selection restored to original range
+          final range = selectionController.selectedRange!;
+          expect(range.startRow, equals(0));
+          expect(range.endRow, equals(1));
+        },
+      );
 
       test('cancelDrag during resize resets drag state', () {
         // Start resize drag from column resize handle.
@@ -2093,9 +2311,7 @@ void main() {
 
       test('cancelDrag during handle drag restores selection', () {
         // Select range (1,1) to (3,3)
-        selectionController.selectRange(
-          const CellRange(1, 1, 3, 3),
-        );
+        selectionController.selectRange(const CellRange(1, 1, 3, 3));
 
         // Drag bottom-right handle
         // Bottom-right of (3,3): x = 50 + 4*100 = 450, y = 30 + 4*24 = 126

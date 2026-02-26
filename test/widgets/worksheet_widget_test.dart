@@ -24,8 +24,7 @@ void main() {
       });
 
       test('uses custom controllers when provided', () {
-        final selectionController =
-            selection_module.SelectionController();
+        final selectionController = selection_module.SelectionController();
         final zoomController = zoom_module.ZoomController();
         final hScroll = ScrollController();
         final vScroll = ScrollController();
@@ -146,7 +145,12 @@ void main() {
         final controller = WorksheetController();
 
         controller.selectCell(const CellCoordinate(0, 0));
-        controller.moveFocus(rowDelta: -1, columnDelta: -1, maxRow: 10, maxColumn: 10);
+        controller.moveFocus(
+          rowDelta: -1,
+          columnDelta: -1,
+          maxRow: 10,
+          maxColumn: 10,
+        );
         // Movement is clamped to 0
         expect(controller.focusCell?.row, greaterThanOrEqualTo(0));
         expect(controller.focusCell?.column, greaterThanOrEqualTo(0));
@@ -158,7 +162,12 @@ void main() {
         final controller = WorksheetController();
 
         controller.selectCell(const CellCoordinate(10, 10));
-        controller.moveFocus(rowDelta: 1, columnDelta: 1, maxRow: 10, maxColumn: 10);
+        controller.moveFocus(
+          rowDelta: 1,
+          columnDelta: 1,
+          maxRow: 10,
+          maxColumn: 10,
+        );
         // Movement is clamped to max
         expect(controller.focusCell?.row, lessThanOrEqualTo(10));
         expect(controller.focusCell?.column, lessThanOrEqualTo(10));
@@ -417,7 +426,10 @@ void main() {
 
     test('defaultTheme is accessible', () {
       expect(WorksheetThemeData.defaultTheme, isNotNull);
-      expect(WorksheetThemeData.defaultTheme, equals(const WorksheetThemeData()));
+      expect(
+        WorksheetThemeData.defaultTheme,
+        equals(const WorksheetThemeData()),
+      );
     });
   });
 
@@ -504,7 +516,9 @@ void main() {
       expect(buildCount, 1);
       expect(lastTheme?.showHeaders, isTrue);
 
-      await tester.pumpWidget(buildWidget(const WorksheetThemeData(showHeaders: false)));
+      await tester.pumpWidget(
+        buildWidget(const WorksheetThemeData(showHeaders: false)),
+      );
       expect(buildCount, 2);
       expect(lastTheme?.showHeaders, isFalse);
     });
@@ -513,14 +527,8 @@ void main() {
       const theme1 = WorksheetThemeData();
       const theme2 = WorksheetThemeData();
 
-      const inherited1 = WorksheetTheme(
-        data: theme1,
-        child: SizedBox(),
-      );
-      const inherited2 = WorksheetTheme(
-        data: theme2,
-        child: SizedBox(),
-      );
+      const inherited1 = WorksheetTheme(data: theme1, child: SizedBox());
+      const inherited2 = WorksheetTheme(data: theme2, child: SizedBox());
 
       // updateShouldNotify returns false when themes are equal
       expect(inherited1.updateShouldNotify(inherited2), isFalse);
@@ -530,14 +538,8 @@ void main() {
       const theme1 = WorksheetThemeData();
       const theme2 = WorksheetThemeData(showHeaders: false);
 
-      const inherited1 = WorksheetTheme(
-        data: theme1,
-        child: SizedBox(),
-      );
-      const inherited2 = WorksheetTheme(
-        data: theme2,
-        child: SizedBox(),
-      );
+      const inherited1 = WorksheetTheme(data: theme1, child: SizedBox());
+      const inherited2 = WorksheetTheme(data: theme2, child: SizedBox());
 
       // updateShouldNotify returns true when themes differ
       expect(inherited1.updateShouldNotify(inherited2), isTrue);

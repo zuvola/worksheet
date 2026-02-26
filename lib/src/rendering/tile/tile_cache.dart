@@ -19,7 +19,7 @@ class TileCache {
 
   /// Creates a tile cache with the given maximum size.
   TileCache({required this.maxTiles})
-      : assert(maxTiles > 0, 'Max tiles must be positive');
+    : assert(maxTiles > 0, 'Max tiles must be positive');
 
   /// The current number of cached tiles.
   int get size => _tiles.length;

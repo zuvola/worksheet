@@ -5,8 +5,8 @@ import '../hit_testing/hit_test_result.dart';
 import '../hit_testing/hit_tester.dart';
 
 /// Callback for when a move drag completes.
-typedef OnMoveComplete = void Function(
-    CellRange source, CellCoordinate destination);
+typedef OnMoveComplete =
+    void Function(CellRange source, CellCoordinate destination);
 
 /// Callback for when the move preview range changes during drag.
 typedef OnMovePreviewUpdate = void Function(CellRange previewRange);
@@ -60,8 +60,10 @@ class MoveDragHandler {
       final src = _moveSourceRange!;
       _moveGrabOffset = CellCoordinate(
         (hit.cell!.row - src.startRow).clamp(0, src.endRow - src.startRow),
-        (hit.cell!.column - src.startColumn)
-            .clamp(0, src.endColumn - src.startColumn),
+        (hit.cell!.column - src.startColumn).clamp(
+          0,
+          src.endColumn - src.startColumn,
+        ),
       );
     }
   }

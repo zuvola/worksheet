@@ -149,10 +149,7 @@ void main() {
 
       test('scrollTo does nothing when no clients', () {
         // Should not throw
-        expect(
-          () => controller.scrollTo(x: 100, y: 100),
-          returnsNormally,
-        );
+        expect(() => controller.scrollTo(x: 100, y: 100), returnsNormally);
       });
 
       test('scrollToCell does nothing when no clients', () {
@@ -356,7 +353,9 @@ void main() {
         expect(controller.scrollY, 0);
       });
 
-      testWidgets('scrollToCell scrolls left/up when cell is before viewport', (tester) async {
+      testWidgets('scrollToCell scrolls left/up when cell is before viewport', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           Directionality(
             textDirection: TextDirection.ltr,
@@ -420,11 +419,7 @@ void main() {
       });
 
       test('hasLayout is true after attach', () {
-        controller.attachLayout(
-          solver,
-          headerWidth: 40.0,
-          headerHeight: 20.0,
-        );
+        controller.attachLayout(solver, headerWidth: 40.0, headerHeight: 20.0);
 
         expect(controller.hasLayout, isTrue);
         expect(controller.layoutSolver, same(solver));
@@ -433,11 +428,7 @@ void main() {
       });
 
       test('detachLayout resets hasLayout to false', () {
-        controller.attachLayout(
-          solver,
-          headerWidth: 40.0,
-          headerHeight: 20.0,
-        );
+        controller.attachLayout(solver, headerWidth: 40.0, headerHeight: 20.0);
         expect(controller.hasLayout, isTrue);
 
         controller.detachLayout();
@@ -453,11 +444,7 @@ void main() {
       });
 
       test('getCellScreenBounds returns correct Rect at zoom=1 no scroll', () {
-        controller.attachLayout(
-          solver,
-          headerWidth: 40.0,
-          headerHeight: 20.0,
-        );
+        controller.attachLayout(solver, headerWidth: 40.0, headerHeight: 20.0);
 
         // Cell (0,0): left=0, top=0, width=80, height=20
         // With headers: left = 0 - 0 + 40 = 40, top = 0 - 0 + 20 = 20
@@ -472,11 +459,7 @@ void main() {
       });
 
       test('getCellScreenBounds for non-origin cell', () {
-        controller.attachLayout(
-          solver,
-          headerWidth: 40.0,
-          headerHeight: 20.0,
-        );
+        controller.attachLayout(solver, headerWidth: 40.0, headerHeight: 20.0);
 
         // Cell (2,3): left=3*80=240, top=2*20=40, width=80, height=20
         // With headers: left = 240 + 40 = 280, top = 40 + 20 = 60
@@ -491,11 +474,7 @@ void main() {
       });
 
       test('getCellScreenBounds accounts for zoom', () {
-        controller.attachLayout(
-          solver,
-          headerWidth: 40.0,
-          headerHeight: 20.0,
-        );
+        controller.attachLayout(solver, headerWidth: 40.0, headerHeight: 20.0);
         controller.setZoom(2.0);
 
         // Cell (0,0) at zoom 2.0:
@@ -514,11 +493,7 @@ void main() {
       });
 
       test('getCellScreenBounds accounts for header dimensions', () {
-        controller.attachLayout(
-          solver,
-          headerWidth: 0.0,
-          headerHeight: 0.0,
-        );
+        controller.attachLayout(solver, headerWidth: 0.0, headerHeight: 0.0);
 
         // Cell (0,0) with no headers:
         // left = 0 - 0 + 0 = 0, top = 0 - 0 + 0 = 0
@@ -530,8 +505,9 @@ void main() {
         expect(bounds.top, 0.0);
       });
 
-      testWidgets('getCellScreenBounds accounts for scroll offset',
-          (tester) async {
+      testWidgets('getCellScreenBounds accounts for scroll offset', (
+        tester,
+      ) async {
         // Need scroll controllers with clients to have non-zero offsets
         await tester.pumpWidget(
           Directionality(
@@ -552,11 +528,7 @@ void main() {
           ),
         );
 
-        controller.attachLayout(
-          solver,
-          headerWidth: 40.0,
-          headerHeight: 20.0,
-        );
+        controller.attachLayout(solver, headerWidth: 40.0, headerHeight: 20.0);
 
         // Scroll to (100, 50)
         controller.scrollTo(x: 100, y: 50);
@@ -577,11 +549,7 @@ void main() {
         mergedCells.merge(const CellRange(1, 1, 2, 3)); // 2 rows x 3 cols
         solver.mergedCells = mergedCells;
 
-        controller.attachLayout(
-          solver,
-          headerWidth: 40.0,
-          headerHeight: 20.0,
-        );
+        controller.attachLayout(solver, headerWidth: 40.0, headerHeight: 20.0);
 
         // Merged region (1,1)-(2,3):
         // left = 1*80 = 80, top = 1*20 = 20
@@ -597,8 +565,9 @@ void main() {
         expect(bounds.height, 40.0);
       });
 
-      testWidgets('ensureCellVisible works with attached layout',
-          (tester) async {
+      testWidgets('ensureCellVisible works with attached layout', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           Directionality(
             textDirection: TextDirection.ltr,
@@ -622,11 +591,7 @@ void main() {
           ),
         );
 
-        controller.attachLayout(
-          solver,
-          headerWidth: 40.0,
-          headerHeight: 20.0,
-        );
+        controller.attachLayout(solver, headerWidth: 40.0, headerHeight: 20.0);
 
         controller.ensureCellVisible(
           const CellCoordinate(50, 20),
@@ -671,8 +636,9 @@ void main() {
         expect(controller.keepAnchorVisible, isTrue);
       });
 
-      testWidgets('adjusts scroll when zoom changes with anchor cell',
-          (tester) async {
+      testWidgets('adjusts scroll when zoom changes with anchor cell', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           Directionality(
             textDirection: TextDirection.ltr,
@@ -696,11 +662,7 @@ void main() {
           ),
         );
 
-        controller.attachLayout(
-          solver,
-          headerWidth: 40.0,
-          headerHeight: 20.0,
-        );
+        controller.attachLayout(solver, headerWidth: 40.0, headerHeight: 20.0);
         controller.keepAnchorVisible = true;
 
         // Select a cell and scroll to it
@@ -734,8 +696,9 @@ void main() {
         expect(contentPosAfter.dy, closeTo(contentPosBefore.dy, 1.0));
       });
 
-      testWidgets('does not adjust scroll when keepAnchorVisible is false',
-          (tester) async {
+      testWidgets('does not adjust scroll when keepAnchorVisible is false', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           Directionality(
             textDirection: TextDirection.ltr,
@@ -759,11 +722,7 @@ void main() {
           ),
         );
 
-        controller.attachLayout(
-          solver,
-          headerWidth: 40.0,
-          headerHeight: 20.0,
-        );
+        controller.attachLayout(solver, headerWidth: 40.0, headerHeight: 20.0);
         // keepAnchorVisible is false by default
 
         controller.selectCell(const CellCoordinate(20, 10));
@@ -806,11 +765,7 @@ void main() {
           ),
         );
 
-        controller.attachLayout(
-          solver,
-          headerWidth: 40.0,
-          headerHeight: 20.0,
-        );
+        controller.attachLayout(solver, headerWidth: 40.0, headerHeight: 20.0);
         controller.keepAnchorVisible = true;
 
         // No selection — scroll at origin
@@ -880,11 +835,7 @@ void main() {
           ),
         );
 
-        controller.attachLayout(
-          solver,
-          headerWidth: 40.0,
-          headerHeight: 20.0,
-        );
+        controller.attachLayout(solver, headerWidth: 40.0, headerHeight: 20.0);
         controller.keepAnchorVisible = true;
 
         // Use a cell far enough from origin that zooming out won't clamp
@@ -915,8 +866,9 @@ void main() {
         expect(contentPosAfter.dy, closeTo(contentPosBefore.dy, 1.0));
       });
 
-      testWidgets('ensures full cell visible when near viewport edge',
-          (tester) async {
+      testWidgets('ensures full cell visible when near viewport edge', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           Directionality(
             textDirection: TextDirection.ltr,
@@ -940,11 +892,7 @@ void main() {
           ),
         );
 
-        controller.attachLayout(
-          solver,
-          headerWidth: 40.0,
-          headerHeight: 20.0,
-        );
+        controller.attachLayout(solver, headerWidth: 40.0, headerHeight: 20.0);
         controller.keepAnchorVisible = true;
 
         // Place the cell near the bottom of the viewport so that zooming in
@@ -974,8 +922,7 @@ void main() {
         // The entire cell should be visible in the content area.
         // Cell edges in zoomed coords:
         final cellTop = solver.getRowTop(28) * controller.zoom;
-        final cellBottom =
-            cellTop + solver.getRowHeight(28) * controller.zoom;
+        final cellBottom = cellTop + solver.getRowHeight(28) * controller.zoom;
         final cellLeft = solver.getColumnLeft(10) * controller.zoom;
         final cellRight =
             cellLeft + solver.getColumnWidth(10) * controller.zoom;
@@ -1033,8 +980,9 @@ void main() {
       // Headers: 50px wide, 24px tall
       // Frozen: 1 row (24px), 1 column (100px)
 
-      testWidgets('scrollToCell for frozen cell does not scroll',
-          (tester) async {
+      testWidgets('scrollToCell for frozen cell does not scroll', (
+        tester,
+      ) async {
         await tester.pumpWidget(
           Directionality(
             textDirection: TextDirection.ltr,
@@ -1063,8 +1011,10 @@ void main() {
         controller.verticalScrollController.jumpTo(300);
         await tester.pump();
 
-        controller.freezeConfig =
-            const FreezeConfig(frozenRows: 1, frozenColumns: 1);
+        controller.freezeConfig = const FreezeConfig(
+          frozenRows: 1,
+          frozenColumns: 1,
+        );
 
         // Try to scroll to a frozen cell (row 0, col 0) — should not change scroll
         controller.scrollToCell(
@@ -1086,52 +1036,55 @@ void main() {
       });
 
       testWidgets(
-          'scrollToCell for non-frozen cell accounts for frozen dimensions',
-          (tester) async {
-        await tester.pumpWidget(
-          Directionality(
-            textDirection: TextDirection.ltr,
-            child: SizedBox(
-              width: 800,
-              height: 600,
-              child: Stack(
-                children: [
-                  SingleChildScrollView(
-                    controller: controller.horizontalScrollController,
-                    scrollDirection: Axis.horizontal,
-                    child: const SizedBox(width: 10000, height: 100),
-                  ),
-                  SingleChildScrollView(
-                    controller: controller.verticalScrollController,
-                    child: const SizedBox(width: 100, height: 10000),
-                  ),
-                ],
+        'scrollToCell for non-frozen cell accounts for frozen dimensions',
+        (tester) async {
+          await tester.pumpWidget(
+            Directionality(
+              textDirection: TextDirection.ltr,
+              child: SizedBox(
+                width: 800,
+                height: 600,
+                child: Stack(
+                  children: [
+                    SingleChildScrollView(
+                      controller: controller.horizontalScrollController,
+                      scrollDirection: Axis.horizontal,
+                      child: const SizedBox(width: 10000, height: 100),
+                    ),
+                    SingleChildScrollView(
+                      controller: controller.verticalScrollController,
+                      child: const SizedBox(width: 100, height: 10000),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        );
+          );
 
-        controller.freezeConfig =
-            const FreezeConfig(frozenRows: 1, frozenColumns: 1);
+          controller.freezeConfig = const FreezeConfig(
+            frozenRows: 1,
+            frozenColumns: 1,
+          );
 
-        // Scroll to cell (50, 20) — non-frozen cell
-        controller.scrollToCell(
-          const CellCoordinate(50, 20),
-          getRowTop: (row) => row * 24.0,
-          getColumnLeft: (col) => col * 100.0,
-          getRowHeight: (_) => 24.0,
-          getColumnWidth: (_) => 100.0,
-          viewportSize: const Size(800, 600),
-          headerWidth: 50.0,
-          headerHeight: 24.0,
-          animate: false,
-        );
-        await tester.pump();
+          // Scroll to cell (50, 20) — non-frozen cell
+          controller.scrollToCell(
+            const CellCoordinate(50, 20),
+            getRowTop: (row) => row * 24.0,
+            getColumnLeft: (col) => col * 100.0,
+            getRowHeight: (_) => 24.0,
+            getColumnWidth: (_) => 100.0,
+            viewportSize: const Size(800, 600),
+            headerWidth: 50.0,
+            headerHeight: 24.0,
+            animate: false,
+          );
+          await tester.pump();
 
-        // Should have scrolled
-        expect(controller.scrollX, greaterThan(0));
-        expect(controller.scrollY, greaterThan(0));
-      });
+          // Should have scrolled
+          expect(controller.scrollX, greaterThan(0));
+          expect(controller.scrollY, greaterThan(0));
+        },
+      );
     });
 
     group('action dispatch', () {

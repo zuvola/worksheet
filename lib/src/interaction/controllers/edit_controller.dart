@@ -179,7 +179,8 @@ class EditController extends ChangeNotifier {
       CellCoordinate cell,
       CellValue? value, {
       CellFormat? detectedFormat,
-    }) onCommit,
+    })
+    onCommit,
   }) {
     if (_state != EditState.editing) return null;
 

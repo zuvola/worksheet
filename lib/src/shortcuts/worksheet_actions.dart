@@ -204,16 +204,15 @@ class PasteCellsAction extends Action<PasteCellsIntent> {
     final cutRange = _context.pendingCutRange;
     _context.clipboardHandler
         .paste(
-      recordUndo:
-          _context.undoManager != null ? _context.recordUndo : null,
-      pendingCutRange: cutRange,
-    )
+          recordUndo: _context.undoManager != null ? _context.recordUndo : null,
+          pendingCutRange: cutRange,
+        )
         .then((_) {
-      if (cutRange != null) {
-        _context.setPendingCutRange(null);
-      }
-      _context.invalidateAndRebuild();
-    });
+          if (cutRange != null) {
+            _context.setPendingCutRange(null);
+          }
+          _context.invalidateAndRebuild();
+        });
     return null;
   }
 }
@@ -305,12 +304,16 @@ class FillDownAction extends Action<FillDownIntent> {
       }
       _context.worksheetData.replicateMerges(
         sourceRange: CellRange(
-          range.startRow, range.startColumn,
-          range.startRow, range.endColumn,
+          range.startRow,
+          range.startColumn,
+          range.startRow,
+          range.endColumn,
         ),
         targetRange: CellRange(
-          range.startRow + 1, range.startColumn,
-          range.endRow, range.endColumn,
+          range.startRow + 1,
+          range.startColumn,
+          range.endRow,
+          range.endColumn,
         ),
         vertical: true,
       );
@@ -339,7 +342,12 @@ class FillRightAction extends Action<FillRightIntent> {
       final adjuster = _context.formulaReferenceAdjuster;
       for (int row = range.startRow; row <= range.endRow; row++) {
         final source = CellCoordinate(row, range.startColumn);
-        final target = CellRange(row, range.startColumn + 1, row, range.endColumn);
+        final target = CellRange(
+          row,
+          range.startColumn + 1,
+          row,
+          range.endColumn,
+        );
         if (adjuster != null) {
           _context.worksheetData.fillRange(source, target, (coord, sourceCell) {
             if (sourceCell == null) return null;
@@ -355,12 +363,16 @@ class FillRightAction extends Action<FillRightIntent> {
       }
       _context.worksheetData.replicateMerges(
         sourceRange: CellRange(
-          range.startRow, range.startColumn,
-          range.endRow, range.startColumn,
+          range.startRow,
+          range.startColumn,
+          range.endRow,
+          range.startColumn,
         ),
         targetRange: CellRange(
-          range.startRow, range.startColumn + 1,
-          range.endRow, range.endColumn,
+          range.startRow,
+          range.startColumn + 1,
+          range.endRow,
+          range.endColumn,
         ),
         vertical: false,
       );
@@ -398,7 +410,8 @@ class MergeCellsAction extends Action<MergeCellsIntent> {
 }
 
 /// Merges each row of the current selection separately.
-class MergeCellsHorizontallyAction extends Action<MergeCellsHorizontallyIntent> {
+class MergeCellsHorizontallyAction
+    extends Action<MergeCellsHorizontallyIntent> {
   final WorksheetActionContext _context;
 
   MergeCellsHorizontallyAction(this._context);
@@ -488,8 +501,9 @@ class ToggleBoldAction extends Action<ToggleBoldIntent> {
             test: (s) => s?.fontWeight == FontWeight.bold,
             apply: (s) =>
                 (s ?? const TextStyle()).copyWith(fontWeight: FontWeight.bold),
-            remove: (s) =>
-                (s ?? const TextStyle()).copyWith(fontWeight: FontWeight.normal),
+            remove: (s) => (s ?? const TextStyle()).copyWith(
+              fontWeight: FontWeight.normal,
+            ),
           );
         });
       }
@@ -564,10 +578,12 @@ class ToggleUnderlineAction extends Action<ToggleUnderlineIntent> {
           _toggleOnSelection(
             _context,
             test: (s) => s?.decoration == TextDecoration.underline,
-            apply: (s) => (s ?? const TextStyle())
-                .copyWith(decoration: TextDecoration.underline),
-            remove: (s) =>
-                (s ?? const TextStyle()).copyWith(decoration: TextDecoration.none),
+            apply: (s) => (s ?? const TextStyle()).copyWith(
+              decoration: TextDecoration.underline,
+            ),
+            remove: (s) => (s ?? const TextStyle()).copyWith(
+              decoration: TextDecoration.none,
+            ),
           );
         });
       }
@@ -603,10 +619,12 @@ class ToggleStrikethroughAction extends Action<ToggleStrikethroughIntent> {
           _toggleOnSelection(
             _context,
             test: (s) => s?.decoration == TextDecoration.lineThrough,
-            apply: (s) => (s ?? const TextStyle())
-                .copyWith(decoration: TextDecoration.lineThrough),
-            remove: (s) =>
-                (s ?? const TextStyle()).copyWith(decoration: TextDecoration.none),
+            apply: (s) => (s ?? const TextStyle()).copyWith(
+              decoration: TextDecoration.lineThrough,
+            ),
+            remove: (s) => (s ?? const TextStyle()).copyWith(
+              decoration: TextDecoration.none,
+            ),
           );
         });
       }
@@ -665,10 +683,12 @@ void _toggleOnSelection(
     final spans = entry.value;
     if (spans.isEmpty) continue;
     final toggled = spans
-        .map((s) => TextSpan(
-              text: s.text,
-              style: allMatch ? remove(s.style) : apply(s.style),
-            ))
+        .map(
+          (s) => TextSpan(
+            text: s.text,
+            style: allMatch ? remove(s.style) : apply(s.style),
+          ),
+        )
         .toList();
     context.worksheetData.setRichText(entry.key, toggled);
   }
@@ -710,8 +730,7 @@ class UndoAction extends Action<UndoIntent> {
   UndoAction(this._context);
 
   @override
-  bool isEnabled(UndoIntent intent) =>
-      _context.undoManager?.canUndo == true;
+  bool isEnabled(UndoIntent intent) => _context.undoManager?.canUndo == true;
 
   @override
   Object? invoke(UndoIntent intent) {
@@ -728,8 +747,7 @@ class RedoAction extends Action<RedoIntent> {
   RedoAction(this._context);
 
   @override
-  bool isEnabled(RedoIntent intent) =>
-      _context.undoManager?.canRedo == true;
+  bool isEnabled(RedoIntent intent) => _context.undoManager?.canRedo == true;
 
   @override
   Object? invoke(RedoIntent intent) {

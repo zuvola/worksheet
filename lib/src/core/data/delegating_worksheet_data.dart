@@ -55,8 +55,7 @@ class DelegatingWorksheetData implements WorksheetData {
       inner.setFormat(coord, format);
 
   @override
-  List<TextSpan>? getRichText(CellCoordinate coord) =>
-      inner.getRichText(coord);
+  List<TextSpan>? getRichText(CellCoordinate coord) => inner.getRichText(coord);
 
   @override
   void setRichText(CellCoordinate coord, List<TextSpan>? richText) =>
@@ -69,8 +68,7 @@ class DelegatingWorksheetData implements WorksheetData {
   @override
   Future<void> batchUpdateAsync(
     Future<void> Function(WorksheetDataBatch batch) updates,
-  ) =>
-      inner.batchUpdateAsync(updates);
+  ) => inner.batchUpdateAsync(updates);
 
   @override
   Stream<DataChangeEvent> get changes => inner.changes;
@@ -87,8 +85,7 @@ class DelegatingWorksheetData implements WorksheetData {
   @override
   Iterable<MapEntry<CellCoordinate, CellValue>> getCellsInRange(
     CellRange range,
-  ) =>
-      inner.getCellsInRange(range);
+  ) => inner.getCellsInRange(range);
 
   @override
   void clearRange(CellRange range) => inner.clearRange(range);
@@ -100,36 +97,31 @@ class DelegatingWorksheetData implements WorksheetData {
   @override
   Iterable<MapEntry<CellCoordinate, List<TextSpan>>> getRichTextInRange(
     CellRange range,
-  ) =>
-      inner.getRichTextInRange(range);
+  ) => inner.getRichTextInRange(range);
 
   @override
   Iterable<MapEntry<CellCoordinate, CellStyle>> getStylesInRange(
     CellRange range,
-  ) =>
-      inner.getStylesInRange(range);
+  ) => inner.getStylesInRange(range);
 
   @override
   Iterable<MapEntry<CellCoordinate, CellFormat>> getFormatsInRange(
     CellRange range,
-  ) =>
-      inner.getFormatsInRange(range);
+  ) => inner.getFormatsInRange(range);
 
   @override
   CellRange? smartFill(
     CellRange range,
     CellCoordinate destination, [
     Cell? Function(CellCoordinate coord, Cell? sourceCell)? valueGenerator,
-  ]) =>
-      inner.smartFill(range, destination, valueGenerator);
+  ]) => inner.smartFill(range, destination, valueGenerator);
 
   @override
   void fillRange(
     CellCoordinate source,
     CellRange range, [
     Cell? Function(CellCoordinate coord, Cell? sourceCell)? valueGenerator,
-  ]) =>
-      inner.fillRange(source, range, valueGenerator);
+  ]) => inner.fillRange(source, range, valueGenerator);
 
   @override
   MergedCellRegistry get mergedCells => inner.mergedCells;
@@ -141,8 +133,7 @@ class DelegatingWorksheetData implements WorksheetData {
   void unmergeCells(CellCoordinate cell) => inner.unmergeCells(cell);
 
   @override
-  void unmergeCellsInRange(CellRange range) =>
-      inner.unmergeCellsInRange(range);
+  void unmergeCellsInRange(CellRange range) => inner.unmergeCellsInRange(range);
 
   @override
   void moveMerges(CellRange source, CellCoordinate destination) =>
@@ -153,12 +144,11 @@ class DelegatingWorksheetData implements WorksheetData {
     required CellRange sourceRange,
     required CellRange targetRange,
     required bool vertical,
-  }) =>
-      inner.replicateMerges(
-        sourceRange: sourceRange,
-        targetRange: targetRange,
-        vertical: vertical,
-      );
+  }) => inner.replicateMerges(
+    sourceRange: sourceRange,
+    targetRange: targetRange,
+    vertical: vertical,
+  );
 
   @override
   int? findNextPopulatedRow(int column, int fromRow) =>

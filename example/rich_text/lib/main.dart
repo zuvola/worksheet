@@ -24,7 +24,20 @@ const _fontFamilies = [
   'Oswald',
 ];
 
-const _fontSizes = [8.0, 9.0, 10.0, 11.0, 12.0, 14.0, 16.0, 18.0, 20.0, 24.0, 28.0, 36.0];
+const _fontSizes = [
+  8.0,
+  9.0,
+  10.0,
+  11.0,
+  12.0,
+  14.0,
+  16.0,
+  18.0,
+  20.0,
+  24.0,
+  28.0,
+  36.0,
+];
 
 class _RichTextDemoState extends State<RichTextDemo> {
   late final SparseWorksheetData _data;
@@ -43,73 +56,107 @@ class _RichTextDemoState extends State<RichTextDemo> {
       rowCount: 100,
       columnCount: 10,
       cells: {
-        (0, 0): Cell.text('Rich Text Demo', richText: const [
-          TextSpan(
+        (0, 0): Cell.text(
+          'Rich Text Demo',
+          richText: const [
+            TextSpan(
               text: 'Rich Text Demo',
-              style: TextStyle(fontWeight: FontWeight.bold)),
-        ]),
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
         (2, 0): Cell.text('Plain text'),
-        (3, 0): Cell.text('Bold and normal', richText: const [
-          TextSpan(
+        (3, 0): Cell.text(
+          'Bold and normal',
+          richText: const [
+            TextSpan(
               text: 'Bold',
-              style: TextStyle(fontWeight: FontWeight.bold)),
-          TextSpan(text: ' and normal'),
-        ]),
-        (4, 0): Cell.text('Italic and colored', richText: const [
-          TextSpan(
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            TextSpan(text: ' and normal'),
+          ],
+        ),
+        (4, 0): Cell.text(
+          'Italic and colored',
+          richText: const [
+            TextSpan(
               text: 'Italic',
-              style: TextStyle(fontStyle: FontStyle.italic)),
-          TextSpan(text: ' and '),
-          TextSpan(
+              style: TextStyle(fontStyle: FontStyle.italic),
+            ),
+            TextSpan(text: ' and '),
+            TextSpan(
               text: 'colored',
-              style: TextStyle(color: Color(0xFF2196F3))),
-        ]),
-        (5, 0): Cell.text('Underline and strike', richText: const [
-          TextSpan(
+              style: TextStyle(color: Color(0xFF2196F3)),
+            ),
+          ],
+        ),
+        (5, 0): Cell.text(
+          'Underline and strike',
+          richText: const [
+            TextSpan(
               text: 'Underline',
-              style: TextStyle(decoration: TextDecoration.underline)),
-          TextSpan(text: ' and '),
-          TextSpan(
+              style: TextStyle(decoration: TextDecoration.underline),
+            ),
+            TextSpan(text: ' and '),
+            TextSpan(
               text: 'strike',
-              style: TextStyle(decoration: TextDecoration.lineThrough)),
-        ]),
-        (6, 0): Cell.text('Mixed formatting', richText: const [
-          TextSpan(
-            text: 'Mixed',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFE91E63),
+              style: TextStyle(decoration: TextDecoration.lineThrough),
             ),
-          ),
-          TextSpan(text: ' '),
-          TextSpan(
-            text: 'formatting',
-            style: TextStyle(
-              fontStyle: FontStyle.italic,
-              decoration: TextDecoration.underline,
+          ],
+        ),
+        (6, 0): Cell.text(
+          'Mixed formatting',
+          richText: const [
+            TextSpan(
+              text: 'Mixed',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFE91E63),
+              ),
             ),
-          ),
-        ]),
-        (8, 0): Cell.text('Cell underline', richText: const [
-          TextSpan(
+            TextSpan(text: ' '),
+            TextSpan(
+              text: 'formatting',
+              style: TextStyle(
+                fontStyle: FontStyle.italic,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ],
+        ),
+        (8, 0): Cell.text(
+          'Cell underline',
+          richText: const [
+            TextSpan(
               text: 'Cell underline',
-              style: TextStyle(decoration: TextDecoration.underline)),
-        ]),
-        (9, 0): Cell.text('Cell strikethrough', richText: const [
-          TextSpan(
+              style: TextStyle(decoration: TextDecoration.underline),
+            ),
+          ],
+        ),
+        (9, 0): Cell.text(
+          'Cell strikethrough',
+          richText: const [
+            TextSpan(
               text: 'Cell strikethrough',
-              style: TextStyle(decoration: TextDecoration.lineThrough)),
-        ]),
-        (7, 0): Cell.text('Fira Code font', richText: [
-          TextSpan(
-              text: 'Fira Code font',
-              style: GoogleFonts.firaCode()),
-        ]),
-        (7, 1): Cell.text('Dancing Script', richText: [
-          TextSpan(
+              style: TextStyle(decoration: TextDecoration.lineThrough),
+            ),
+          ],
+        ),
+        (7, 0): Cell.text(
+          'Fira Code font',
+          richText: [
+            TextSpan(text: 'Fira Code font', style: GoogleFonts.firaCode()),
+          ],
+        ),
+        (7, 1): Cell.text(
+          'Dancing Script',
+          richText: [
+            TextSpan(
               text: 'Dancing Script',
-              style: GoogleFonts.dancingScript()),
-        ]),
+              style: GoogleFonts.dancingScript(),
+            ),
+          ],
+        ),
         (11, 0): Cell.text('Double-tap to edit. Use toolbar or Ctrl+B/I/U.'),
       },
     );
@@ -185,7 +232,10 @@ class _RichTextDemoState extends State<RichTextDemo> {
       for (int c = range.startColumn; allMatch && c <= range.endColumn; c++) {
         final coord = CellCoordinate(r, c);
         final spans = _ensureSpans(coord);
-        if (spans.isEmpty) { allMatch = false; break; }
+        if (spans.isEmpty) {
+          allMatch = false;
+          break;
+        }
         if (!spans.every((s) => test(s.style))) allMatch = false;
       }
     }
@@ -196,10 +246,12 @@ class _RichTextDemoState extends State<RichTextDemo> {
         final spans = _ensureSpans(coord);
         if (spans.isEmpty) continue;
         final toggled = spans
-            .map((s) => TextSpan(
-                  text: s.text,
-                  style: allMatch ? remove(s.style) : apply(s.style),
-                ))
+            .map(
+              (s) => TextSpan(
+                text: s.text,
+                style: allMatch ? remove(s.style) : apply(s.style),
+              ),
+            )
             .toList();
         _data.setRichText(coord, toggled);
       }
@@ -225,10 +277,12 @@ class _RichTextDemoState extends State<RichTextDemo> {
         final spans = _ensureSpans(coord);
         if (spans.isEmpty) continue;
         final colored = spans
-            .map((s) => TextSpan(
-                  text: s.text,
-                  style: (s.style ?? const TextStyle()).copyWith(color: color),
-                ))
+            .map(
+              (s) => TextSpan(
+                text: s.text,
+                style: (s.style ?? const TextStyle()).copyWith(color: color),
+              ),
+            )
             .toList();
         _data.setRichText(coord, colored);
       }
@@ -239,8 +293,11 @@ class _RichTextDemoState extends State<RichTextDemo> {
   /// Resolves the Google Fonts TextStyle for [family] matching the given
   /// [weight] and [fontStyle], returning the registered fontFamily name
   /// (e.g. 'Lato_regular', 'Lato_700') and fontFamilyFallback.
-  TextStyle _resolveGoogleFont(String family,
-      {FontWeight? weight, FontStyle? fontStyle}) {
+  TextStyle _resolveGoogleFont(
+    String family, {
+    FontWeight? weight,
+    FontStyle? fontStyle,
+  }) {
     return GoogleFonts.getFont(
       family,
       fontWeight: weight ?? FontWeight.normal,
@@ -264,22 +321,20 @@ class _RichTextDemoState extends State<RichTextDemo> {
         final coord = CellCoordinate(r, c);
         final spans = _ensureSpans(coord);
         if (spans.isEmpty) continue;
-        final updated = spans
-            .map((s) {
-              final resolved = _resolveGoogleFont(
-                family,
-                weight: s.style?.fontWeight,
-                fontStyle: s.style?.fontStyle,
-              );
-              return TextSpan(
-                text: s.text,
-                style: (s.style ?? const TextStyle()).copyWith(
-                  fontFamily: resolved.fontFamily,
-                  fontFamilyFallback: resolved.fontFamilyFallback,
-                ),
-              );
-            })
-            .toList();
+        final updated = spans.map((s) {
+          final resolved = _resolveGoogleFont(
+            family,
+            weight: s.style?.fontWeight,
+            fontStyle: s.style?.fontStyle,
+          );
+          return TextSpan(
+            text: s.text,
+            style: (s.style ?? const TextStyle()).copyWith(
+              fontFamily: resolved.fontFamily,
+              fontFamilyFallback: resolved.fontFamilyFallback,
+            ),
+          );
+        }).toList();
         _data.setRichText(coord, updated);
       }
     }
@@ -302,11 +357,12 @@ class _RichTextDemoState extends State<RichTextDemo> {
         final spans = _ensureSpans(coord);
         if (spans.isEmpty) continue;
         final updated = spans
-            .map((s) => TextSpan(
-                  text: s.text,
-                  style: (s.style ?? const TextStyle())
-                      .copyWith(fontSize: size),
-                ))
+            .map(
+              (s) => TextSpan(
+                text: s.text,
+                style: (s.style ?? const TextStyle()).copyWith(fontSize: size),
+              ),
+            )
             .toList();
         _data.setRichText(coord, updated);
       }
@@ -383,281 +439,315 @@ class _RichTextDemoState extends State<RichTextDemo> {
     return FocusScope(
       canRequestFocus: false,
       child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Wrap(
-        spacing: 4,
-        runSpacing: 4,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          // --- Font family dropdown ---
-          SizedBox(
-            width: 150,
-            child: DropdownButton<String>(
-              isExpanded: true,
-              hint: const Text('Font', style: TextStyle(fontSize: 12)),
-              style: const TextStyle(fontSize: 13, color: Colors.black),
-              underline: const SizedBox.shrink(),
-              onChanged: _hasSelection
-                  ? (family) {
-                      if (family == null) return;
-                      _setFontFamily(family);
-                    }
-                  : null,
-              items: _fontFamilies
-                  .map((f) => DropdownMenuItem(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Wrap(
+          spacing: 4,
+          runSpacing: 4,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            // --- Font family dropdown ---
+            SizedBox(
+              width: 150,
+              child: DropdownButton<String>(
+                isExpanded: true,
+                hint: const Text('Font', style: TextStyle(fontSize: 12)),
+                style: const TextStyle(fontSize: 13, color: Colors.black),
+                underline: const SizedBox.shrink(),
+                onChanged: _hasSelection
+                    ? (family) {
+                        if (family == null) return;
+                        _setFontFamily(family);
+                      }
+                    : null,
+                items: _fontFamilies
+                    .map(
+                      (f) => DropdownMenuItem(
                         value: f,
-                        child: Text(f, style: GoogleFonts.getFont(f, fontSize: 13)),
-                      ))
-                  .toList(),
+                        child: Text(
+                          f,
+                          style: GoogleFonts.getFont(f, fontSize: 13),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
             ),
-          ),
-          const SizedBox(width: 4),
-          // --- Font size dropdown ---
-          SizedBox(
-            width: 60,
-            child: DropdownButton<double>(
-              isExpanded: true,
-              hint: const Text('Size', style: TextStyle(fontSize: 12)),
-              style: const TextStyle(fontSize: 13, color: Colors.black),
-              underline: const SizedBox.shrink(),
-              onChanged: _hasSelection
-                  ? (size) {
-                      if (size == null) return;
-                      _setFontSize(size);
-                    }
-                  : null,
-              items: _fontSizes
-                  .map((s) => DropdownMenuItem(
+            const SizedBox(width: 4),
+            // --- Font size dropdown ---
+            SizedBox(
+              width: 60,
+              child: DropdownButton<double>(
+                isExpanded: true,
+                hint: const Text('Size', style: TextStyle(fontSize: 12)),
+                style: const TextStyle(fontSize: 13, color: Colors.black),
+                underline: const SizedBox.shrink(),
+                onChanged: _hasSelection
+                    ? (size) {
+                        if (size == null) return;
+                        _setFontSize(size);
+                      }
+                    : null,
+                items: _fontSizes
+                    .map(
+                      (s) => DropdownMenuItem(
                         value: s,
                         child: Text(s.toInt().toString()),
-                      ))
-                  .toList(),
+                      ),
+                    )
+                    .toList(),
+              ),
             ),
-          ),
-          const VerticalDivider(width: 16),
-          // --- Text color buttons ---
-          const Text('Text:', style: TextStyle(fontSize: 12)),
-          _ColorButton(
-            color: const Color(0xFFE91E63),
-            tooltip: 'Pink text',
-            onPressed: _hasSelection
-                ? () => _setTextColor(const Color(0xFFE91E63))
-                : null,
-          ),
-          _ColorButton(
-            color: const Color(0xFF2196F3),
-            tooltip: 'Blue text',
-            onPressed: _hasSelection
-                ? () => _setTextColor(const Color(0xFF2196F3))
-                : null,
-          ),
-          _ColorButton(
-            color: const Color(0xFF4CAF50),
-            tooltip: 'Green text',
-            onPressed: _hasSelection
-                ? () => _setTextColor(const Color(0xFF4CAF50))
-                : null,
-          ),
-          _ColorButton(
-            color: const Color(0xFF000000),
-            tooltip: 'Black text (default)',
-            onPressed: _hasSelection
-                ? () => _setTextColor(const Color(0xFF000000))
-                : null,
-          ),
-          const VerticalDivider(width: 16),
-          // --- Background color buttons ---
-          const Text('BG:', style: TextStyle(fontSize: 12)),
-          _ColorButton(
-            color: const Color(0xFFFFEB3B),
-            tooltip: 'Yellow background',
-            onPressed: _hasSelection
-                ? () => _setStyle(
-                    const CellStyle(backgroundColor: Color(0xFFFFEB3B)))
-                : null,
-          ),
-          _ColorButton(
-            color: const Color(0xFF81D4FA),
-            tooltip: 'Blue background',
-            onPressed: _hasSelection
-                ? () => _setStyle(
-                    const CellStyle(backgroundColor: Color(0xFF81D4FA)))
-                : null,
-          ),
-          _ColorButton(
-            color: const Color(0xFFA5D6A7),
-            tooltip: 'Green background',
-            onPressed: _hasSelection
-                ? () => _setStyle(
-                    const CellStyle(backgroundColor: Color(0xFFA5D6A7)))
-                : null,
-          ),
-          _ColorButton(
-            color: const Color(0xFFEF9A9A),
-            tooltip: 'Red background',
-            onPressed: _hasSelection
-                ? () => _setStyle(
-                    const CellStyle(backgroundColor: Color(0xFFEF9A9A)))
-                : null,
-          ),
-          const VerticalDivider(width: 16),
-          // --- Alignment ---
-          _ToolbarIconButton(
-            icon: Icons.format_align_left,
-            tooltip: 'Align left',
-            onPressed: _hasSelection
-                ? () => _setStyle(
-                    const CellStyle(textAlignment: CellTextAlignment.left))
-                : null,
-          ),
-          _ToolbarIconButton(
-            icon: Icons.format_align_center,
-            tooltip: 'Align center',
-            onPressed: _hasSelection
-                ? () => _setStyle(
-                    const CellStyle(textAlignment: CellTextAlignment.center))
-                : null,
-          ),
-          _ToolbarIconButton(
-            icon: Icons.format_align_right,
-            tooltip: 'Align right',
-            onPressed: _hasSelection
-                ? () => _setStyle(
-                    const CellStyle(textAlignment: CellTextAlignment.right))
-                : null,
-          ),
-          _ToolbarIconButton(
-            icon: Icons.vertical_align_top,
-            tooltip: 'Align top',
-            onPressed: _hasSelection
-                ? () => _setStyle(const CellStyle(
-                    verticalAlignment: CellVerticalAlignment.top))
-                : null,
-          ),
-          _ToolbarIconButton(
-            icon: Icons.vertical_align_center,
-            tooltip: 'Align middle',
-            onPressed: _hasSelection
-                ? () => _setStyle(const CellStyle(
-                    verticalAlignment: CellVerticalAlignment.middle))
-                : null,
-          ),
-          _ToolbarIconButton(
-            icon: Icons.vertical_align_bottom,
-            tooltip: 'Align bottom',
-            onPressed: _hasSelection
-                ? () => _setStyle(const CellStyle(
-                    verticalAlignment: CellVerticalAlignment.bottom))
-                : null,
-          ),
-          _ToolbarIconButton(
-            icon: Icons.wrap_text,
-            tooltip: 'Toggle wrap text',
-            onPressed: _hasSelection ? _toggleWrapText : null,
-          ),
-          const VerticalDivider(width: 16),
-          // --- Bold / Italic / Underline / Strikethrough ---
-          _ToolbarIconButton(
-            icon: Icons.format_bold,
-            tooltip: 'Toggle bold',
-            onPressed: _hasSelection
-                ? () {
-                    if (isEditing) {
-                      _editController.toggleBold();
-                      _editController.requestEditorFocus();
-                    } else {
-                      _toggleSpanStyle(
-                        test: (s) => s?.fontWeight == FontWeight.bold,
-                        apply: (s) => (s ?? const TextStyle())
-                            .copyWith(fontWeight: FontWeight.bold),
-                        remove: (s) => (s ?? const TextStyle())
-                            .copyWith(fontWeight: FontWeight.normal),
-                      );
+            const VerticalDivider(width: 16),
+            // --- Text color buttons ---
+            const Text('Text:', style: TextStyle(fontSize: 12)),
+            _ColorButton(
+              color: const Color(0xFFE91E63),
+              tooltip: 'Pink text',
+              onPressed: _hasSelection
+                  ? () => _setTextColor(const Color(0xFFE91E63))
+                  : null,
+            ),
+            _ColorButton(
+              color: const Color(0xFF2196F3),
+              tooltip: 'Blue text',
+              onPressed: _hasSelection
+                  ? () => _setTextColor(const Color(0xFF2196F3))
+                  : null,
+            ),
+            _ColorButton(
+              color: const Color(0xFF4CAF50),
+              tooltip: 'Green text',
+              onPressed: _hasSelection
+                  ? () => _setTextColor(const Color(0xFF4CAF50))
+                  : null,
+            ),
+            _ColorButton(
+              color: const Color(0xFF000000),
+              tooltip: 'Black text (default)',
+              onPressed: _hasSelection
+                  ? () => _setTextColor(const Color(0xFF000000))
+                  : null,
+            ),
+            const VerticalDivider(width: 16),
+            // --- Background color buttons ---
+            const Text('BG:', style: TextStyle(fontSize: 12)),
+            _ColorButton(
+              color: const Color(0xFFFFEB3B),
+              tooltip: 'Yellow background',
+              onPressed: _hasSelection
+                  ? () => _setStyle(
+                      const CellStyle(backgroundColor: Color(0xFFFFEB3B)),
+                    )
+                  : null,
+            ),
+            _ColorButton(
+              color: const Color(0xFF81D4FA),
+              tooltip: 'Blue background',
+              onPressed: _hasSelection
+                  ? () => _setStyle(
+                      const CellStyle(backgroundColor: Color(0xFF81D4FA)),
+                    )
+                  : null,
+            ),
+            _ColorButton(
+              color: const Color(0xFFA5D6A7),
+              tooltip: 'Green background',
+              onPressed: _hasSelection
+                  ? () => _setStyle(
+                      const CellStyle(backgroundColor: Color(0xFFA5D6A7)),
+                    )
+                  : null,
+            ),
+            _ColorButton(
+              color: const Color(0xFFEF9A9A),
+              tooltip: 'Red background',
+              onPressed: _hasSelection
+                  ? () => _setStyle(
+                      const CellStyle(backgroundColor: Color(0xFFEF9A9A)),
+                    )
+                  : null,
+            ),
+            const VerticalDivider(width: 16),
+            // --- Alignment ---
+            _ToolbarIconButton(
+              icon: Icons.format_align_left,
+              tooltip: 'Align left',
+              onPressed: _hasSelection
+                  ? () => _setStyle(
+                      const CellStyle(textAlignment: CellTextAlignment.left),
+                    )
+                  : null,
+            ),
+            _ToolbarIconButton(
+              icon: Icons.format_align_center,
+              tooltip: 'Align center',
+              onPressed: _hasSelection
+                  ? () => _setStyle(
+                      const CellStyle(textAlignment: CellTextAlignment.center),
+                    )
+                  : null,
+            ),
+            _ToolbarIconButton(
+              icon: Icons.format_align_right,
+              tooltip: 'Align right',
+              onPressed: _hasSelection
+                  ? () => _setStyle(
+                      const CellStyle(textAlignment: CellTextAlignment.right),
+                    )
+                  : null,
+            ),
+            _ToolbarIconButton(
+              icon: Icons.vertical_align_top,
+              tooltip: 'Align top',
+              onPressed: _hasSelection
+                  ? () => _setStyle(
+                      const CellStyle(
+                        verticalAlignment: CellVerticalAlignment.top,
+                      ),
+                    )
+                  : null,
+            ),
+            _ToolbarIconButton(
+              icon: Icons.vertical_align_center,
+              tooltip: 'Align middle',
+              onPressed: _hasSelection
+                  ? () => _setStyle(
+                      const CellStyle(
+                        verticalAlignment: CellVerticalAlignment.middle,
+                      ),
+                    )
+                  : null,
+            ),
+            _ToolbarIconButton(
+              icon: Icons.vertical_align_bottom,
+              tooltip: 'Align bottom',
+              onPressed: _hasSelection
+                  ? () => _setStyle(
+                      const CellStyle(
+                        verticalAlignment: CellVerticalAlignment.bottom,
+                      ),
+                    )
+                  : null,
+            ),
+            _ToolbarIconButton(
+              icon: Icons.wrap_text,
+              tooltip: 'Toggle wrap text',
+              onPressed: _hasSelection ? _toggleWrapText : null,
+            ),
+            const VerticalDivider(width: 16),
+            // --- Bold / Italic / Underline / Strikethrough ---
+            _ToolbarIconButton(
+              icon: Icons.format_bold,
+              tooltip: 'Toggle bold',
+              onPressed: _hasSelection
+                  ? () {
+                      if (isEditing) {
+                        _editController.toggleBold();
+                        _editController.requestEditorFocus();
+                      } else {
+                        _toggleSpanStyle(
+                          test: (s) => s?.fontWeight == FontWeight.bold,
+                          apply: (s) => (s ?? const TextStyle()).copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                          remove: (s) => (s ?? const TextStyle()).copyWith(
+                            fontWeight: FontWeight.normal,
+                          ),
+                        );
+                      }
                     }
-                  }
-                : null,
-          ),
-          _ToolbarIconButton(
-            icon: Icons.format_italic,
-            tooltip: 'Toggle italic',
-            onPressed: _hasSelection
-                ? () {
-                    if (isEditing) {
-                      _editController.toggleItalic();
-                      _editController.requestEditorFocus();
-                    } else {
-                      _toggleSpanStyle(
-                        test: (s) => s?.fontStyle == FontStyle.italic,
-                        apply: (s) => (s ?? const TextStyle())
-                            .copyWith(fontStyle: FontStyle.italic),
-                        remove: (s) => (s ?? const TextStyle())
-                            .copyWith(fontStyle: FontStyle.normal),
-                      );
+                  : null,
+            ),
+            _ToolbarIconButton(
+              icon: Icons.format_italic,
+              tooltip: 'Toggle italic',
+              onPressed: _hasSelection
+                  ? () {
+                      if (isEditing) {
+                        _editController.toggleItalic();
+                        _editController.requestEditorFocus();
+                      } else {
+                        _toggleSpanStyle(
+                          test: (s) => s?.fontStyle == FontStyle.italic,
+                          apply: (s) => (s ?? const TextStyle()).copyWith(
+                            fontStyle: FontStyle.italic,
+                          ),
+                          remove: (s) => (s ?? const TextStyle()).copyWith(
+                            fontStyle: FontStyle.normal,
+                          ),
+                        );
+                      }
                     }
-                  }
-                : null,
-          ),
-          _ToolbarIconButton(
-            icon: Icons.format_underline,
-            tooltip: 'Toggle underline',
-            onPressed: _hasSelection
-                ? () {
-                    if (isEditing) {
-                      _editController.toggleUnderline();
-                      _editController.requestEditorFocus();
-                    } else {
-                      _toggleSpanStyle(
-                        test: (s) =>
-                            s?.decoration == TextDecoration.underline,
-                        apply: (s) => (s ?? const TextStyle())
-                            .copyWith(decoration: TextDecoration.underline),
-                        remove: (s) => (s ?? const TextStyle())
-                            .copyWith(decoration: TextDecoration.none),
-                      );
+                  : null,
+            ),
+            _ToolbarIconButton(
+              icon: Icons.format_underline,
+              tooltip: 'Toggle underline',
+              onPressed: _hasSelection
+                  ? () {
+                      if (isEditing) {
+                        _editController.toggleUnderline();
+                        _editController.requestEditorFocus();
+                      } else {
+                        _toggleSpanStyle(
+                          test: (s) =>
+                              s?.decoration == TextDecoration.underline,
+                          apply: (s) => (s ?? const TextStyle()).copyWith(
+                            decoration: TextDecoration.underline,
+                          ),
+                          remove: (s) => (s ?? const TextStyle()).copyWith(
+                            decoration: TextDecoration.none,
+                          ),
+                        );
+                      }
                     }
-                  }
-                : null,
-          ),
-          _ToolbarIconButton(
-            icon: Icons.format_strikethrough,
-            tooltip: 'Toggle strikethrough',
-            onPressed: _hasSelection
-                ? () {
-                    if (isEditing) {
-                      _editController.toggleStrikethrough();
-                      _editController.requestEditorFocus();
-                    } else {
-                      _toggleSpanStyle(
-                        test: (s) =>
-                            s?.decoration == TextDecoration.lineThrough,
-                        apply: (s) => (s ?? const TextStyle()).copyWith(
-                            decoration: TextDecoration.lineThrough),
-                        remove: (s) => (s ?? const TextStyle())
-                            .copyWith(decoration: TextDecoration.none),
-                      );
+                  : null,
+            ),
+            _ToolbarIconButton(
+              icon: Icons.format_strikethrough,
+              tooltip: 'Toggle strikethrough',
+              onPressed: _hasSelection
+                  ? () {
+                      if (isEditing) {
+                        _editController.toggleStrikethrough();
+                        _editController.requestEditorFocus();
+                      } else {
+                        _toggleSpanStyle(
+                          test: (s) =>
+                              s?.decoration == TextDecoration.lineThrough,
+                          apply: (s) => (s ?? const TextStyle()).copyWith(
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                          remove: (s) => (s ?? const TextStyle()).copyWith(
+                            decoration: TextDecoration.none,
+                          ),
+                        );
+                      }
                     }
-                  }
-                : null,
-          ),
-          const VerticalDivider(width: 16),
-          // --- Clear formatting ---
-          _ToolbarIconButton(
-            icon: Icons.format_color_reset,
-            tooltip: 'Clear formatting (styles + rich text)',
-            onPressed: _hasSelection ? _clearFormatting : null,
-          ),
-          if (isEditing)
-            const Padding(
-              padding: EdgeInsets.only(left: 8),
-              child: Text('Editing',
+                  : null,
+            ),
+            const VerticalDivider(width: 16),
+            // --- Clear formatting ---
+            _ToolbarIconButton(
+              icon: Icons.format_color_reset,
+              tooltip: 'Clear formatting (styles + rich text)',
+              onPressed: _hasSelection ? _clearFormatting : null,
+            ),
+            if (isEditing)
+              const Padding(
+                padding: EdgeInsets.only(left: 8),
+                child: Text(
+                  'Editing',
                   style: TextStyle(
-                      fontSize: 11,
-                      color: Colors.green,
-                      fontWeight: FontWeight.bold)),
-            ),
-        ],
+                    fontSize: 11,
+                    color: Colors.green,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
-    ),
     );
   }
 }

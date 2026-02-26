@@ -581,79 +581,87 @@ void main() {
         );
       });
 
-      test('click in frozen column area with scroll resolves to unscrolled cell',
-          () {
-        // Screen position: x=100 is in frozen column area (header=50, frozenCol=100px)
-        // viewportX = 100 - 50 = 50, which is < frozenColsScreenWidth (100)
-        // So scrollX should NOT be applied
-        // y=80, viewportY = 80 - 30 = 50, which is > frozenRowsScreenHeight (25)
-        // So scrollY IS applied
-        final worksheetPos = frozenTester.screenToWorksheet(
-          screenPosition: const Offset(100, 80),
-          scrollOffset: const Offset(500, 300),
-          zoom: 1.0,
-        );
+      test(
+        'click in frozen column area with scroll resolves to unscrolled cell',
+        () {
+          // Screen position: x=100 is in frozen column area (header=50, frozenCol=100px)
+          // viewportX = 100 - 50 = 50, which is < frozenColsScreenWidth (100)
+          // So scrollX should NOT be applied
+          // y=80, viewportY = 80 - 30 = 50, which is > frozenRowsScreenHeight (25)
+          // So scrollY IS applied
+          final worksheetPos = frozenTester.screenToWorksheet(
+            screenPosition: const Offset(100, 80),
+            scrollOffset: const Offset(500, 300),
+            zoom: 1.0,
+          );
 
-        // X: viewportX/zoom + 0 = 50/1 + 0 = 50 (no scroll)
-        // Y: viewportY/zoom + scrollY/zoom = 50 + 300 = 350 (with scroll)
-        expect(worksheetPos.dx, 50.0);
-        expect(worksheetPos.dy, 350.0);
-      });
+          // X: viewportX/zoom + 0 = 50/1 + 0 = 50 (no scroll)
+          // Y: viewportY/zoom + scrollY/zoom = 50 + 300 = 350 (with scroll)
+          expect(worksheetPos.dx, 50.0);
+          expect(worksheetPos.dy, 350.0);
+        },
+      );
 
-      test('click in frozen row area with scroll resolves to unscrolled cell',
-          () {
-        // Screen position: x=200, y=40
-        // viewportX = 200 - 50 = 150, which is > frozenColsScreenWidth (100)
-        // So scrollX IS applied
-        // viewportY = 40 - 30 = 10, which is < frozenRowsScreenHeight (25)
-        // So scrollY should NOT be applied
-        final worksheetPos = frozenTester.screenToWorksheet(
-          screenPosition: const Offset(200, 40),
-          scrollOffset: const Offset(500, 300),
-          zoom: 1.0,
-        );
+      test(
+        'click in frozen row area with scroll resolves to unscrolled cell',
+        () {
+          // Screen position: x=200, y=40
+          // viewportX = 200 - 50 = 150, which is > frozenColsScreenWidth (100)
+          // So scrollX IS applied
+          // viewportY = 40 - 30 = 10, which is < frozenRowsScreenHeight (25)
+          // So scrollY should NOT be applied
+          final worksheetPos = frozenTester.screenToWorksheet(
+            screenPosition: const Offset(200, 40),
+            scrollOffset: const Offset(500, 300),
+            zoom: 1.0,
+          );
 
-        // X: 150 + 500 = 650 (with scroll)
-        // Y: 10 + 0 = 10 (no scroll)
-        expect(worksheetPos.dx, 650.0);
-        expect(worksheetPos.dy, 10.0);
-      });
+          // X: 150 + 500 = 650 (with scroll)
+          // Y: 10 + 0 = 10 (no scroll)
+          expect(worksheetPos.dx, 650.0);
+          expect(worksheetPos.dy, 10.0);
+        },
+      );
 
-      test('click in corner area with scroll applies no scroll on either axis',
-          () {
-        // Screen position: x=80, y=40
-        // viewportX = 80 - 50 = 30, which is < frozenColsScreenWidth (100)
-        // viewportY = 40 - 30 = 10, which is < frozenRowsScreenHeight (25)
-        // Neither axis should apply scroll
-        final worksheetPos = frozenTester.screenToWorksheet(
-          screenPosition: const Offset(80, 40),
-          scrollOffset: const Offset(500, 300),
-          zoom: 1.0,
-        );
+      test(
+        'click in corner area with scroll applies no scroll on either axis',
+        () {
+          // Screen position: x=80, y=40
+          // viewportX = 80 - 50 = 30, which is < frozenColsScreenWidth (100)
+          // viewportY = 40 - 30 = 10, which is < frozenRowsScreenHeight (25)
+          // Neither axis should apply scroll
+          final worksheetPos = frozenTester.screenToWorksheet(
+            screenPosition: const Offset(80, 40),
+            scrollOffset: const Offset(500, 300),
+            zoom: 1.0,
+          );
 
-        // X: 30/1 + 0 = 30
-        // Y: 10/1 + 0 = 10
-        expect(worksheetPos.dx, 30.0);
-        expect(worksheetPos.dy, 10.0);
-      });
+          // X: 30/1 + 0 = 30
+          // Y: 10/1 + 0 = 10
+          expect(worksheetPos.dx, 30.0);
+          expect(worksheetPos.dy, 10.0);
+        },
+      );
 
-      test('click in scrollable area applies scroll on both axes (regression)',
-          () {
-        // Screen position: x=200, y=80
-        // viewportX = 200 - 50 = 150, which is > frozenColsScreenWidth (100)
-        // viewportY = 80 - 30 = 50, which is > frozenRowsScreenHeight (25)
-        // Both axes should apply scroll
-        final worksheetPos = frozenTester.screenToWorksheet(
-          screenPosition: const Offset(200, 80),
-          scrollOffset: const Offset(500, 300),
-          zoom: 1.0,
-        );
+      test(
+        'click in scrollable area applies scroll on both axes (regression)',
+        () {
+          // Screen position: x=200, y=80
+          // viewportX = 200 - 50 = 150, which is > frozenColsScreenWidth (100)
+          // viewportY = 80 - 30 = 50, which is > frozenRowsScreenHeight (25)
+          // Both axes should apply scroll
+          final worksheetPos = frozenTester.screenToWorksheet(
+            screenPosition: const Offset(200, 80),
+            scrollOffset: const Offset(500, 300),
+            zoom: 1.0,
+          );
 
-        // X: 150 + 500 = 650
-        // Y: 50 + 300 = 350
-        expect(worksheetPos.dx, 650.0);
-        expect(worksheetPos.dy, 350.0);
-      });
+          // X: 150 + 500 = 650
+          // Y: 50 + 300 = 350
+          expect(worksheetPos.dx, 650.0);
+          expect(worksheetPos.dy, 350.0);
+        },
+      );
 
       test('hit test resolves frozen column cell correctly with scroll', () {
         // Click in frozen column, scrollable row area

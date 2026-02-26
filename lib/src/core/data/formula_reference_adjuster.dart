@@ -13,11 +13,8 @@ import 'package:a1/a1.dart';
 /// adjuster('=\$A1', 1, 0);   // '=\$A2' (column locked)
 /// adjuster('=A\$1', 1, 0);   // '=A\$1' (row locked)
 /// ```
-typedef FormulaReferenceAdjuster = String Function(
-  String formula,
-  int rowDelta,
-  int colDelta,
-);
+typedef FormulaReferenceAdjuster =
+    String Function(String formula, int rowDelta, int colDelta);
 
 /// Regex for cell references, with optional sheet prefix.
 ///
@@ -121,10 +118,12 @@ String? _adjustCell(String cellText, int rowDelta, int colDelta) {
 
   if (newCol < 0 || newRow < 0) return null;
 
-  return A1.fromVector(
-    newCol,
-    newRow,
-    columnAbsolute: a1.columnAbsolute,
-    rowAbsolute: a1.rowAbsolute,
-  ).toString();
+  return A1
+      .fromVector(
+        newCol,
+        newRow,
+        columnAbsolute: a1.columnAbsolute,
+        rowAbsolute: a1.rowAbsolute,
+      )
+      .toString();
 }

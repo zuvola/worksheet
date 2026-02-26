@@ -38,20 +38,22 @@ void main() {
       expect(result.cursorOffset, 6);
     });
 
-    test('replace existing ref: cursor within A1 in =A1+B2 produces =C3+B2',
-        () {
-      final formula = '=A1+B2';
-      final tokens = FormulaTokenizer.tokenize(formula);
-      final result = FormulaReferenceInserter.insertCellRef(
-        formula: formula,
-        cursorOffset: 2, // within A1
-        cell: const CellCoordinate(2, 2),
-        tokens: tokens,
-        cellToRef: defaultCellToRef,
-      );
-      expect(result.text, '=C3+B2');
-      expect(result.cursorOffset, 3);
-    });
+    test(
+      'replace existing ref: cursor within A1 in =A1+B2 produces =C3+B2',
+      () {
+        final formula = '=A1+B2';
+        final tokens = FormulaTokenizer.tokenize(formula);
+        final result = FormulaReferenceInserter.insertCellRef(
+          formula: formula,
+          cursorOffset: 2, // within A1
+          cell: const CellCoordinate(2, 2),
+          tokens: tokens,
+          cellToRef: defaultCellToRef,
+        );
+        expect(result.text, '=C3+B2');
+        expect(result.cursorOffset, 3);
+      },
+    );
 
     test('insert preserves surrounding text', () {
       final formula = '=SUM()+1';
@@ -112,21 +114,23 @@ void main() {
       expect(result.cursorOffset, 6);
     });
 
-    test('replace ref with range: cursor at A1 in =A1+B2 produces =A1:C5+B2',
-        () {
-      final formula = '=A1+B2';
-      final tokens = FormulaTokenizer.tokenize(formula);
-      final result = FormulaReferenceInserter.insertRangeRef(
-        formula: formula,
-        cursorOffset: 2, // within A1
-        start: const CellCoordinate(0, 0),
-        end: const CellCoordinate(4, 2),
-        tokens: tokens,
-        rangeToRef: defaultRangeToRef,
-      );
-      expect(result.text, '=A1:C5+B2');
-      expect(result.cursorOffset, 6);
-    });
+    test(
+      'replace ref with range: cursor at A1 in =A1+B2 produces =A1:C5+B2',
+      () {
+        final formula = '=A1+B2';
+        final tokens = FormulaTokenizer.tokenize(formula);
+        final result = FormulaReferenceInserter.insertRangeRef(
+          formula: formula,
+          cursorOffset: 2, // within A1
+          start: const CellCoordinate(0, 0),
+          end: const CellCoordinate(4, 2),
+          tokens: tokens,
+          rangeToRef: defaultRangeToRef,
+        );
+        expect(result.text, '=A1:C5+B2');
+        expect(result.cursorOffset, 6);
+      },
+    );
   });
 
   group('FormulaReferenceInserter.cycleAbsoluteRelative', () {

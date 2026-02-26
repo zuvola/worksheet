@@ -32,8 +32,16 @@ class _FrozenPanesExampleState extends State<FrozenPanesExample> {
 
     // Header row (row 0)
     final headers = [
-      'ID', 'Name', 'Category', 'Price', 'Qty', 'Total',
-      'Status', 'Date', 'Region', 'Notes',
+      'ID',
+      'Name',
+      'Category',
+      'Price',
+      'Qty',
+      'Total',
+      'Status',
+      'Date',
+      'Region',
+      'Notes',
     ];
     for (int col = 0; col < headers.length; col++) {
       cells[(0, col)] = headers[col].cell;

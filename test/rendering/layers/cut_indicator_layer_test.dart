@@ -29,12 +29,14 @@ void main() {
       final recorder = PictureRecorder();
       final canvas = Canvas(recorder);
 
-      layer.paint(LayerPaintContext(
-        canvas: canvas,
-        viewportSize: const Size(800, 600),
-        scrollOffset: Offset.zero,
-        zoom: 1.0,
-      ));
+      layer.paint(
+        LayerPaintContext(
+          canvas: canvas,
+          viewportSize: const Size(800, 600),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        ),
+      );
 
       // No exception means success.
       recorder.endRecording();
@@ -48,12 +50,14 @@ void main() {
       final recorder = PictureRecorder();
       final canvas = Canvas(recorder);
 
-      layer.paint(LayerPaintContext(
-        canvas: canvas,
-        viewportSize: const Size(800, 600),
-        scrollOffset: Offset.zero,
-        zoom: 1.0,
-      ));
+      layer.paint(
+        LayerPaintContext(
+          canvas: canvas,
+          viewportSize: const Size(800, 600),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        ),
+      );
 
       // No exception means success — marching ants were drawn.
       recorder.endRecording();
@@ -67,12 +71,14 @@ void main() {
       final recorder = PictureRecorder();
       final canvas = Canvas(recorder);
 
-      layer.paint(LayerPaintContext(
-        canvas: canvas,
-        viewportSize: const Size(800, 600),
-        scrollOffset: Offset.zero,
-        zoom: 1.0,
-      ));
+      layer.paint(
+        LayerPaintContext(
+          canvas: canvas,
+          viewportSize: const Size(800, 600),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        ),
+      );
 
       recorder.endRecording();
     });
@@ -96,12 +102,14 @@ void main() {
       final canvas = Canvas(recorder);
 
       // Paint at 200% zoom — should not error.
-      layer.paint(LayerPaintContext(
-        canvas: canvas,
-        viewportSize: const Size(1600, 1200),
-        scrollOffset: Offset.zero,
-        zoom: 2.0,
-      ));
+      layer.paint(
+        LayerPaintContext(
+          canvas: canvas,
+          viewportSize: const Size(1600, 1200),
+          scrollOffset: Offset.zero,
+          zoom: 2.0,
+        ),
+      );
 
       recorder.endRecording();
     });
@@ -114,12 +122,14 @@ void main() {
       final recorder = PictureRecorder();
       final canvas = Canvas(recorder);
 
-      layer.paint(LayerPaintContext(
-        canvas: canvas,
-        viewportSize: const Size(100, 100),
-        scrollOffset: Offset.zero,
-        zoom: 1.0,
-      ));
+      layer.paint(
+        LayerPaintContext(
+          canvas: canvas,
+          viewportSize: const Size(100, 100),
+          scrollOffset: Offset.zero,
+          zoom: 1.0,
+        ),
+      );
 
       recorder.endRecording();
     });

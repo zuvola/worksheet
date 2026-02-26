@@ -23,11 +23,11 @@ class HeaderLayer extends RenderLayer {
 
   /// Function to get visible column range based on viewport.
   final SpanRange Function(double scrollX, double viewportWidth, double zoom)
-      getVisibleColumns;
+  getVisibleColumns;
 
   /// Function to get visible row range based on viewport.
   final SpanRange Function(double scrollY, double viewportHeight, double zoom)
-      getVisibleRows;
+  getVisibleRows;
 
   /// Callback to trigger repaint when needed.
   final VoidCallback? onNeedsPaint;
@@ -150,12 +150,14 @@ class HeaderLayer extends RenderLayer {
         frozenColsW += renderer.layoutSolver.getColumnWidth(col) * zoom;
       }
       canvas.save();
-      canvas.clipRect(Rect.fromLTWH(
-        scaledRowHeaderWidth,
-        0,
-        frozenColsW,
-        scaledColumnHeaderHeight,
-      ));
+      canvas.clipRect(
+        Rect.fromLTWH(
+          scaledRowHeaderWidth,
+          0,
+          frozenColsW,
+          scaledColumnHeaderHeight,
+        ),
+      );
       renderer.paintColumnHeaders(
         canvas: canvas,
         viewportOffset: Offset(0, context.scrollOffset.dy),
@@ -174,12 +176,14 @@ class HeaderLayer extends RenderLayer {
         frozenRowsH += renderer.layoutSolver.getRowHeight(row) * zoom;
       }
       canvas.save();
-      canvas.clipRect(Rect.fromLTWH(
-        0,
-        scaledColumnHeaderHeight,
-        scaledRowHeaderWidth,
-        frozenRowsH,
-      ));
+      canvas.clipRect(
+        Rect.fromLTWH(
+          0,
+          scaledColumnHeaderHeight,
+          scaledRowHeaderWidth,
+          frozenRowsH,
+        ),
+      );
       renderer.paintRowHeaders(
         canvas: canvas,
         viewportOffset: Offset(context.scrollOffset.dx, 0),
@@ -220,12 +224,7 @@ class HeaderLayer extends RenderLayer {
     // Paint corner cell (intersection of row and column headers)
     canvas.save();
     canvas.clipRect(
-      Rect.fromLTWH(
-        0,
-        0,
-        scaledRowHeaderWidth,
-        scaledColumnHeaderHeight,
-      ),
+      Rect.fromLTWH(0, 0, scaledRowHeaderWidth, scaledColumnHeaderHeight),
     );
     renderer.paintCornerCell(canvas, zoom: zoom);
     canvas.restore();

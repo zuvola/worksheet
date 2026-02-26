@@ -172,7 +172,10 @@ void main() {
 
     group('toString', () {
       test('returns readable string', () {
-        expect(TileCoordinate(2, 3).toString(), 'TileCoordinate(row: 2, col: 3)');
+        expect(
+          TileCoordinate(2, 3).toString(),
+          'TileCoordinate(row: 2, col: 3)',
+        );
       });
     });
 

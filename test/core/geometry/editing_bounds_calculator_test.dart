@@ -33,7 +33,10 @@ void main() {
 
       expect(result.endColumn, 0);
       expect(result.endRow, 0);
-      expect(result.bounds, layoutSolver.getCellBounds(const CellCoordinate(0, 0)));
+      expect(
+        result.bounds,
+        layoutSolver.getCellBounds(const CellCoordinate(0, 0)),
+      );
     });
 
     test('short text that fits returns no expansion', () {
@@ -47,7 +50,10 @@ void main() {
       );
 
       expect(result.endColumn, 0);
-      expect(result.bounds, layoutSolver.getCellBounds(const CellCoordinate(0, 0)));
+      expect(
+        result.bounds,
+        layoutSolver.getCellBounds(const CellCoordinate(0, 0)),
+      );
     });
 
     test('long text expands across columns', () {
@@ -140,7 +146,10 @@ void main() {
 
       expect(result.endRow, 0);
       expect(result.endColumn, 0);
-      expect(result.bounds, layoutSolver.getCellBounds(const CellCoordinate(0, 0)));
+      expect(
+        result.bounds,
+        layoutSolver.getCellBounds(const CellCoordinate(0, 0)),
+      );
     });
 
     test('short text that fits returns no expansion', () {
@@ -241,8 +250,11 @@ void main() {
         maxRow: 99,
       );
 
-      expect(result.endRow, greaterThan(0),
-          reason: 'Trailing newline should expand into next row');
+      expect(
+        result.endRow,
+        greaterThan(0),
+        reason: 'Trailing newline should expand into next row',
+      );
       expect(result.bounds.height, greaterThan(24.0));
     });
 
@@ -266,8 +278,7 @@ void main() {
         cellPadding: cellPadding,
         maxRow: 99,
       );
-      expect(noOffset.endRow, 0,
-          reason: '3 lines fit in 60px without offset');
+      expect(noOffset.endRow, 0, reason: '3 lines fit in 60px without offset');
 
       // With verticalOffset of 25px: text no longer fits
       // needed = 25 + ~50.4 + 4 = ~79.4 > 60 → expansion
@@ -280,8 +291,11 @@ void main() {
         maxRow: 99,
         verticalOffset: 25.0,
       );
-      expect(withOffset.endRow, greaterThan(0),
-          reason: 'With vertical offset, text overflows and expands');
+      expect(
+        withOffset.endRow,
+        greaterThan(0),
+        reason: 'With vertical offset, text overflows and expands',
+      );
     });
   });
 }

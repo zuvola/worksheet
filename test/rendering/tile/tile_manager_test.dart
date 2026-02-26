@@ -28,10 +28,7 @@ class TestTileRenderer implements TileRenderer {
 
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder);
-    canvas.drawRect(
-      bounds,
-      ui.Paint()..color = const ui.Color(0xFFFFFFFF),
-    );
+    canvas.drawRect(bounds, ui.Paint()..color = const ui.Color(0xFFFFFFFF));
     return recorder.endRecording();
   }
 }
@@ -48,7 +45,11 @@ void main() {
         rows: SpanList(count: 1000, defaultSize: 25.0),
         columns: SpanList(count: 100, defaultSize: 100.0),
       );
-      config = const TileConfig(tileSize: 256, maxCachedTiles: 10, prefetchRings: 0);
+      config = const TileConfig(
+        tileSize: 256,
+        maxCachedTiles: 10,
+        prefetchRings: 0,
+      );
       renderer = TestTileRenderer();
       manager = TileManager(
         layoutSolver: layoutSolver,
@@ -333,7 +334,8 @@ void main() {
         final covered = <(int, int)>{};
         for (final coord in coords) {
           final range = resizeManager.getCellRangeForTile(
-            coord, ZoomBucket.full,
+            coord,
+            ZoomBucket.full,
           );
           for (int r = range.startRow; r <= range.endRow; r++) {
             for (int c = range.startColumn; c <= range.endColumn; c++) {
@@ -348,10 +350,12 @@ void main() {
       /// visible in the viewport, based on the layout solver.
       Set<(int, int)> getExpectedVisibleCells(ui.Rect viewport) {
         final rowRange = resizeSolver.getVisibleRows(
-          viewport.top, viewport.height,
+          viewport.top,
+          viewport.height,
         );
         final colRange = resizeSolver.getVisibleColumns(
-          viewport.left, viewport.width,
+          viewport.left,
+          viewport.width,
         );
         final expected = <(int, int)>{};
         for (int r = rowRange.startIndex; r <= rowRange.endIndex; r++) {
@@ -369,8 +373,11 @@ void main() {
 
         // Every expected cell should be covered by a tile
         for (final cell in expected) {
-          expect(covered, contains(cell),
-              reason: 'Cell (${cell.$1}, ${cell.$2}) not covered');
+          expect(
+            covered,
+            contains(cell),
+            reason: 'Cell (${cell.$1}, ${cell.$2}) not covered',
+          );
         }
       });
 
@@ -385,8 +392,11 @@ void main() {
         final expected = getExpectedVisibleCells(viewport);
 
         for (final cell in expected) {
-          expect(covered, contains(cell),
-              reason: 'Cell (${cell.$1}, ${cell.$2}) not covered after resize');
+          expect(
+            covered,
+            contains(cell),
+            reason: 'Cell (${cell.$1}, ${cell.$2}) not covered after resize',
+          );
         }
       });
 
@@ -401,27 +411,35 @@ void main() {
         final expected = getExpectedVisibleCells(viewport);
 
         for (final cell in expected) {
-          expect(covered, contains(cell),
-              reason: 'Cell (${cell.$1}, ${cell.$2}) not covered after narrow');
+          expect(
+            covered,
+            contains(cell),
+            reason: 'Cell (${cell.$1}, ${cell.$2}) not covered after narrow',
+          );
         }
       });
 
-      test('all visible cells covered after widening column wider than tile',
-          () {
-        const viewport = ui.Rect.fromLTWH(0, 0, 800, 600);
+      test(
+        'all visible cells covered after widening column wider than tile',
+        () {
+          const viewport = ui.Rect.fromLTWH(0, 0, 800, 600);
 
-        // Make column 0 wider than a tile (300px > 256px)
-        resizeSolver.setColumnWidth(0, 300.0);
-        resizeManager.invalidateAll();
+          // Make column 0 wider than a tile (300px > 256px)
+          resizeSolver.setColumnWidth(0, 300.0);
+          resizeManager.invalidateAll();
 
-        final covered = getCoveredCells(viewport);
-        final expected = getExpectedVisibleCells(viewport);
+          final covered = getCoveredCells(viewport);
+          final expected = getExpectedVisibleCells(viewport);
 
-        for (final cell in expected) {
-          expect(covered, contains(cell),
-              reason: 'Cell (${cell.$1}, ${cell.$2}) not covered (wide col)');
-        }
-      });
+          for (final cell in expected) {
+            expect(
+              covered,
+              contains(cell),
+              reason: 'Cell (${cell.$1}, ${cell.$2}) not covered (wide col)',
+            );
+          }
+        },
+      );
 
       test('all visible cells covered after multiple column resizes', () {
         const viewport = ui.Rect.fromLTWH(0, 0, 800, 600);
@@ -436,10 +454,13 @@ void main() {
         final expected = getExpectedVisibleCells(viewport);
 
         for (final cell in expected) {
-          expect(covered, contains(cell),
-              reason:
-                  'Cell (${cell.$1}, ${cell.$2}) not covered after '
-                  'incremental resize');
+          expect(
+            covered,
+            contains(cell),
+            reason:
+                'Cell (${cell.$1}, ${cell.$2}) not covered after '
+                'incremental resize',
+          );
         }
       });
 
@@ -454,11 +475,15 @@ void main() {
         // Check tiles along the first row
         for (var tileCol = 0; tileCol < 4; tileCol++) {
           final tileBounds = ui.Rect.fromLTWH(
-            tileCol * tileSize, 0, tileSize, tileSize,
+            tileCol * tileSize,
+            0,
+            tileSize,
+            tileSize,
           );
           final coord = TileCoordinate(0, tileCol);
           final range = resizeManager.getCellRangeForTile(
-            coord, ZoomBucket.full,
+            coord,
+            ZoomBucket.full,
           );
 
           // Every cell in the range should geometrically intersect
@@ -478,10 +503,13 @@ void main() {
                   localTop < tileSize &&
                   localTop + cellBounds.height > 0;
 
-              expect(intersects, isTrue,
-                  reason:
-                      'Cell ($r, $c) in tile (0, $tileCol) range but '
-                      'does not intersect tile bounds');
+              expect(
+                intersects,
+                isTrue,
+                reason:
+                    'Cell ($r, $c) in tile (0, $tileCol) range but '
+                    'does not intersect tile bounds',
+              );
             }
           }
         }
@@ -533,7 +561,9 @@ void main() {
         final prefetchManager = TileManager(
           layoutSolver: prefetchSolver,
           config: const TileConfig(
-            tileSize: 256, maxCachedTiles: 50, prefetchRings: 1,
+            tileSize: 256,
+            maxCachedTiles: 50,
+            prefetchRings: 1,
           ),
           renderer: prefetchRenderer,
         );
@@ -553,7 +583,9 @@ void main() {
         final prefetchManager = TileManager(
           layoutSolver: prefetchSolver,
           config: const TileConfig(
-            tileSize: 256, maxCachedTiles: 50, prefetchRings: 0,
+            tileSize: 256,
+            maxCachedTiles: 50,
+            prefetchRings: 0,
           ),
           renderer: prefetchRenderer,
         );
@@ -573,7 +605,9 @@ void main() {
         final prefetchManager = TileManager(
           layoutSolver: prefetchSolver,
           config: const TileConfig(
-            tileSize: 256, maxCachedTiles: 50, prefetchRings: 1,
+            tileSize: 256,
+            maxCachedTiles: 50,
+            prefetchRings: 1,
           ),
           renderer: prefetchRenderer,
         );
@@ -600,7 +634,9 @@ void main() {
         final prefetchManager = TileManager(
           layoutSolver: prefetchSolver,
           config: const TileConfig(
-            tileSize: 256, maxCachedTiles: 50, prefetchRings: 1,
+            tileSize: 256,
+            maxCachedTiles: 50,
+            prefetchRings: 1,
           ),
           renderer: prefetchRenderer,
         );
@@ -625,7 +661,9 @@ void main() {
         final prefetchManager = TileManager(
           layoutSolver: prefetchSolver,
           config: const TileConfig(
-            tileSize: 256, maxCachedTiles: 50, prefetchRings: 1,
+            tileSize: 256,
+            maxCachedTiles: 50,
+            prefetchRings: 1,
           ),
           renderer: prefetchRenderer,
         );

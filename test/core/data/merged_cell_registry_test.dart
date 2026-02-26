@@ -107,18 +107,12 @@ void main() {
     });
 
     test('merge rejects range with fewer than 2 cells', () {
-      expect(
-        () => registry.merge(CellRange(0, 0, 0, 0)),
-        throwsArgumentError,
-      );
+      expect(() => registry.merge(CellRange(0, 0, 0, 0)), throwsArgumentError);
     });
 
     test('merge rejects overlapping regions', () {
       registry.merge(CellRange(0, 0, 1, 1));
-      expect(
-        () => registry.merge(CellRange(1, 1, 2, 2)),
-        throwsArgumentError,
-      );
+      expect(() => registry.merge(CellRange(1, 1, 2, 2)), throwsArgumentError);
     });
 
     test('multiple non-overlapping merges', () {

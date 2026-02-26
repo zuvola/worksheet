@@ -47,9 +47,7 @@ void main() {
     return MaterialApp(
       home: Scaffold(
         body: WorksheetTheme(
-          data: WorksheetThemeData(
-            defaultColumnWidth: defaultColumnWidth,
-          ),
+          data: WorksheetThemeData(defaultColumnWidth: defaultColumnWidth),
           child: SizedBox(
             width: 800,
             height: 600,
@@ -75,7 +73,9 @@ void main() {
   }
 
   group('Type-to-edit (navigation mode)', () {
-    testWidgets('pressing a printable character starts editing', (tester) async {
+    testWidgets('pressing a printable character starts editing', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWorksheet(ec: editController));
       selectCell(0, 0);
       await tester.pump();
@@ -88,8 +88,9 @@ void main() {
       expect(editController.trigger, EditTrigger.typing);
     });
 
-    testWidgets('digit starts editing with digit as initial text',
-        (tester) async {
+    testWidgets('digit starts editing with digit as initial text', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWorksheet(ec: editController));
       selectCell(1, 0);
       await tester.pump();
@@ -104,8 +105,9 @@ void main() {
       expect(editController.currentText, '5');
     });
 
-    testWidgets('Ctrl+A does NOT start editing (triggers select all)',
-        (tester) async {
+    testWidgets('Ctrl+A does NOT start editing (triggers select all)', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWorksheet(ec: editController));
       selectCell(0, 0);
       await tester.pump();
@@ -145,8 +147,9 @@ void main() {
       expect(editController.currentText, '42');
     });
 
-    testWidgets('no editController: printable chars do nothing',
-        (tester) async {
+    testWidgets('no editController: printable chars do nothing', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWorksheet()); // no editController
       selectCell(0, 0);
       await tester.pump();
@@ -161,7 +164,8 @@ void main() {
 
     testWidgets('readOnly: printable chars do nothing', (tester) async {
       await tester.pumpWidget(
-          buildWorksheet(ec: editController, readOnly: true));
+        buildWorksheet(ec: editController, readOnly: true),
+      );
       selectCell(0, 0);
       await tester.pump();
 
@@ -171,8 +175,7 @@ void main() {
       expect(editController.isEditing, isFalse);
     });
 
-    testWidgets('no focused cell: printable chars do nothing',
-        (tester) async {
+    testWidgets('no focused cell: printable chars do nothing', (tester) async {
       await tester.pumpWidget(buildWorksheet(ec: editController));
       // Don't select any cell
       await tester.pump();
@@ -328,8 +331,9 @@ void main() {
       expect(controller.focusCell, const CellCoordinate(2, 2));
     });
 
-    testWidgets('ArrowRight moves text cursor, stays in edit mode',
-        (tester) async {
+    testWidgets('ArrowRight moves text cursor, stays in edit mode', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWorksheet(ec: editController));
       selectCell(2, 2);
       await tester.pump();
@@ -347,8 +351,9 @@ void main() {
       expect(controller.focusCell, const CellCoordinate(2, 2));
     });
 
-    testWidgets('ArrowLeft moves text cursor, stays in edit mode',
-        (tester) async {
+    testWidgets('ArrowLeft moves text cursor, stays in edit mode', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWorksheet(ec: editController));
       selectCell(2, 3);
       await tester.pump();
@@ -386,8 +391,7 @@ void main() {
       // Selection should NOT move
       expect(controller.focusCell, const CellCoordinate(2, 2));
       // Original value should be unchanged
-      expect(data.getCell(const CellCoordinate(2, 2)),
-          CellValue.number(42));
+      expect(data.getCell(const CellCoordinate(2, 2)), CellValue.number(42));
     });
   });
 
@@ -471,9 +475,9 @@ void main() {
   });
 
   group('Integration', () {
-    testWidgets(
-        'type character starts editing, Enter commits and moves down',
-        (tester) async {
+    testWidgets('type character starts editing, Enter commits and moves down', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWorksheet(ec: editController));
       selectCell(0, 0);
       await tester.pump();
@@ -555,8 +559,9 @@ void main() {
       expect(controller.focusCell, const CellCoordinate(1, 0));
     });
 
-    testWidgets('existing navigation shortcuts work when not editing',
-        (tester) async {
+    testWidgets('existing navigation shortcuts work when not editing', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWorksheet(ec: editController));
       selectCell(5, 5);
       await tester.pump();
@@ -571,14 +576,17 @@ void main() {
       expect(controller.focusCell, const CellCoordinate(6, 6));
     });
 
-    testWidgets('onEditCell callback fires alongside editController on F2',
-        (tester) async {
+    testWidgets('onEditCell callback fires alongside editController on F2', (
+      tester,
+    ) async {
       CellCoordinate? editedCell;
 
-      await tester.pumpWidget(buildWorksheet(
-        ec: editController,
-        onEditCell: (cell) => editedCell = cell,
-      ));
+      await tester.pumpWidget(
+        buildWorksheet(
+          ec: editController,
+          onEditCell: (cell) => editedCell = cell,
+        ),
+      );
       selectCell(3, 3);
       await tester.pump();
 
@@ -593,148 +601,162 @@ void main() {
 
   group('Wrap-text expansion timing', () {
     testWidgets(
-        'wrap-text cell expansion updates selection renderer in same frame',
-        (tester) async {
-      // Set up a wrap-text, right-aligned, bottom-aligned cell
-      const cell = CellCoordinate(5, 1);
-      data.setCell(cell, CellValue.text('Hi'));
-      data.setStyle(
-        cell,
-        const CellStyle(
-          wrapText: true,
-          textAlignment: CellTextAlignment.right,
-          verticalAlignment: CellVerticalAlignment.bottom,
-        ),
-      );
+      'wrap-text cell expansion updates selection renderer in same frame',
+      (tester) async {
+        // Set up a wrap-text, right-aligned, bottom-aligned cell
+        const cell = CellCoordinate(5, 1);
+        data.setCell(cell, CellValue.text('Hi'));
+        data.setStyle(
+          cell,
+          const CellStyle(
+            wrapText: true,
+            textAlignment: CellTextAlignment.right,
+            verticalAlignment: CellVerticalAlignment.bottom,
+          ),
+        );
 
-      await tester.pumpWidget(buildWorksheet(ec: editController));
-      selectCell(5, 1);
-      await tester.pump();
+        await tester.pumpWidget(buildWorksheet(ec: editController));
+        selectCell(5, 1);
+        await tester.pump();
 
-      // Start editing via F2
-      await tester.sendKeyEvent(LogicalKeyboardKey.f2);
-      await tester.pump();
-      await tester.pump();
-      expect(editController.isEditing, isTrue);
+        // Start editing via F2
+        await tester.sendKeyEvent(LogicalKeyboardKey.f2);
+        await tester.pump();
+        await tester.pump();
+        expect(editController.isEditing, isTrue);
 
-      // Type multi-line text that overflows the 24px row height.
-      // Alt+Enter inserts a newline in wrap-text mode.
-      // Three lines of text at 14px font (~16.8px per line) = ~50.4px,
-      // which exceeds the 24px cell height and should expand downward.
-      editController.updateText('Line1\nLine2\nLine3');
-      await tester.pump();
+        // Type multi-line text that overflows the 24px row height.
+        // Alt+Enter inserts a newline in wrap-text mode.
+        // Three lines of text at 14px font (~16.8px per line) = ~50.4px,
+        // which exceeds the 24px cell height and should expand downward.
+        editController.updateText('Line1\nLine2\nLine3');
+        await tester.pump();
 
-      // Now tap in the area below the original cell (row 6 area).
-      // Default layout: headers are 50px wide, 24px tall.
-      // Cell (5,1): x = 50 + 100 = 150, y = 24 + 5*24 = 144, 100px wide, 24px tall.
-      // Row 6 starts at y = 144 + 24 = 168.
-      // If expansion worked, tapping at y=175 (row 6 area, inside expanded bounds)
-      // should NOT commit the edit.
-      await tester.tapAt(const Offset(180, 175));
-      await tester.pump();
+        // Now tap in the area below the original cell (row 6 area).
+        // Default layout: headers are 50px wide, 24px tall.
+        // Cell (5,1): x = 50 + 100 = 150, y = 24 + 5*24 = 144, 100px wide, 24px tall.
+        // Row 6 starts at y = 144 + 24 = 168.
+        // If expansion worked, tapping at y=175 (row 6 area, inside expanded bounds)
+        // should NOT commit the edit.
+        await tester.tapAt(const Offset(180, 175));
+        await tester.pump();
 
-      // The edit should still be active because the tap was inside the
-      // expanded editing area.
-      expect(editController.isEditing, isTrue,
-          reason: 'Tap inside expanded area should not commit edit');
-    });
+        // The edit should still be active because the tap was inside the
+        // expanded editing area.
+        expect(
+          editController.isEditing,
+          isTrue,
+          reason: 'Tap inside expanded area should not commit edit',
+        );
+      },
+    );
 
     testWidgets(
-        'bottom-aligned wrap cell with tall row expands on first newline',
-        (tester) async {
-      // Matches example/wrap_text.dart cell (5,1): 60px row, 200px column,
-      // bottom+right aligned, text "Bottom-right-aligned\nwrapped text".
-      // After one Alt+Enter → "...\nwrapped text\n", the cursor is on a
-      // blank line 3. The vertical offset is ~22px, so needed height =
-      // 22 + ~50px + 4 = ~76px > 60px → should expand into row 6.
-      const cell = CellCoordinate(5, 1);
-      data.setCell(
-        cell,
-        CellValue.text('Bottom-right-aligned\nwrapped text'),
-      );
-      data.setStyle(
-        cell,
-        const CellStyle(
-          wrapText: true,
-          textAlignment: CellTextAlignment.right,
-          verticalAlignment: CellVerticalAlignment.bottom,
-        ),
-      );
+      'bottom-aligned wrap cell with tall row expands on first newline',
+      (tester) async {
+        // Matches example/wrap_text.dart cell (5,1): 60px row, 200px column,
+        // bottom+right aligned, text "Bottom-right-aligned\nwrapped text".
+        // After one Alt+Enter → "...\nwrapped text\n", the cursor is on a
+        // blank line 3. The vertical offset is ~22px, so needed height =
+        // 22 + ~50px + 4 = ~76px > 60px → should expand into row 6.
+        const cell = CellCoordinate(5, 1);
+        data.setCell(
+          cell,
+          CellValue.text('Bottom-right-aligned\nwrapped text'),
+        );
+        data.setStyle(
+          cell,
+          const CellStyle(
+            wrapText: true,
+            textAlignment: CellTextAlignment.right,
+            verticalAlignment: CellVerticalAlignment.bottom,
+          ),
+        );
 
-      await tester.pumpWidget(buildWorksheet(
-        ec: editController,
-        customRowHeights: {5: 60},
-        defaultColumnWidth: 200,
-      ));
-      selectCell(5, 1);
-      await tester.pump();
+        await tester.pumpWidget(
+          buildWorksheet(
+            ec: editController,
+            customRowHeights: {5: 60},
+            defaultColumnWidth: 200,
+          ),
+        );
+        selectCell(5, 1);
+        await tester.pump();
 
-      // Start editing via F2
-      await tester.sendKeyEvent(LogicalKeyboardKey.f2);
-      await tester.pump();
-      await tester.pump();
-      expect(editController.isEditing, isTrue);
+        // Start editing via F2
+        await tester.sendKeyEvent(LogicalKeyboardKey.f2);
+        await tester.pump();
+        await tester.pump();
+        expect(editController.isEditing, isTrue);
 
-      // Simulate one Alt+Enter (adds trailing newline)
-      editController
-          .updateText('Bottom-right-aligned\nwrapped text\n');
-      await tester.pump();
+        // Simulate one Alt+Enter (adds trailing newline)
+        editController.updateText('Bottom-right-aligned\nwrapped text\n');
+        await tester.pump();
 
-      // Tap in the row below (row 6). With 60px row at row 5:
-      // Row 5: y = 24 + 5*24 = 144 (rows 0-4 are 24px each)
-      // Wait — customRowHeights only sets row 5 to 60. Rows 0-4 are 24px.
-      // Row 5 top: 24(header) + 5*24 = 144, bottom: 144 + 60 = 204
-      // Row 6 starts at y=204.
-      // Tap at y=210 (inside row 6, which should be inside expanded area).
-      // x = 50(header) + 200(col0) + 50 = 300 (middle of col 1)
-      await tester.tapAt(const Offset(300, 210));
-      await tester.pump();
+        // Tap in the row below (row 6). With 60px row at row 5:
+        // Row 5: y = 24 + 5*24 = 144 (rows 0-4 are 24px each)
+        // Wait — customRowHeights only sets row 5 to 60. Rows 0-4 are 24px.
+        // Row 5 top: 24(header) + 5*24 = 144, bottom: 144 + 60 = 204
+        // Row 6 starts at y=204.
+        // Tap at y=210 (inside row 6, which should be inside expanded area).
+        // x = 50(header) + 200(col0) + 50 = 300 (middle of col 1)
+        await tester.tapAt(const Offset(300, 210));
+        await tester.pump();
 
-      expect(editController.isEditing, isTrue,
+        expect(
+          editController.isEditing,
+          isTrue,
           reason:
               'First newline in bottom-aligned cell should expand; tap in '
-              'expanded area should not commit');
-    });
+              'expanded area should not commit',
+        );
+      },
+    );
 
     testWidgets(
-        'wrap-text cell near viewport bottom auto-scrolls on expansion',
-        (tester) async {
-      // Place a wrap-text cell near the viewport bottom.
-      // Widget height = 600, header = 24, default row = 24.
-      // Row 23 top = 24 + 23*24 = 576, bottom = 600 — last visible row.
-      const cell = CellCoordinate(23, 0);
-      data.setCell(cell, CellValue.text('Hi'));
-      data.setStyle(cell, const CellStyle(wrapText: true));
+      'wrap-text cell near viewport bottom auto-scrolls on expansion',
+      (tester) async {
+        // Place a wrap-text cell near the viewport bottom.
+        // Widget height = 600, header = 24, default row = 24.
+        // Row 23 top = 24 + 23*24 = 576, bottom = 600 — last visible row.
+        const cell = CellCoordinate(23, 0);
+        data.setCell(cell, CellValue.text('Hi'));
+        data.setStyle(cell, const CellStyle(wrapText: true));
 
-      await tester.pumpWidget(buildWorksheet(ec: editController));
-      selectCell(23, 0);
-      await tester.pump();
+        await tester.pumpWidget(buildWorksheet(ec: editController));
+        selectCell(23, 0);
+        await tester.pump();
 
-      // Record scroll offset before editing
-      final vController = controller.verticalScrollController;
-      final offsetBefore = vController.offset;
+        // Record scroll offset before editing
+        final vController = controller.verticalScrollController;
+        final offsetBefore = vController.offset;
 
-      // Start editing via F2
-      await tester.sendKeyEvent(LogicalKeyboardKey.f2);
-      await tester.pump();
-      await tester.pump();
-      expect(editController.isEditing, isTrue);
+        // Start editing via F2
+        await tester.sendKeyEvent(LogicalKeyboardKey.f2);
+        await tester.pump();
+        await tester.pump();
+        expect(editController.isEditing, isTrue);
 
-      // Simulate adding multiple lines that overflow the viewport bottom.
-      // Three lines at ~16.8px each ≈ 50px, exceeding the 24px cell.
-      // Expanded bottom ≈ 576 + 50 = 626, which exceeds viewport (600).
-      editController.updateText('Line1\nLine2\nLine3');
-      await tester.pump();
+        // Simulate adding multiple lines that overflow the viewport bottom.
+        // Three lines at ~16.8px each ≈ 50px, exceeding the 24px cell.
+        // Expanded bottom ≈ 576 + 50 = 626, which exceeds viewport (600).
+        editController.updateText('Line1\nLine2\nLine3');
+        await tester.pump();
 
-      // The viewport should have scrolled down to keep the editor visible.
-      expect(vController.offset, greaterThan(offsetBefore),
-          reason: 'Viewport should auto-scroll when wrap-text editor '
-              'overflows below the viewport bottom');
-    });
+        // The viewport should have scrolled down to keep the editor visible.
+        expect(
+          vController.offset,
+          greaterThan(offsetBefore),
+          reason:
+              'Viewport should auto-scroll when wrap-text editor '
+              'overflows below the viewport bottom',
+        );
+      },
+    );
 
-    testWidgets(
-        'tap outside expanded wrap-text area commits edit',
-        (tester) async {
+    testWidgets('tap outside expanded wrap-text area commits edit', (
+      tester,
+    ) async {
       const cell = CellCoordinate(5, 1);
       data.setCell(cell, CellValue.text('Hi'));
       data.setStyle(
@@ -766,160 +788,187 @@ void main() {
       await tester.pump();
 
       // The edit should be committed
-      expect(editController.isEditing, isFalse,
-          reason: 'Tap outside editing area should commit edit');
+      expect(
+        editController.isEditing,
+        isFalse,
+        reason: 'Tap outside editing area should commit edit',
+      );
     });
   });
 
   group('Formula reference editing', () {
     testWidgets(
-        'clicking a cell in formula mode inserts ref and Enter commits',
-        (tester) async {
-      await tester.pumpWidget(buildWorksheet(ec: editController));
-      selectCell(0, 0);
-      await tester.pump();
+      'clicking a cell in formula mode inserts ref and Enter commits',
+      (tester) async {
+        await tester.pumpWidget(buildWorksheet(ec: editController));
+        selectCell(0, 0);
+        await tester.pump();
 
-      // Start editing by typing '='  — enters formula mode.
-      await tester.sendKeyEvent(LogicalKeyboardKey.equal);
-      await tester.pump();
-      await tester.pump();
-      await tester.pump();
+        // Start editing by typing '='  — enters formula mode.
+        await tester.sendKeyEvent(LogicalKeyboardKey.equal);
+        await tester.pump();
+        await tester.pump();
+        await tester.pump();
 
-      expect(editController.isEditing, isTrue);
-      expect(editController.currentText, '=');
-      expect(
-        editController.isFormulaMode(const FormulaReferenceConfig()),
-        isTrue,
-        reason: 'Should be in formula mode with text starting with =',
-      );
+        expect(editController.isEditing, isTrue);
+        expect(editController.currentText, '=');
+        expect(
+          editController.isFormulaMode(const FormulaReferenceConfig()),
+          isTrue,
+          reason: 'Should be in formula mode with text starting with =',
+        );
 
-      // Tap cell B2 (column 1, row 1) using pointer directly to ensure
-      // the Listener onPointerDown receives the event.
-      // Screen coords: x = 50 (header) + 100 (col 0) + 50 = 200,
-      //                y = 24 (header) + 24 (row 0) + 12 = 60
-      final pointer = TestPointer(1, PointerDeviceKind.mouse);
-      await tester.sendEventToBinding(pointer.down(const Offset(200, 60)));
-      await tester.pump();
-      await tester.sendEventToBinding(pointer.up());
-      await tester.pump();
+        // Tap cell B2 (column 1, row 1) using pointer directly to ensure
+        // the Listener onPointerDown receives the event.
+        // Screen coords: x = 50 (header) + 100 (col 0) + 50 = 200,
+        //                y = 24 (header) + 24 (row 0) + 12 = 60
+        final pointer = TestPointer(1, PointerDeviceKind.mouse);
+        await tester.sendEventToBinding(pointer.down(const Offset(200, 60)));
+        await tester.pump();
+        await tester.sendEventToBinding(pointer.up());
+        await tester.pump();
 
-      // Should still be editing with the ref inserted.
-      expect(editController.isEditing, isTrue,
-          reason: 'Formula mode tap should NOT commit. '
-              'text=${editController.currentText}');
-      expect(editController.currentText, contains('B2'));
+        // Should still be editing with the ref inserted.
+        expect(
+          editController.isEditing,
+          isTrue,
+          reason:
+              'Formula mode tap should NOT commit. '
+              'text=${editController.currentText}',
+        );
+        expect(editController.currentText, contains('B2'));
 
-      // Now press Enter to commit.
-      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-      await tester.pump();
+        // Now press Enter to commit.
+        await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+        await tester.pump();
 
-      expect(editController.isEditing, isFalse,
-          reason: 'Enter should commit the formula');
-      // Data should contain the formula.
-      expect(
-        data.getCell(const CellCoordinate(0, 0))?.displayValue,
-        '=B2',
-      );
-    });
-
-    testWidgets(
-        'arrow keys insert cell references at operator boundary in formula mode',
-        (tester) async {
-      await tester.pumpWidget(buildWorksheet(ec: editController));
-      selectCell(2, 2); // C3
-      await tester.pump();
-
-      // Start editing by typing '='
-      await tester.sendKeyEvent(LogicalKeyboardKey.equal);
-      await tester.pump();
-      await tester.pump();
-
-      expect(editController.isEditing, isTrue);
-      expect(editController.currentText, '=');
-
-      // Press arrow-down: cursor is right after '=' (operator boundary)
-      // so it should insert a cell reference instead of committing.
-      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-      await tester.pump();
-
-      expect(editController.isEditing, isTrue,
-          reason: 'Arrow at operator boundary should not commit');
-      // Should have inserted a ref for the cell below the anchor (C3 → C4)
-      expect(editController.currentText, contains('C4'));
-    });
+        expect(
+          editController.isEditing,
+          isFalse,
+          reason: 'Enter should commit the formula',
+        );
+        // Data should contain the formula.
+        expect(data.getCell(const CellCoordinate(0, 0))?.displayValue, '=B2');
+      },
+    );
 
     testWidgets(
-        'arrow keys at end of existing ref insert new ref in formula mode',
-        (tester) async {
-      await tester.pumpWidget(buildWorksheet(ec: editController));
-      selectCell(2, 2); // C3
-      await tester.pump();
+      'arrow keys insert cell references at operator boundary in formula mode',
+      (tester) async {
+        await tester.pumpWidget(buildWorksheet(ec: editController));
+        selectCell(2, 2); // C3
+        await tester.pump();
 
-      // Start editing a formula with an existing ref.
-      // Type '=A1+' to set up a formula with cursor after operator.
-      await tester.sendKeyEvent(LogicalKeyboardKey.equal);
-      await tester.pump();
-      await tester.pump();
+        // Start editing by typing '='
+        await tester.sendKeyEvent(LogicalKeyboardKey.equal);
+        await tester.pump();
+        await tester.pump();
 
-      // Simulate typing 'A1+' by updating the text controller directly.
-      final rtc = editController.richTextController!;
-      rtc.value = const TextEditingValue(
-        text: '=A1+',
-        selection: TextSelection.collapsed(offset: 4),
-      );
-      editController.updateText('=A1+');
-      await tester.pump();
+        expect(editController.isEditing, isTrue);
+        expect(editController.currentText, '=');
 
-      // Press arrow-right: cursor is after '+' (operator boundary)
-      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-      await tester.pump();
+        // Press arrow-down: cursor is right after '=' (operator boundary)
+        // so it should insert a cell reference instead of committing.
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+        await tester.pump();
 
-      expect(editController.isEditing, isTrue,
-          reason: 'Arrow at operator boundary should not commit');
-      // The ref inserted should be based on the selection anchor's neighbor
-      final text = editController.currentText;
-      expect(text, startsWith('=A1+'));
-      expect(text.length, greaterThan(4),
-          reason: 'A cell ref should have been inserted after +');
-    });
+        expect(
+          editController.isEditing,
+          isTrue,
+          reason: 'Arrow at operator boundary should not commit',
+        );
+        // Should have inserted a ref for the cell below the anchor (C3 → C4)
+        expect(editController.currentText, contains('C4'));
+      },
+    );
 
     testWidgets(
-        'arrow keys within an existing ref move the reference in formula mode',
-        (tester) async {
-      await tester.pumpWidget(buildWorksheet(ec: editController));
-      selectCell(2, 2); // C3
-      await tester.pump();
+      'arrow keys at end of existing ref insert new ref in formula mode',
+      (tester) async {
+        await tester.pumpWidget(buildWorksheet(ec: editController));
+        selectCell(2, 2); // C3
+        await tester.pump();
 
-      // Start editing by typing '='
-      await tester.sendKeyEvent(LogicalKeyboardKey.equal);
-      await tester.pump();
-      await tester.pump();
+        // Start editing a formula with an existing ref.
+        // Type '=A1+' to set up a formula with cursor after operator.
+        await tester.sendKeyEvent(LogicalKeyboardKey.equal);
+        await tester.pump();
+        await tester.pump();
 
-      // Set formula to '=A1' with cursor inside the ref (between A and 1).
-      final rtc = editController.richTextController!;
-      rtc.value = const TextEditingValue(
-        text: '=A1',
-        selection: TextSelection.collapsed(offset: 2), // between A and 1
-      );
-      editController.updateText('=A1');
-      await tester.pump();
+        // Simulate typing 'A1+' by updating the text controller directly.
+        final rtc = editController.richTextController!;
+        rtc.value = const TextEditingValue(
+          text: '=A1+',
+          selection: TextSelection.collapsed(offset: 4),
+        );
+        editController.updateText('=A1+');
+        await tester.pump();
 
-      // Press arrow-down: cursor is within ref 'A1' so should move/replace ref.
-      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
-      await tester.pump();
+        // Press arrow-right: cursor is after '+' (operator boundary)
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+        await tester.pump();
 
-      expect(editController.isEditing, isTrue,
-          reason: 'Arrow within ref should not commit');
-      // The ref should have been updated (moved down from current anchor C3)
-      final text = editController.currentText;
-      expect(text, isNot(equals('=A1')),
-          reason: 'The reference should have been moved');
-    });
+        expect(
+          editController.isEditing,
+          isTrue,
+          reason: 'Arrow at operator boundary should not commit',
+        );
+        // The ref inserted should be based on the selection anchor's neighbor
+        final text = editController.currentText;
+        expect(text, startsWith('=A1+'));
+        expect(
+          text.length,
+          greaterThan(4),
+          reason: 'A cell ref should have been inserted after +',
+        );
+      },
+    );
+
+    testWidgets(
+      'arrow keys within an existing ref move the reference in formula mode',
+      (tester) async {
+        await tester.pumpWidget(buildWorksheet(ec: editController));
+        selectCell(2, 2); // C3
+        await tester.pump();
+
+        // Start editing by typing '='
+        await tester.sendKeyEvent(LogicalKeyboardKey.equal);
+        await tester.pump();
+        await tester.pump();
+
+        // Set formula to '=A1' with cursor inside the ref (between A and 1).
+        final rtc = editController.richTextController!;
+        rtc.value = const TextEditingValue(
+          text: '=A1',
+          selection: TextSelection.collapsed(offset: 2), // between A and 1
+        );
+        editController.updateText('=A1');
+        await tester.pump();
+
+        // Press arrow-down: cursor is within ref 'A1' so should move/replace ref.
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+        await tester.pump();
+
+        expect(
+          editController.isEditing,
+          isTrue,
+          reason: 'Arrow within ref should not commit',
+        );
+        // The ref should have been updated (moved down from current anchor C3)
+        final text = editController.currentText;
+        expect(
+          text,
+          isNot(equals('=A1')),
+          reason: 'The reference should have been moved',
+        );
+      },
+    );
   });
 
   group('rawData parameter', () {
-    testWidgets('F2 shows raw formula when rawData is provided',
-        (tester) async {
+    testWidgets('F2 shows raw formula when rawData is provided', (
+      tester,
+    ) async {
       // Raw data has the original formula.
       final rawData = SparseWorksheetData(rowCount: 100, columnCount: 26);
       rawData.setCell(
@@ -930,11 +979,13 @@ void main() {
       // Wrapper evaluates formulas → returns the computed number.
       final wrapper = _EvaluatingWrapper(rawData);
 
-      await tester.pumpWidget(buildWorksheet(
-        ec: editController,
-        dataOverride: wrapper,
-        rawData: rawData,
-      ));
+      await tester.pumpWidget(
+        buildWorksheet(
+          ec: editController,
+          dataOverride: wrapper,
+          rawData: rawData,
+        ),
+      );
 
       selectCell(0, 0);
       await tester.pump();
@@ -949,8 +1000,9 @@ void main() {
       rawData.dispose();
     });
 
-    testWidgets('F2 shows evaluated value when rawData is not provided',
-        (tester) async {
+    testWidgets('F2 shows evaluated value when rawData is not provided', (
+      tester,
+    ) async {
       // Raw data has the original formula.
       final rawData = SparseWorksheetData(rowCount: 100, columnCount: 26);
       rawData.setCell(
@@ -962,10 +1014,9 @@ void main() {
       final wrapper = _EvaluatingWrapper(rawData);
 
       // No rawData parameter — editor should see the wrapper's value.
-      await tester.pumpWidget(buildWorksheet(
-        ec: editController,
-        dataOverride: wrapper,
-      ));
+      await tester.pumpWidget(
+        buildWorksheet(ec: editController, dataOverride: wrapper),
+      );
 
       selectCell(0, 0);
       await tester.pump();

@@ -47,34 +47,44 @@ void main() {
     });
 
     group('batchUpdate emits a single event', () {
-      test('setCell + setFormat + setRichText in batch emits 1 event',
-          () async {
-        final coord = CellCoordinate(0, 0);
+      test(
+        'setCell + setFormat + setRichText in batch emits 1 event',
+        () async {
+          final coord = CellCoordinate(0, 0);
 
-        final future = expectLater(
-          data.changes,
-          emits(
-            isA<DataChangeEvent>()
-                .having((e) => e.type, 'type', DataChangeType.range),
-          ),
-        );
+          final future = expectLater(
+            data.changes,
+            emits(
+              isA<DataChangeEvent>().having(
+                (e) => e.type,
+                'type',
+                DataChangeType.range,
+              ),
+            ),
+          );
 
-        data.batchUpdate((batch) {
-          batch.setCell(coord, CellValue.number(42));
-          batch.setFormat(coord, CellFormat.currency);
-          batch.setRichText(coord, const [TextSpan(text: '42')]);
-        });
+          data.batchUpdate((batch) {
+            batch.setCell(coord, CellValue.number(42));
+            batch.setFormat(coord, CellFormat.currency);
+            batch.setRichText(coord, const [TextSpan(text: '42')]);
+          });
 
-        await future;
-      });
+          await future;
+        },
+      );
 
       test('batch range covers the modified coordinate', () async {
         final coord = CellCoordinate(5, 3);
 
         final future = expectLater(
           data.changes,
-          emits(isA<DataChangeEvent>()
-              .having((e) => e.type, 'type', DataChangeType.range)),
+          emits(
+            isA<DataChangeEvent>().having(
+              (e) => e.type,
+              'type',
+              DataChangeType.range,
+            ),
+          ),
         );
 
         data.batchUpdate((batch) {
@@ -104,12 +114,14 @@ void main() {
       test('batch range covers multiple modified coordinates', () async {
         final future = expectLater(
           data.changes,
-          emits(isA<DataChangeEvent>()
-              .having((e) => e.type, 'type', DataChangeType.range)
-              .having((e) => e.range!.startRow, 'startRow', 0)
-              .having((e) => e.range!.startColumn, 'startColumn', 0)
-              .having((e) => e.range!.endRow, 'endRow', 10)
-              .having((e) => e.range!.endColumn, 'endColumn', 5)),
+          emits(
+            isA<DataChangeEvent>()
+                .having((e) => e.type, 'type', DataChangeType.range)
+                .having((e) => e.range!.startRow, 'startRow', 0)
+                .having((e) => e.range!.startColumn, 'startColumn', 0)
+                .having((e) => e.range!.endRow, 'endRow', 10)
+                .having((e) => e.range!.endColumn, 'endColumn', 5),
+          ),
         );
 
         data.batchUpdate((batch) {

@@ -314,6 +314,7 @@ class _WorksheetState extends State<Worksheet>
   MouseCursor _currentCursor = SystemMouseCursors.basic;
   int _layoutVersion = 0;
   bool _pointerInScrollbarArea = false;
+
   /// Set by onDoubleTapDown when it handles a non-cell double-tap (resize
   /// handle, selection border).  Checked by Listener.onPointerDown to skip
   /// the tap-down + drag-start that would otherwise run on the same pointer
@@ -583,8 +584,7 @@ class _WorksheetState extends State<Worksheet>
     _gestureHandler = _createGestureHandler();
 
     // Create scale handler for pinch-to-zoom
-    _scaleHandler = ScaleHandler(
-        zoomController: _controller.zoomController);
+    _scaleHandler = ScaleHandler(zoomController: _controller.zoomController);
 
     _clipboardHandler = ClipboardHandler(
       data: widget.data,
@@ -703,16 +703,17 @@ class _WorksheetState extends State<Worksheet>
         onNeedsPaint: () => setState(() {}),
       );
 
-      _marchingAntsController = AnimationController(
-        vsync: this,
-        duration: const Duration(milliseconds: 1000),
-      )..addListener(() {
-          final layer = _formulaRefLayer;
-          if (layer != null && layer.activeIndex >= 0) {
-            layer.animationValue = _marchingAntsController!.value;
-            layer.markNeedsPaint();
-          }
-        });
+      _marchingAntsController =
+          AnimationController(
+            vsync: this,
+            duration: const Duration(milliseconds: 1000),
+          )..addListener(() {
+            final layer = _formulaRefLayer;
+            if (layer != null && layer.activeIndex >= 0) {
+              layer.animationValue = _marchingAntsController!.value;
+              layer.markNeedsPaint();
+            }
+          });
     }
   }
 
@@ -727,17 +728,18 @@ class _WorksheetState extends State<Worksheet>
       onNeedsPaint: () => setState(() {}),
     );
 
-    _cutAntsController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1000),
-    )..addListener(() {
-        final layer = _cutIndicatorLayer;
-        if (layer != null && layer.range != null) {
-          layer.animationValue = _cutAntsController!.value;
-          // Repaint is driven by CustomPaint(repaint: _cutAntsController),
-          // so no setState needed here.
-        }
-      });
+    _cutAntsController =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 1000),
+        )..addListener(() {
+          final layer = _cutIndicatorLayer;
+          if (layer != null && layer.range != null) {
+            layer.animationValue = _cutAntsController!.value;
+            // Repaint is driven by CustomPaint(repaint: _cutAntsController),
+            // so no setState needed here.
+          }
+        });
 
     // Restore pending cut state if re-initializing.
     if (_cutRange != null) {
@@ -855,18 +857,20 @@ class _WorksheetState extends State<Worksheet>
       };
       if (mapEquals(before, after)) return;
       final sel = (selectionController.anchor, selectionController.focus);
-      um.push(UndoEntry(
-        label: 'Resize row',
-        affectedRange: const CellRange(0, 0, 0, 0),
-        cellsBefore: const {},
-        mergesBefore: const [],
-        selectionBefore: sel,
-        cellsAfter: const {},
-        mergesAfter: const [],
-        selectionAfter: sel,
-        rowSizesBefore: before,
-        rowSizesAfter: after,
-      ));
+      um.push(
+        UndoEntry(
+          label: 'Resize row',
+          affectedRange: const CellRange(0, 0, 0, 0),
+          cellsBefore: const {},
+          mergesBefore: const [],
+          selectionBefore: sel,
+          cellsAfter: const {},
+          mergesAfter: const [],
+          selectionAfter: sel,
+          rowSizesBefore: before,
+          rowSizesAfter: after,
+        ),
+      );
     } else {
       final before = {for (final c in affectedIndices) c: originalSize};
       final after = {
@@ -874,18 +878,20 @@ class _WorksheetState extends State<Worksheet>
       };
       if (mapEquals(before, after)) return;
       final sel = (selectionController.anchor, selectionController.focus);
-      um.push(UndoEntry(
-        label: 'Resize column',
-        affectedRange: const CellRange(0, 0, 0, 0),
-        cellsBefore: const {},
-        mergesBefore: const [],
-        selectionBefore: sel,
-        cellsAfter: const {},
-        mergesAfter: const [],
-        selectionAfter: sel,
-        columnSizesBefore: before,
-        columnSizesAfter: after,
-      ));
+      um.push(
+        UndoEntry(
+          label: 'Resize column',
+          affectedRange: const CellRange(0, 0, 0, 0),
+          cellsBefore: const {},
+          mergesBefore: const [],
+          selectionBefore: sel,
+          cellsAfter: const {},
+          mergesAfter: const [],
+          selectionAfter: sel,
+          columnSizesBefore: before,
+          columnSizesAfter: after,
+        ),
+      );
     }
   }
 
@@ -944,16 +950,23 @@ class _WorksheetState extends State<Worksheet>
               // smartFill may expand the range, so use a generous union.
               final destRow = destination.row;
               final destCol = destination.column;
-              final preUndoRange = sourceRange.union(CellRange(
-                sourceRange.startRow < destRow ? sourceRange.startRow : destRow,
-                sourceRange.startColumn < destCol ? sourceRange.startColumn : destCol,
-                sourceRange.endRow > destRow ? sourceRange.endRow : destRow,
-                sourceRange.endColumn > destCol ? sourceRange.endColumn : destCol,
-              ));
+              final preUndoRange = sourceRange.union(
+                CellRange(
+                  sourceRange.startRow < destRow
+                      ? sourceRange.startRow
+                      : destRow,
+                  sourceRange.startColumn < destCol
+                      ? sourceRange.startColumn
+                      : destCol,
+                  sourceRange.endRow > destRow ? sourceRange.endRow : destRow,
+                  sourceRange.endColumn > destCol
+                      ? sourceRange.endColumn
+                      : destCol,
+                ),
+              );
               CellRange? filledRange;
               recordUndo('Fill', preUndoRange, () {
-                filledRange =
-                    widget.data.smartFill(sourceRange, destination);
+                filledRange = widget.data.smartFill(sourceRange, destination);
                 if (filledRange != null) {
                   _adjustSmartFillFormulas(sourceRange, filledRange!);
                   _controller.selectionController.selectRange(filledRange!);
@@ -1028,10 +1041,14 @@ class _WorksheetState extends State<Worksheet>
       if (vertical) {
         final sourceHeight = sourceRange.rowCount;
         for (int row = filledRange.startRow; row <= filledRange.endRow; row++) {
-          if (row >= sourceRange.startRow && row <= sourceRange.endRow) continue;
-          for (int col = filledRange.startColumn;
-              col <= filledRange.endColumn;
-              col++) {
+          if (row >= sourceRange.startRow && row <= sourceRange.endRow) {
+            continue;
+          }
+          for (
+            int col = filledRange.startColumn;
+            col <= filledRange.endColumn;
+            col++
+          ) {
             final coord = CellCoordinate(row, col);
             final value = widget.data.getCell(coord);
             if (value == null || !value.isFormula) continue;
@@ -1039,42 +1056,36 @@ class _WorksheetState extends State<Worksheet>
             final offset = row < sourceRange.startRow
                 ? sourceRange.endRow - row
                 : row - sourceRange.startRow;
-            final sourceRow =
-                sourceRange.startRow + (offset % sourceHeight);
+            final sourceRow = sourceRange.startRow + (offset % sourceHeight);
             final rowDelta = row - sourceRow;
-            final adjusted = adjuster(
-              value.rawValue as String,
-              rowDelta,
-              0,
-            );
+            final adjusted = adjuster(value.rawValue as String, rowDelta, 0);
             batch.setCell(coord, CellValue.formula(adjusted));
           }
         }
       } else {
         final sourceWidth = sourceRange.columnCount;
-        for (int col = filledRange.startColumn;
-            col <= filledRange.endColumn;
-            col++) {
+        for (
+          int col = filledRange.startColumn;
+          col <= filledRange.endColumn;
+          col++
+        ) {
           if (col >= sourceRange.startColumn && col <= sourceRange.endColumn) {
             continue;
           }
-          for (int row = filledRange.startRow;
-              row <= filledRange.endRow;
-              row++) {
+          for (
+            int row = filledRange.startRow;
+            row <= filledRange.endRow;
+            row++
+          ) {
             final coord = CellCoordinate(row, col);
             final value = widget.data.getCell(coord);
             if (value == null || !value.isFormula) continue;
             final offset = col < sourceRange.startColumn
                 ? sourceRange.endColumn - col
                 : col - sourceRange.startColumn;
-            final sourceCol =
-                sourceRange.startColumn + (offset % sourceWidth);
+            final sourceCol = sourceRange.startColumn + (offset % sourceWidth);
             final colDelta = col - sourceCol;
-            final adjusted = adjuster(
-              value.rawValue as String,
-              0,
-              colDelta,
-            );
+            final adjusted = adjuster(value.rawValue as String, 0, colDelta);
             batch.setCell(coord, CellValue.formula(adjusted));
           }
         }
@@ -1175,7 +1186,9 @@ class _WorksheetState extends State<Worksheet>
 
     // Second pass: consider merged cells spanning this column
     final fullColumnRange = CellRange(0, column, widget.rowCount - 1, column);
-    for (final region in widget.data.mergedCells.regionsInRange(fullColumnRange)) {
+    for (final region in widget.data.mergedCells.regionsInRange(
+      fullColumnRange,
+    )) {
       final anchor = region.anchor;
       final cellValue = widget.data.getCell(anchor);
       if (cellValue == null) continue;
@@ -1190,10 +1203,8 @@ class _WorksheetState extends State<Worksheet>
         textSpan = TextSpan(text: text, style: baseTextStyle);
       }
 
-      final tp = TextPainter(
-        text: textSpan,
-        textDirection: TextDirection.ltr,
-      )..layout();
+      final tp = TextPainter(text: textSpan, textDirection: TextDirection.ltr)
+        ..layout();
       final totalNeeded = tp.width + 2 * theme.cellPadding;
       tp.dispose();
 
@@ -1204,7 +1215,10 @@ class _WorksheetState extends State<Worksheet>
           otherColumnsWidth += _layoutSolver.getColumnWidth(c);
         }
       }
-      final remainder = (totalNeeded - otherColumnsWidth).clamp(0.0, double.infinity);
+      final remainder = (totalNeeded - otherColumnsWidth).clamp(
+        0.0,
+        double.infinity,
+      );
       if (remainder > maxWidth + 2 * theme.cellPadding) {
         maxWidth = remainder - 2 * theme.cellPadding;
       }
@@ -1222,18 +1236,20 @@ class _WorksheetState extends State<Worksheet>
     final um = undoManager;
     if (um != null && oldWidth != newWidth) {
       final sel = (selectionController.anchor, selectionController.focus);
-      um.push(UndoEntry(
-        label: 'Auto-fit column',
-        affectedRange: const CellRange(0, 0, 0, 0),
-        cellsBefore: const {},
-        mergesBefore: const [],
-        selectionBefore: sel,
-        cellsAfter: const {},
-        mergesAfter: const [],
-        selectionAfter: sel,
-        columnSizesBefore: {column: oldWidth},
-        columnSizesAfter: {column: newWidth},
-      ));
+      um.push(
+        UndoEntry(
+          label: 'Auto-fit column',
+          affectedRange: const CellRange(0, 0, 0, 0),
+          cellsBefore: const {},
+          mergesBefore: const [],
+          selectionBefore: sel,
+          cellsAfter: const {},
+          mergesAfter: const [],
+          selectionAfter: sel,
+          columnSizesBefore: {column: oldWidth},
+          columnSizesAfter: {column: newWidth},
+        ),
+      );
     }
 
     setState(() {});
@@ -1279,10 +1295,8 @@ class _WorksheetState extends State<Worksheet>
         textSpan = TextSpan(text: text, style: baseTextStyle);
       }
 
-      final tp = TextPainter(
-        text: textSpan,
-        textDirection: TextDirection.ltr,
-      )..layout(maxWidth: layoutWidth);
+      final tp = TextPainter(text: textSpan, textDirection: TextDirection.ltr)
+        ..layout(maxWidth: layoutWidth);
       if (tp.height > maxHeight) {
         maxHeight = tp.height;
       }
@@ -1306,7 +1320,11 @@ class _WorksheetState extends State<Worksheet>
       if (wraps) {
         // Use full merged width (all spanned columns) as layout constraint
         double mergedWidth = 0.0;
-        for (var c = region.range.startColumn; c <= region.range.endColumn; c++) {
+        for (
+          var c = region.range.startColumn;
+          c <= region.range.endColumn;
+          c++
+        ) {
           mergedWidth += _layoutSolver.getColumnWidth(c);
         }
         final availWidth = mergedWidth - 2 * theme.cellPadding;
@@ -1329,10 +1347,8 @@ class _WorksheetState extends State<Worksheet>
         textSpan = TextSpan(text: text, style: baseTextStyle);
       }
 
-      final tp = TextPainter(
-        text: textSpan,
-        textDirection: TextDirection.ltr,
-      )..layout(maxWidth: layoutWidth);
+      final tp = TextPainter(text: textSpan, textDirection: TextDirection.ltr)
+        ..layout(maxWidth: layoutWidth);
       final totalNeeded = tp.height + 2 * theme.cellPadding;
       tp.dispose();
 
@@ -1343,7 +1359,10 @@ class _WorksheetState extends State<Worksheet>
           otherRowsHeight += _layoutSolver.getRowHeight(r);
         }
       }
-      final remainder = (totalNeeded - otherRowsHeight).clamp(0.0, double.infinity);
+      final remainder = (totalNeeded - otherRowsHeight).clamp(
+        0.0,
+        double.infinity,
+      );
       if (remainder > maxHeight + 2 * theme.cellPadding) {
         maxHeight = remainder - 2 * theme.cellPadding;
       }
@@ -1361,18 +1380,20 @@ class _WorksheetState extends State<Worksheet>
     final um = undoManager;
     if (um != null && oldHeight != newHeight) {
       final sel = (selectionController.anchor, selectionController.focus);
-      um.push(UndoEntry(
-        label: 'Auto-fit row',
-        affectedRange: const CellRange(0, 0, 0, 0),
-        cellsBefore: const {},
-        mergesBefore: const [],
-        selectionBefore: sel,
-        cellsAfter: const {},
-        mergesAfter: const [],
-        selectionAfter: sel,
-        rowSizesBefore: {row: oldHeight},
-        rowSizesAfter: {row: newHeight},
-      ));
+      um.push(
+        UndoEntry(
+          label: 'Auto-fit row',
+          affectedRange: const CellRange(0, 0, 0, 0),
+          cellsBefore: const {},
+          mergesBefore: const [],
+          selectionBefore: sel,
+          cellsAfter: const {},
+          mergesAfter: const [],
+          selectionAfter: sel,
+          rowSizesBefore: {row: oldHeight},
+          rowSizesAfter: {row: newHeight},
+        ),
+      );
     }
 
     setState(() {});
@@ -1403,7 +1424,10 @@ class _WorksheetState extends State<Worksheet>
       while (true) {
         final nextRow = row + rowDelta;
         final nextCol = col + colDelta;
-        if (nextRow < 0 || nextRow > maxRow || nextCol < 0 || nextCol > maxCol) {
+        if (nextRow < 0 ||
+            nextRow > maxRow ||
+            nextCol < 0 ||
+            nextCol > maxCol) {
           break;
         }
         if (!widget.data.hasValue(CellCoordinate(nextRow, nextCol))) {
@@ -1460,30 +1484,20 @@ class _WorksheetState extends State<Worksheet>
 
   /// Applies a zoom factor anchored at [anchor] and adjusts scroll to keep
   /// the anchor point stationary (used by both web and native trackpad zoom).
-  void _applyTrackpadZoom({
-    required double factor,
-    required Offset anchor,
-  }) {
+  void _applyTrackpadZoom({required double factor, required Offset anchor}) {
     final adj = _scaleHandler!.zoomBy(
       factor: factor,
       anchor: anchor,
-      scrollOffset: Offset(
-        _controller.scrollX,
-        _controller.scrollY,
-      ),
+      scrollOffset: Offset(_controller.scrollX, _controller.scrollY),
     );
     if (adj != Offset.zero) {
       final hc = _controller.horizontalScrollController;
       final vc = _controller.verticalScrollController;
       if (hc.hasClients) {
-        hc.jumpTo(
-          (hc.offset + adj.dx).clamp(0.0, hc.position.maxScrollExtent),
-        );
+        hc.jumpTo((hc.offset + adj.dx).clamp(0.0, hc.position.maxScrollExtent));
       }
       if (vc.hasClients) {
-        vc.jumpTo(
-          (vc.offset + adj.dy).clamp(0.0, vc.position.maxScrollExtent),
-        );
+        vc.jumpTo((vc.offset + adj.dy).clamp(0.0, vc.position.maxScrollExtent));
       }
     }
     setState(() {});
@@ -1550,7 +1564,12 @@ class _WorksheetState extends State<Worksheet>
 
     // Tell the tile painter to skip rendering text for this cell
     // (the overlay TextField renders it instead) and re-render the tile.
-    _tilePainter.editingRange = CellRange(cell.row, cell.column, cell.row, cell.column);
+    _tilePainter.editingRange = CellRange(
+      cell.row,
+      cell.column,
+      cell.row,
+      cell.column,
+    );
     _tileManager.invalidateRange(
       CellRange(cell.row, cell.column, cell.row, cell.column),
     );
@@ -1625,9 +1644,7 @@ class _WorksheetState extends State<Worksheet>
     if (theme == null) return;
 
     // Resolve per-cell style the same way tile_painter does
-    final cellStyle = CellStyle.defaultStyle.merge(
-      widget.data.getStyle(cell),
-    );
+    final cellStyle = CellStyle.defaultStyle.merge(widget.data.getStyle(cell));
     final isWrap = cellStyle.wrapText == true;
 
     // Derive text style from rich text spans + theme defaults
@@ -1650,8 +1667,8 @@ class _WorksheetState extends State<Worksheet>
     // start) using the original cell value. This matches the offset
     // that CellEditorOverlay._computeInitialWrapVerticalOffset() pins.
     if (isWrap && _editingVerticalOffset == null) {
-      final vAlign = cellStyle.verticalAlignment ??
-          CellVerticalAlignment.middle;
+      final vAlign =
+          cellStyle.verticalAlignment ?? CellVerticalAlignment.middle;
       if (vAlign != CellVerticalAlignment.top) {
         final cellBounds = _layoutSolver.getCellBounds(cell);
         final initialText = ec.originalValue?.displayValue ?? '';
@@ -1660,20 +1677,19 @@ class _WorksheetState extends State<Worksheet>
           final mp = TextPainter(
             text: TextSpan(text: initialText, style: editorTextStyle),
             textDirection: TextDirection.ltr,
-          )..layout(
-              maxWidth: availWidth > 0 ? availWidth : 0,
-            );
+          )..layout(maxWidth: availWidth > 0 ? availWidth : 0);
           final contentH = mp.height;
           mp.dispose();
           switch (vAlign) {
             case CellVerticalAlignment.middle:
-              _editingVerticalOffset =
-                  ((cellBounds.height - contentH) / 2)
-                      .clamp(0.0, double.infinity);
+              _editingVerticalOffset = ((cellBounds.height - contentH) / 2)
+                  .clamp(0.0, double.infinity);
             case CellVerticalAlignment.bottom:
               _editingVerticalOffset =
-                  (cellBounds.height - theme.cellPadding - contentH)
-                      .clamp(0.0, double.infinity);
+                  (cellBounds.height - theme.cellPadding - contentH).clamp(
+                    0.0,
+                    double.infinity,
+                  );
             case CellVerticalAlignment.top:
               break; // unreachable
           }
@@ -1709,8 +1725,10 @@ class _WorksheetState extends State<Worksheet>
 
     // Update tile painter editing range
     final newEditingRange = CellRange(
-      cell.row, cell.column,
-      expanded.endRow, expanded.endColumn,
+      cell.row,
+      cell.column,
+      expanded.endRow,
+      expanded.endColumn,
     );
     if (_tilePainter.editingRange != newEditingRange) {
       final oldRange = _tilePainter.editingRange;
@@ -1729,12 +1747,8 @@ class _WorksheetState extends State<Worksheet>
 
     // Convert expanded bounds to screen coordinates
     final zoom = _controller.zoom;
-    final headerLeft = theme.showHeaders
-        ? theme.rowHeaderWidth * zoom
-        : 0.0;
-    final headerTop = theme.showHeaders
-        ? theme.columnHeaderHeight * zoom
-        : 0.0;
+    final headerLeft = theme.showHeaders ? theme.rowHeaderWidth * zoom : 0.0;
+    final headerTop = theme.showHeaders ? theme.columnHeaderHeight * zoom : 0.0;
     // Auto-scroll when wrap-text editor bottom extends below the viewport.
     if (isWrap && boundsChanged) {
       final expandedScreenBounds = Rect.fromLTWH(
@@ -1751,8 +1765,10 @@ class _WorksheetState extends State<Worksheet>
         if (overflow > 0) {
           final vController = _controller.verticalScrollController;
           if (vController.hasClients) {
-            final newOffset = (vController.offset + overflow)
-                .clamp(0.0, vController.position.maxScrollExtent);
+            final newOffset = (vController.offset + overflow).clamp(
+              0.0,
+              vController.position.maxScrollExtent,
+            );
             vController.jumpTo(newOffset);
           }
         }
@@ -1765,9 +1781,10 @@ class _WorksheetState extends State<Worksheet>
     // and autocomplete dropdown flip-above logic.
     final size = context.size;
     if (size != null) {
-      _editingContentAreaWidth = size.width -
-          (theme.showHeaders ? theme.rowHeaderWidth * zoom : 0.0);
-      _editingContentAreaHeight = size.height -
+      _editingContentAreaWidth =
+          size.width - (theme.showHeaders ? theme.rowHeaderWidth * zoom : 0.0);
+      _editingContentAreaHeight =
+          size.height -
           (theme.showHeaders ? theme.columnHeaderHeight * zoom : 0.0);
     }
 
@@ -2058,7 +2075,9 @@ class _WorksheetState extends State<Worksheet>
         _layoutSolver.setRowHeight(_resizeDragIndex!, _resizeDragOriginalSize!);
       } else {
         _layoutSolver.setColumnWidth(
-            _resizeDragIndex!, _resizeDragOriginalSize!);
+          _resizeDragIndex!,
+          _resizeDragOriginalSize!,
+        );
       }
       _tileManager.invalidateAll();
       _layoutVersion++;
@@ -2094,7 +2113,9 @@ class _WorksheetState extends State<Worksheet>
   void _onAutoScrollTick() {
     final position = _lastPointerPosition;
     if (position == null ||
-        (!_gestureHandler.isSelectingRange && !_gestureHandler.isFilling && !_gestureHandler.isMoving)) {
+        (!_gestureHandler.isSelectingRange &&
+            !_gestureHandler.isFilling &&
+            !_gestureHandler.isMoving)) {
       _stopAutoScroll();
       return;
     }
@@ -2192,7 +2213,8 @@ class _WorksheetState extends State<Worksheet>
         case DataChangeType.cellFormat:
           if (event.cell != null) {
             final region = widget.data.mergedCells.getRegion(event.cell!);
-            final range = region?.range ??
+            final range =
+                region?.range ??
                 CellRange(
                   event.cell!.row,
                   event.cell!.column,
@@ -2203,9 +2225,7 @@ class _WorksheetState extends State<Worksheet>
           }
         case DataChangeType.range:
           if (event.range != null) {
-            _tileManager.invalidateRange(
-              _expandRangeForMerges(event.range!),
-            );
+            _tileManager.invalidateRange(_expandRangeForMerges(event.range!));
           }
         case DataChangeType.merge:
         case DataChangeType.unmerge:
@@ -2497,8 +2517,7 @@ class _WorksheetState extends State<Worksheet>
                             HitTestType.selectionBorder =>
                               SystemMouseCursors.grab,
                             HitTestType.cell => SystemMouseCursors.cell,
-                            HitTestType.rowHeader =>
-                              SystemMouseCursors.click,
+                            HitTestType.rowHeader => SystemMouseCursors.click,
                             HitTestType.columnHeader =>
                               SystemMouseCursors.click,
                             _ => SystemMouseCursors.basic,
@@ -2521,8 +2540,7 @@ class _WorksheetState extends State<Worksheet>
                                   event.localPosition;
                               if (_activePointers.length == 2) {
                                 // Start pinch zoom
-                                final points =
-                                    _activePointers.values.toList();
+                                final points = _activePointers.values.toList();
                                 final focal = Offset(
                                   (points[0].dx + points[1].dx) / 2,
                                   (points[0].dy + points[1].dy) / 2,
@@ -2575,7 +2593,8 @@ class _WorksheetState extends State<Worksheet>
                                   // coords) converted to screen coords for hit
                                   // testing, so taps inside the expanded area
                                   // don't commit the edit.
-                                  final editBounds = _selectionRenderer.editingFocusBounds;
+                                  final editBounds =
+                                      _selectionRenderer.editingFocusBounds;
                                   final Rect? hitRect;
                                   if (editBounds != null) {
                                     final zoom = _controller.zoom;
@@ -2586,19 +2605,22 @@ class _WorksheetState extends State<Worksheet>
                                         ? theme.columnHeaderHeight * zoom
                                         : 0.0;
                                     hitRect = Rect.fromLTWH(
-                                      editBounds.left * zoom - _controller.scrollX + hdrLeft,
-                                      editBounds.top * zoom - _controller.scrollY + hdrTop,
+                                      editBounds.left * zoom -
+                                          _controller.scrollX +
+                                          hdrLeft,
+                                      editBounds.top * zoom -
+                                          _controller.scrollY +
+                                          hdrTop,
                                       editBounds.width * zoom,
                                       editBounds.height * zoom,
                                     );
                                   } else {
-                                    hitRect = _controller
-                                        .getCellScreenBounds(editingCell);
+                                    hitRect = _controller.getCellScreenBounds(
+                                      editingCell,
+                                    );
                                   }
                                   if (hitRect != null &&
-                                      hitRect.contains(
-                                        event.localPosition,
-                                      )) {
+                                      hitRect.contains(event.localPosition)) {
                                     return; // tap inside editing area — hand off to TextField
                                   }
                                 }
@@ -2628,14 +2650,19 @@ class _WorksheetState extends State<Worksheet>
 
                                 final richText = ec.richTextExtractor?.call();
                                 ec.commitEdit(
-                                  onCommit: (cell, value, {CellFormat? detectedFormat}) {
-                                    _onInternalCommit(
-                                      cell,
-                                      value,
-                                      detectedFormat: detectedFormat,
-                                      richText: richText,
-                                    );
-                                  },
+                                  onCommit:
+                                      (
+                                        cell,
+                                        value, {
+                                        CellFormat? detectedFormat,
+                                      }) {
+                                        _onInternalCommit(
+                                          cell,
+                                          value,
+                                          detectedFormat: detectedFormat,
+                                          richText: richText,
+                                        );
+                                      },
                                 );
                               }
 
@@ -2653,7 +2680,8 @@ class _WorksheetState extends State<Worksheet>
                                   ),
                                   zoom: _controller.zoom,
                                   selectionRange: _controller
-                                      .selectionController.selectedRange,
+                                      .selectionController
+                                      .selectedRange,
                                   selectionHandleSize: 12.0,
                                   resizeHandleTolerance: 12.0,
                                   selectionBorderTolerance: 12.0,
@@ -2706,14 +2734,15 @@ class _WorksheetState extends State<Worksheet>
                                   _controller.scrollY,
                                 ),
                                 zoom: _controller.zoom,
-                                isShiftPressed: HardwareKeyboard
-                                    .instance.isShiftPressed,
-                                selectionHandleSize:
-                                    _isMobileMode ? 12.0 : 0,
-                                resizeHandleTolerance:
-                                    _isMobileMode ? 12.0 : 4.0,
-                                selectionBorderTolerance:
-                                    _isMobileMode ? 12.0 : 4.0,
+                                isShiftPressed:
+                                    HardwareKeyboard.instance.isShiftPressed,
+                                selectionHandleSize: _isMobileMode ? 12.0 : 0,
+                                resizeHandleTolerance: _isMobileMode
+                                    ? 12.0
+                                    : 4.0,
+                                selectionBorderTolerance: _isMobileMode
+                                    ? 12.0
+                                    : 4.0,
                               );
                               widget.onCellTap?.call(
                                 _controller.focusCell ??
@@ -2726,14 +2755,15 @@ class _WorksheetState extends State<Worksheet>
                                   _controller.scrollY,
                                 ),
                                 zoom: _controller.zoom,
-                                isShiftPressed: HardwareKeyboard
-                                    .instance.isShiftPressed,
-                                selectionHandleSize:
-                                    _isMobileMode ? 12.0 : 0,
-                                resizeHandleTolerance:
-                                    _isMobileMode ? 12.0 : 4.0,
-                                selectionBorderTolerance:
-                                    _isMobileMode ? 12.0 : 4.0,
+                                isShiftPressed:
+                                    HardwareKeyboard.instance.isShiftPressed,
+                                selectionHandleSize: _isMobileMode ? 12.0 : 0,
+                                resizeHandleTolerance: _isMobileMode
+                                    ? 12.0
+                                    : 4.0,
+                                selectionBorderTolerance: _isMobileMode
+                                    ? 12.0
+                                    : 4.0,
                               );
                               // Switch to grabbing cursor during move drag.
                               if (_gestureHandler.isMoving) {
@@ -2756,8 +2786,7 @@ class _WorksheetState extends State<Worksheet>
                                   event.localPosition;
                               if (_activePointers.length >= 2 &&
                                   _scaleHandler?.isScaling == true) {
-                                final points =
-                                    _activePointers.values.toList();
+                                final points = _activePointers.values.toList();
                                 final focal = Offset(
                                   (points[0].dx + points[1].dx) / 2,
                                   (points[0].dy + points[1].dy) / 2,
@@ -2774,19 +2803,25 @@ class _WorksheetState extends State<Worksheet>
                                 // Apply scroll adjustment to maintain focal
                                 final adj = _scaleHandler!.scrollAdjustment;
                                 if (adj != Offset.zero) {
-                                  final hc = _controller
-                                      .horizontalScrollController;
+                                  final hc =
+                                      _controller.horizontalScrollController;
                                   final vc =
                                       _controller.verticalScrollController;
                                   if (hc.hasClients) {
-                                    hc.jumpTo((hc.offset + adj.dx).clamp(
+                                    hc.jumpTo(
+                                      (hc.offset + adj.dx).clamp(
                                         0.0,
-                                        hc.position.maxScrollExtent));
+                                        hc.position.maxScrollExtent,
+                                      ),
+                                    );
                                   }
                                   if (vc.hasClients) {
-                                    vc.jumpTo((vc.offset + adj.dy).clamp(
+                                    vc.jumpTo(
+                                      (vc.offset + adj.dy).clamp(
                                         0.0,
-                                        vc.position.maxScrollExtent));
+                                        vc.position.maxScrollExtent,
+                                      ),
+                                    );
                                   }
                                 }
                                 setState(() {});
@@ -2911,8 +2946,7 @@ class _WorksheetState extends State<Worksheet>
                     },
                     onPointerPanZoomUpdate: (event) {
                       if (event.scale != _lastTrackpadScale) {
-                        final factor =
-                            event.scale / _lastTrackpadScale;
+                        final factor = event.scale / _lastTrackpadScale;
                         _lastTrackpadScale = event.scale;
                         _applyTrackpadZoom(
                           factor: factor,
@@ -2957,12 +2991,12 @@ class _WorksheetState extends State<Worksheet>
                                       editBounds.height * zoom,
                                     );
                                   } else {
-                                    hitRect = _controller
-                                        .getCellScreenBounds(editingCell);
+                                    hitRect = _controller.getCellScreenBounds(
+                                      editingCell,
+                                    );
                                   }
                                   if (hitRect != null &&
-                                      hitRect.contains(
-                                          details.localPosition)) {
+                                      hitRect.contains(details.localPosition)) {
                                     return;
                                   }
                                 }
@@ -2975,12 +3009,19 @@ class _WorksheetState extends State<Worksheet>
                                 }
                                 final richText = ec.richTextExtractor?.call();
                                 ec.commitEdit(
-                                  onCommit: (cell, value,
-                                      {CellFormat? detectedFormat}) {
-                                    _onInternalCommit(cell, value,
-                                        detectedFormat: detectedFormat,
-                                        richText: richText);
-                                  },
+                                  onCommit:
+                                      (
+                                        cell,
+                                        value, {
+                                        CellFormat? detectedFormat,
+                                      }) {
+                                        _onInternalCommit(
+                                          cell,
+                                          value,
+                                          detectedFormat: detectedFormat,
+                                          richText: richText,
+                                        );
+                                      },
                                 );
                               }
                               final hit = _hitTester.hitTest(
@@ -2991,7 +3032,8 @@ class _WorksheetState extends State<Worksheet>
                                 ),
                                 zoom: _controller.zoom,
                                 selectionRange: _controller
-                                    .selectionController.selectedRange,
+                                    .selectionController
+                                    .selectedRange,
                                 selectionHandleSize: 12.0,
                               );
                               if (hit.isCell) {
@@ -3012,19 +3054,18 @@ class _WorksheetState extends State<Worksheet>
                                 zoom: _controller.zoom,
                               );
                             },
-                      onLongPressMoveUpdate:
-                          (!_isMobileMode || widget.readOnly)
-                              ? null
-                              : (LongPressMoveUpdateDetails details) {
-                                  _gestureHandler.onLongPressMoveUpdate(
-                                    position: details.localPosition,
-                                    scrollOffset: Offset(
-                                      _controller.scrollX,
-                                      _controller.scrollY,
-                                    ),
-                                    zoom: _controller.zoom,
-                                  );
-                                },
+                      onLongPressMoveUpdate: (!_isMobileMode || widget.readOnly)
+                          ? null
+                          : (LongPressMoveUpdateDetails details) {
+                              _gestureHandler.onLongPressMoveUpdate(
+                                position: details.localPosition,
+                                scrollOffset: Offset(
+                                  _controller.scrollX,
+                                  _controller.scrollY,
+                                ),
+                                zoom: _controller.zoom,
+                              );
+                            },
                       onLongPressEnd: (!_isMobileMode || widget.readOnly)
                           ? null
                           : (LongPressEndDetails details) {
@@ -3053,14 +3094,16 @@ class _WorksheetState extends State<Worksheet>
                                   _controller.scrollY,
                                 ),
                                 zoom: _controller.zoom,
-                                selectionRange:
-                                    _controller.selectionController.selectedRange,
-                                resizeHandleTolerance:
-                                    _isMobileMode ? 12.0 : 4.0,
-                                selectionBorderTolerance:
-                                    _isMobileMode ? 12.0 : 4.0,
-                                selectionHandleSize:
-                                    _isMobileMode ? 12.0 : 0,
+                                selectionRange: _controller
+                                    .selectionController
+                                    .selectedRange,
+                                resizeHandleTolerance: _isMobileMode
+                                    ? 12.0
+                                    : 4.0,
+                                selectionBorderTolerance: _isMobileMode
+                                    ? 12.0
+                                    : 4.0,
+                                selectionHandleSize: _isMobileMode ? 12.0 : 0,
                               );
 
                               // In mobile mode, selection border / handle
@@ -3087,10 +3130,18 @@ class _WorksheetState extends State<Worksheet>
                                       _startIntegratedEdit(
                                         cell: cell,
                                         trigger: EditTrigger.doubleTap,
-                                        tapPosition: details.localPosition - Offset(
-                                          theme.showHeaders ? theme.rowHeaderWidth * _controller.zoom : 0.0,
-                                          theme.showHeaders ? theme.columnHeaderHeight * _controller.zoom : 0.0,
-                                        ),
+                                        tapPosition:
+                                            details.localPosition -
+                                            Offset(
+                                              theme.showHeaders
+                                                  ? theme.rowHeaderWidth *
+                                                        _controller.zoom
+                                                  : 0.0,
+                                              theme.showHeaders
+                                                  ? theme.columnHeaderHeight *
+                                                        _controller.zoom
+                                                  : 0.0,
+                                            ),
                                       );
                                     }
                                   }
@@ -3145,16 +3196,25 @@ class _WorksheetState extends State<Worksheet>
                                 // For mouse input, skip this — the offstage
                                 // field would steal the browser's text input
                                 // connection from the real editor overlay.
-                                if (_lastPointerKind == PointerDeviceKind.touch) {
+                                if (_lastPointerKind ==
+                                    PointerDeviceKind.touch) {
                                   _editorFocusNode.requestFocus();
                                 }
                                 _startIntegratedEdit(
                                   cell: cell,
                                   trigger: EditTrigger.doubleTap,
-                                  tapPosition: details.localPosition - Offset(
-                                    theme.showHeaders ? theme.rowHeaderWidth * _controller.zoom : 0.0,
-                                    theme.showHeaders ? theme.columnHeaderHeight * _controller.zoom : 0.0,
-                                  ),
+                                  tapPosition:
+                                      details.localPosition -
+                                      Offset(
+                                        theme.showHeaders
+                                            ? theme.rowHeaderWidth *
+                                                  _controller.zoom
+                                            : 0.0,
+                                        theme.showHeaders
+                                            ? theme.columnHeaderHeight *
+                                                  _controller.zoom
+                                            : 0.0,
+                                      ),
                                 );
                               }
                             },
@@ -3196,11 +3256,11 @@ class _WorksheetState extends State<Worksheet>
                                     headerOffset: Offset(
                                       theme.showHeaders
                                           ? theme.rowHeaderWidth *
-                                              _controller.zoom
+                                                _controller.zoom
                                           : 0.0,
                                       theme.showHeaders
                                           ? theme.columnHeaderHeight *
-                                              _controller.zoom
+                                                _controller.zoom
                                           : 0.0,
                                     ),
                                     layoutVersion: _layoutVersion,
@@ -3211,8 +3271,7 @@ class _WorksheetState extends State<Worksheet>
 
                           // Cut indicator layer (marching ants on cut range,
                           // between formula refs and selection).
-                          if (_cutIndicatorLayer != null &&
-                              _cutRange != null)
+                          if (_cutIndicatorLayer != null && _cutRange != null)
                             Positioned.fill(
                               child: IgnorePointer(
                                 child: CustomPaint(
@@ -3226,11 +3285,11 @@ class _WorksheetState extends State<Worksheet>
                                     headerOffset: Offset(
                                       theme.showHeaders
                                           ? theme.rowHeaderWidth *
-                                              _controller.zoom
+                                                _controller.zoom
                                           : 0.0,
                                       theme.showHeaders
                                           ? theme.columnHeaderHeight *
-                                              _controller.zoom
+                                                _controller.zoom
                                           : 0.0,
                                     ),
                                     layoutVersion: _layoutVersion,
@@ -3278,11 +3337,11 @@ class _WorksheetState extends State<Worksheet>
                                     headerOffset: Offset(
                                       theme.showHeaders
                                           ? theme.rowHeaderWidth *
-                                              _controller.zoom
+                                                _controller.zoom
                                           : 0.0,
                                       theme.showHeaders
                                           ? theme.columnHeaderHeight *
-                                              _controller.zoom
+                                                _controller.zoom
                                           : 0.0,
                                     ),
                                     layoutVersion: _layoutVersion,
@@ -3292,8 +3351,7 @@ class _WorksheetState extends State<Worksheet>
                             ),
 
                           // Selection on frozen cells (on top of frozen layer)
-                          if (_frozenLayer != null &&
-                              _controller.hasSelection)
+                          if (_frozenLayer != null && _controller.hasSelection)
                             Positioned.fill(
                               child: IgnorePointer(
                                 child: CustomPaint(
@@ -3310,16 +3368,16 @@ class _WorksheetState extends State<Worksheet>
                                     headerOffset: Offset(
                                       theme.showHeaders
                                           ? theme.rowHeaderWidth *
-                                              _controller.zoom
+                                                _controller.zoom
                                           : 0.0,
                                       theme.showHeaders
                                           ? theme.columnHeaderHeight *
-                                              _controller.zoom
+                                                _controller.zoom
                                           : 0.0,
                                     ),
                                     layoutVersion: _layoutVersion,
-                                    showFillHandle: !widget.readOnly &&
-                                        !_isMobileMode,
+                                    showFillHandle:
+                                        !widget.readOnly && !_isMobileMode,
                                   ),
                                 ),
                               ),
@@ -3434,9 +3492,11 @@ class _WorksheetState extends State<Worksheet>
                           if (_cachedEditorOverlay != null &&
                               _cachedEditorCell == cell &&
                               _cachedEditorCellBounds == adjustedBounds &&
-                              _cachedEditorExpandedBounds == adjustedExpandedBounds &&
+                              _cachedEditorExpandedBounds ==
+                                  adjustedExpandedBounds &&
                               _cachedEditorZoom == currentZoom &&
-                              _cachedEditorContentAreaWidth == contentAreaWidth) {
+                              _cachedEditorContentAreaWidth ==
+                                  contentAreaWidth) {
                             return _cachedEditorOverlay!;
                           }
 
@@ -3463,36 +3523,39 @@ class _WorksheetState extends State<Worksheet>
                             onCancel: _onInternalCancel,
                             onCommitAndNavigate: _onInternalCommitAndNavigate,
                             zoom: currentZoom,
-                            fontSize: firstSpanStyle?.fontSize ?? theme.fontSize,
-                            fontFamily: firstSpanStyle?.fontFamily ?? theme.fontFamily,
+                            fontSize:
+                                firstSpanStyle?.fontSize ?? theme.fontSize,
+                            fontFamily:
+                                firstSpanStyle?.fontFamily ?? theme.fontFamily,
                             textColor: theme.textColor,
                             backgroundColor: cellStyle.backgroundColor,
                             textAlign: _toTextAlign(
                               cellStyle.textAlignment ??
                                   (widget.data.getCell(cell) != null
                                       ? CellStyle.implicitAlignment(
-                                          widget.data.getCell(cell)!.type)
+                                          widget.data.getCell(cell)!.type,
+                                        )
                                       : null),
                             ),
                             cellPadding: theme.cellPadding,
                             richText: richText,
-                            verticalAlignment: cellStyle.verticalAlignment ??
+                            verticalAlignment:
+                                cellStyle.verticalAlignment ??
                                 CellVerticalAlignment.middle,
                             wrapText: isWrap,
                             restoreFocusTo: _keyboardFocusNode,
                             contentAreaWidth: contentAreaWidth,
                             formulaReferenceConfig:
                                 widget.formulaReferenceConfig,
-                            onFormulaArrowKey: widget.formulaReferenceConfig !=
-                                    null
+                            onFormulaArrowKey:
+                                widget.formulaReferenceConfig != null
                                 ? _onFormulaArrowKey
                                 : null,
-                            autocompleteController:
-                                _autocompleteController,
+                            autocompleteController: _autocompleteController,
                             onAutocompleteAccept:
                                 _autocompleteController != null
-                                    ? _onAutocompleteAccept
-                                    : null,
+                                ? _onAutocompleteAccept
+                                : null,
                           );
                           return _cachedEditorOverlay!;
                         },
@@ -3512,8 +3575,7 @@ class _WorksheetState extends State<Worksheet>
                               );
                             }
 
-                            final cell =
-                                widget.editController!.editingCell;
+                            final cell = widget.editController!.editingCell;
                             if (cell == null) {
                               return const Positioned(
                                 left: 0,
@@ -3522,8 +3584,9 @@ class _WorksheetState extends State<Worksheet>
                               );
                             }
 
-                            final bounds =
-                                _controller.getCellScreenBounds(cell);
+                            final bounds = _controller.getCellScreenBounds(
+                              cell,
+                            );
                             if (bounds == null) {
                               return const Positioned(
                                 left: 0,
@@ -3533,12 +3596,10 @@ class _WorksheetState extends State<Worksheet>
                             }
 
                             final headerLeft = theme.showHeaders
-                                ? theme.rowHeaderWidth *
-                                    _controller.zoom
+                                ? theme.rowHeaderWidth * _controller.zoom
                                 : 0.0;
                             final headerTop = theme.showHeaders
-                                ? theme.columnHeaderHeight *
-                                    _controller.zoom
+                                ? theme.columnHeaderHeight * _controller.zoom
                                 : 0.0;
 
                             final adjustedBounds = bounds.shift(
@@ -3548,25 +3609,21 @@ class _WorksheetState extends State<Worksheet>
                             // Use cached content area height from
                             // _onEditTextChanged for flip-above logic.
                             final stackHeight =
-                                _editingContentAreaHeight ??
-                                    double.infinity;
-                            final dropdownHeight = (ac.matches.length <
-                                        ac.config.maxVisibleItems
+                                _editingContentAreaHeight ?? double.infinity;
+                            final dropdownHeight =
+                                (ac.matches.length < ac.config.maxVisibleItems
                                     ? ac.matches.length
                                     : ac.config.maxVisibleItems) *
                                 AutocompleteDropdown.itemHeight;
                             final spaceBelow =
                                 stackHeight - adjustedBounds.bottom;
-                            final flipAbove =
-                                spaceBelow < dropdownHeight + 4;
+                            final flipAbove = spaceBelow < dropdownHeight + 4;
 
                             final top = flipAbove
                                 ? null
                                 : adjustedBounds.bottom + 2;
                             final bottom = flipAbove
-                                ? stackHeight -
-                                    adjustedBounds.top +
-                                    2
+                                ? stackHeight - adjustedBounds.top + 2
                                 : null;
 
                             return Positioned(
@@ -3576,10 +3633,8 @@ class _WorksheetState extends State<Worksheet>
                               child: AutocompleteDropdown(
                                 matches: ac.matches,
                                 selectedIndex: ac.selectedIndex,
-                                prefix:
-                                    ac.currentToken?.text ?? '',
-                                maxVisibleItems:
-                                    ac.config.maxVisibleItems,
+                                prefix: ac.currentToken?.text ?? '',
+                                maxVisibleItems: ac.config.maxVisibleItems,
                                 onSelect: (fn) {
                                   final result = ac.accept();
                                   if (result != null) {
@@ -4089,8 +4144,7 @@ class _FrozenSelectionPainter extends CustomPainter {
     if (freezeConfig.hasFrozenRows) {
       final left = freezeConfig.hasFrozenColumns ? frozenColsW : 0.0;
       canvas.save();
-      canvas.clipRect(
-          Rect.fromLTWH(left, 0, contentW - left, frozenRowsH));
+      canvas.clipRect(Rect.fromLTWH(left, 0, contentW - left, frozenRowsH));
       _paintSelection(canvas, Offset(scrollOffset.dx, 0));
       canvas.restore();
     }
@@ -4099,8 +4153,7 @@ class _FrozenSelectionPainter extends CustomPainter {
     if (freezeConfig.hasFrozenColumns) {
       final top = freezeConfig.hasFrozenRows ? frozenRowsH : 0.0;
       canvas.save();
-      canvas.clipRect(
-          Rect.fromLTWH(0, top, frozenColsW, contentH - top));
+      canvas.clipRect(Rect.fromLTWH(0, top, frozenColsW, contentH - top));
       _paintSelection(canvas, Offset(0, scrollOffset.dy));
       canvas.restore();
     }

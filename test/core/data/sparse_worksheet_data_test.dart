@@ -260,16 +260,31 @@ void main() {
 
       test('batch setStyle applies styles', () {
         data.batchUpdate((batch) {
-          batch.setStyle(CellCoordinate(0, 0), const CellStyle(backgroundColor: Color(0xFFFF0000)));
-          batch.setStyle(CellCoordinate(1, 1), const CellStyle(backgroundColor: Color(0xFF00FF00)));
+          batch.setStyle(
+            CellCoordinate(0, 0),
+            const CellStyle(backgroundColor: Color(0xFFFF0000)),
+          );
+          batch.setStyle(
+            CellCoordinate(1, 1),
+            const CellStyle(backgroundColor: Color(0xFF00FF00)),
+          );
         });
 
-        expect(data.getStyle(CellCoordinate(0, 0))?.backgroundColor, const Color(0xFFFF0000));
-        expect(data.getStyle(CellCoordinate(1, 1))?.backgroundColor, const Color(0xFF00FF00));
+        expect(
+          data.getStyle(CellCoordinate(0, 0))?.backgroundColor,
+          const Color(0xFFFF0000),
+        );
+        expect(
+          data.getStyle(CellCoordinate(1, 1))?.backgroundColor,
+          const Color(0xFF00FF00),
+        );
       });
 
       test('batch setStyle with null removes style', () {
-        data.setStyle(CellCoordinate(0, 0), const CellStyle(backgroundColor: Color(0xFFFF0000)));
+        data.setStyle(
+          CellCoordinate(0, 0),
+          const CellStyle(backgroundColor: Color(0xFFFF0000)),
+        );
 
         data.batchUpdate((batch) {
           batch.setStyle(CellCoordinate(0, 0), null);
@@ -301,8 +316,14 @@ void main() {
       test('batch clearRange clears cells and styles', () {
         data.setCell(CellCoordinate(0, 0), CellValue.text('A1'));
         data.setCell(CellCoordinate(5, 5), CellValue.text('F6'));
-        data.setStyle(CellCoordinate(0, 0), const CellStyle(backgroundColor: Color(0xFFFF0000)));
-        data.setStyle(CellCoordinate(5, 5), const CellStyle(backgroundColor: Color(0xFF00FF00)));
+        data.setStyle(
+          CellCoordinate(0, 0),
+          const CellStyle(backgroundColor: Color(0xFFFF0000)),
+        );
+        data.setStyle(
+          CellCoordinate(5, 5),
+          const CellStyle(backgroundColor: Color(0xFF00FF00)),
+        );
 
         data.batchUpdate((batch) {
           batch.clearRange(CellRange(0, 0, 10, 10));
@@ -386,9 +407,18 @@ void main() {
       });
 
       test('clears styles in range', () {
-        data.setStyle(CellCoordinate(0, 0), const CellStyle(backgroundColor: Color(0xFFFF0000)));
-        data.setStyle(CellCoordinate(5, 5), const CellStyle(backgroundColor: Color(0xFF00FF00)));
-        data.setStyle(CellCoordinate(100, 50), const CellStyle(backgroundColor: Color(0xFF0000FF)));
+        data.setStyle(
+          CellCoordinate(0, 0),
+          const CellStyle(backgroundColor: Color(0xFFFF0000)),
+        );
+        data.setStyle(
+          CellCoordinate(5, 5),
+          const CellStyle(backgroundColor: Color(0xFF00FF00)),
+        );
+        data.setStyle(
+          CellCoordinate(100, 50),
+          const CellStyle(backgroundColor: Color(0xFF0000FF)),
+        );
 
         data.clearRange(CellRange(0, 0, 10, 10));
 
@@ -474,11 +504,18 @@ void main() {
         final d = SparseWorksheetData(
           rowCount: 10,
           columnCount: 10,
-          cells: {(0, 0): const Cell.withStyle(CellStyle(backgroundColor: Color(0xFFFF0000)))},
+          cells: {
+            (0, 0): const Cell.withStyle(
+              CellStyle(backgroundColor: Color(0xFFFF0000)),
+            ),
+          },
         );
 
         expect(d.getCell(const CellCoordinate(0, 0)), isNull);
-        expect(d.getStyle(const CellCoordinate(0, 0))?.backgroundColor, const Color(0xFFFF0000));
+        expect(
+          d.getStyle(const CellCoordinate(0, 0))?.backgroundColor,
+          const Color(0xFFFF0000),
+        );
 
         d.dispose();
       });
@@ -590,7 +627,10 @@ void main() {
           data.getCell(const CellCoordinate(0, 0)),
           CellValue.text('hello'),
         );
-        expect(data.getStyle(const CellCoordinate(0, 0))?.backgroundColor, const Color(0xFFFF0000));
+        expect(
+          data.getStyle(const CellCoordinate(0, 0))?.backgroundColor,
+          const Color(0xFFFF0000),
+        );
       });
 
       test('sets value only when style is null', () {
@@ -614,19 +654,33 @@ void main() {
       });
 
       test('overwrites existing value and style', () {
-        data[(0, 0)] = Cell.text('old', style: const CellStyle(backgroundColor: Color(0xFFFF0000)));
-        data[(0, 0)] = Cell.number(99, style: const CellStyle(backgroundColor: Color(0xFF00FF00)));
+        data[(0, 0)] = Cell.text(
+          'old',
+          style: const CellStyle(backgroundColor: Color(0xFFFF0000)),
+        );
+        data[(0, 0)] = Cell.number(
+          99,
+          style: const CellStyle(backgroundColor: Color(0xFF00FF00)),
+        );
 
         expect(data.getCell(const CellCoordinate(0, 0)), CellValue.number(99));
-        expect(data.getStyle(const CellCoordinate(0, 0))?.backgroundColor, const Color(0xFF00FF00));
+        expect(
+          data.getStyle(const CellCoordinate(0, 0))?.backgroundColor,
+          const Color(0xFF00FF00),
+        );
       });
 
       test('Cell with null value clears existing value', () {
         data.setCell(const CellCoordinate(0, 0), CellValue.text('hi'));
-        data[(0, 0)] = const Cell.withStyle(CellStyle(backgroundColor: Color(0xFFFF0000)));
+        data[(0, 0)] = const Cell.withStyle(
+          CellStyle(backgroundColor: Color(0xFFFF0000)),
+        );
 
         expect(data.getCell(const CellCoordinate(0, 0)), isNull);
-        expect(data.getStyle(const CellCoordinate(0, 0))?.backgroundColor, const Color(0xFFFF0000));
+        expect(
+          data.getStyle(const CellCoordinate(0, 0))?.backgroundColor,
+          const Color(0xFFFF0000),
+        );
       });
 
       test('emits change event', () async {
@@ -644,7 +698,10 @@ void main() {
         data[(0, 0)] = Cell.number(1234, format: CellFormat.currency);
 
         expect(data.getFormat(const CellCoordinate(0, 0)), CellFormat.currency);
-        expect(data.getCell(const CellCoordinate(0, 0)), CellValue.number(1234));
+        expect(
+          data.getCell(const CellCoordinate(0, 0)),
+          CellValue.number(1234),
+        );
       });
 
       test('null clears format', () {
@@ -679,7 +736,10 @@ void main() {
         expect(cells.length, 3);
         expect(cells[const CellCoordinate(0, 0)]?.value, CellValue.text('A'));
         expect(cells[const CellCoordinate(1, 1)]?.value, CellValue.number(42));
-        expect(cells[const CellCoordinate(1, 1)]?.style?.backgroundColor, const Color(0xFFFF0000));
+        expect(
+          cells[const CellCoordinate(1, 1)]?.style?.backgroundColor,
+          const Color(0xFFFF0000),
+        );
         expect(cells[const CellCoordinate(2, 2)]?.value, isNull);
         expect(
           cells[const CellCoordinate(2, 2)]?.style?.backgroundColor,
@@ -738,7 +798,10 @@ void main() {
         });
 
         expect(data.getCell(CellCoordinate(3, 3)), CellValue.number(42));
-        expect(data.getStyle(CellCoordinate(3, 3))?.backgroundColor, const Color(0xFFFF0000));
+        expect(
+          data.getStyle(CellCoordinate(3, 3))?.backgroundColor,
+          const Color(0xFFFF0000),
+        );
         expect(data.getFormat(CellCoordinate(3, 3)), CellFormat.currency);
       });
     });
@@ -747,10 +810,7 @@ void main() {
       test('fills range with source value', () {
         data.setCell(CellCoordinate(0, 0), CellValue.number(42));
 
-        data.fillRange(
-          CellCoordinate(0, 0),
-          CellRange(1, 0, 3, 0),
-        );
+        data.fillRange(CellCoordinate(0, 0), CellRange(1, 0, 3, 0));
 
         expect(data.getCell(CellCoordinate(1, 0)), CellValue.number(42));
         expect(data.getCell(CellCoordinate(2, 0)), CellValue.number(42));
@@ -764,16 +824,19 @@ void main() {
           format: CellFormat.currency,
         );
 
-        data.fillRange(
-          CellCoordinate(0, 0),
-          CellRange(1, 0, 2, 0),
-        );
+        data.fillRange(CellCoordinate(0, 0), CellRange(1, 0, 2, 0));
 
         expect(data.getCell(CellCoordinate(1, 0)), CellValue.number(100));
-        expect(data.getStyle(CellCoordinate(1, 0))?.backgroundColor, const Color(0xFFFF0000));
+        expect(
+          data.getStyle(CellCoordinate(1, 0))?.backgroundColor,
+          const Color(0xFFFF0000),
+        );
         expect(data.getFormat(CellCoordinate(1, 0)), CellFormat.currency);
         expect(data.getCell(CellCoordinate(2, 0)), CellValue.number(100));
-        expect(data.getStyle(CellCoordinate(2, 0))?.backgroundColor, const Color(0xFFFF0000));
+        expect(
+          data.getStyle(CellCoordinate(2, 0))?.backgroundColor,
+          const Color(0xFFFF0000),
+        );
         expect(data.getFormat(CellCoordinate(2, 0)), CellFormat.currency);
       });
 
@@ -782,10 +845,7 @@ void main() {
         final events = <DataChangeEvent>[];
         final subscription = data.changes.listen(events.add);
 
-        data.fillRange(
-          CellCoordinate(0, 0),
-          CellRange(1, 0, 5, 0),
-        );
+        data.fillRange(CellCoordinate(0, 0), CellRange(1, 0, 5, 0));
 
         await Future.delayed(Duration.zero);
         await subscription.cancel();
@@ -827,10 +887,7 @@ void main() {
       test('source inside target range is safe', () {
         data.setCell(CellCoordinate(1, 0), CellValue.text('original'));
 
-        data.fillRange(
-          CellCoordinate(1, 0),
-          CellRange(0, 0, 2, 0),
-        );
+        data.fillRange(CellCoordinate(1, 0), CellRange(0, 0, 2, 0));
 
         expect(data.getCell(CellCoordinate(0, 0)), CellValue.text('original'));
         expect(data.getCell(CellCoordinate(1, 0)), CellValue.text('original'));
@@ -840,10 +897,7 @@ void main() {
       test('fills 2D range', () {
         data.setCell(CellCoordinate(0, 0), CellValue.text('fill'));
 
-        data.fillRange(
-          CellCoordinate(0, 0),
-          CellRange(1, 0, 2, 2),
-        );
+        data.fillRange(CellCoordinate(0, 0), CellRange(1, 0, 2, 2));
 
         for (int row = 1; row <= 2; row++) {
           for (int col = 0; col <= 2; col++) {
@@ -864,10 +918,7 @@ void main() {
         ];
         data[(0, 0)] = Cell.text('bold', richText: spans);
 
-        data.fillRange(
-          CellCoordinate(0, 0),
-          CellRange(1, 0, 2, 0),
-        );
+        data.fillRange(CellCoordinate(0, 0), CellRange(1, 0, 2, 0));
 
         expect(data.getRichText(CellCoordinate(1, 0)), spans);
         expect(data.getRichText(CellCoordinate(2, 0)), spans);
@@ -879,10 +930,7 @@ void main() {
         data[(0, 0)] = Cell.number(42);
 
         // Source is row 0, destination is below at row 3
-        data.smartFill(
-          CellRange(0, 0, 0, 0),
-          CellCoordinate(3, 0),
-        );
+        data.smartFill(CellRange(0, 0, 0, 0), CellCoordinate(3, 0));
 
         expect(data.getCell(CellCoordinate(1, 0)), CellValue.number(42));
         expect(data.getCell(CellCoordinate(2, 0)), CellValue.number(42));
@@ -895,10 +943,7 @@ void main() {
         data[(2, 0)] = Cell.number(3);
 
         // Source rows 0-2, destination below at row 5
-        data.smartFill(
-          CellRange(0, 0, 2, 0),
-          CellCoordinate(5, 0),
-        );
+        data.smartFill(CellRange(0, 0, 2, 0), CellCoordinate(5, 0));
 
         expect(data.getCell(CellCoordinate(3, 0)), CellValue.number(4));
         expect(data.getCell(CellCoordinate(4, 0)), CellValue.number(5));
@@ -910,10 +955,7 @@ void main() {
         data[(1, 0)] = Cell.text('Item2');
         data[(2, 0)] = Cell.text('Item3');
 
-        data.smartFill(
-          CellRange(0, 0, 2, 0),
-          CellCoordinate(5, 0),
-        );
+        data.smartFill(CellRange(0, 0, 2, 0), CellCoordinate(5, 0));
 
         expect(data.getCell(CellCoordinate(3, 0)), CellValue.text('Item4'));
         expect(data.getCell(CellCoordinate(4, 0)), CellValue.text('Item5'));
@@ -925,10 +967,7 @@ void main() {
         data[(1, 0)] = Cell.text('B');
         data[(2, 0)] = Cell.text('C');
 
-        data.smartFill(
-          CellRange(0, 0, 2, 0),
-          CellCoordinate(8, 0),
-        );
+        data.smartFill(CellRange(0, 0, 2, 0), CellCoordinate(8, 0));
 
         expect(data.getCell(CellCoordinate(3, 0)), CellValue.text('A'));
         expect(data.getCell(CellCoordinate(4, 0)), CellValue.text('B'));
@@ -943,10 +982,7 @@ void main() {
         data[(1, 0)] = Cell.date(DateTime(2024, 1, 2));
         data[(2, 0)] = Cell.date(DateTime(2024, 1, 3));
 
-        data.smartFill(
-          CellRange(0, 0, 2, 0),
-          CellCoordinate(4, 0),
-        );
+        data.smartFill(CellRange(0, 0, 2, 0), CellCoordinate(4, 0));
 
         expect(
           data.getCell(CellCoordinate(3, 0)),
@@ -964,10 +1000,7 @@ void main() {
         data[(0, 2)] = Cell.number(30);
 
         // Source cols 0-2, destination to the right at col 5
-        data.smartFill(
-          CellRange(0, 0, 0, 2),
-          CellCoordinate(0, 5),
-        );
+        data.smartFill(CellRange(0, 0, 0, 2), CellCoordinate(0, 5));
 
         expect(data.getCell(CellCoordinate(0, 3)), CellValue.number(40));
         expect(data.getCell(CellCoordinate(0, 4)), CellValue.number(50));
@@ -980,10 +1013,7 @@ void main() {
         data[(7, 0)] = Cell.number(3);
 
         // Source rows 5-7, destination above at row 2
-        data.smartFill(
-          CellRange(5, 0, 7, 0),
-          CellCoordinate(2, 0),
-        );
+        data.smartFill(CellRange(5, 0, 7, 0), CellCoordinate(2, 0));
 
         // Filling upward: row 4 = 0, row 3 = -1, row 2 = -2
         expect(data.getCell(CellCoordinate(4, 0)), CellValue.number(0));
@@ -997,10 +1027,7 @@ void main() {
         data[(0, 7)] = Cell.number(30);
 
         // Source cols 5-7, destination to the left at col 2
-        data.smartFill(
-          CellRange(0, 5, 0, 7),
-          CellCoordinate(0, 2),
-        );
+        data.smartFill(CellRange(0, 5, 0, 7), CellCoordinate(0, 2));
 
         // Filling leftward: col 4 = 0, col 3 = -10, col 2 = -20
         expect(data.getCell(CellCoordinate(0, 4)), CellValue.number(0));
@@ -1017,10 +1044,7 @@ void main() {
         data[(0, 1)] = Cell.text('Q1');
         data[(1, 1)] = Cell.text('Q2');
 
-        data.smartFill(
-          CellRange(0, 0, 1, 1),
-          CellCoordinate(3, 1),
-        );
+        data.smartFill(CellRange(0, 0, 1, 1), CellCoordinate(3, 1));
 
         // Column 0 continues: 3, 4
         expect(data.getCell(CellCoordinate(2, 0)), CellValue.number(3));
@@ -1037,10 +1061,7 @@ void main() {
         final events = <DataChangeEvent>[];
         final subscription = data.changes.listen(events.add);
 
-        data.smartFill(
-          CellRange(0, 0, 1, 0),
-          CellCoordinate(5, 0),
-        );
+        data.smartFill(CellRange(0, 0, 1, 0), CellCoordinate(5, 0));
 
         await Future.delayed(Duration.zero);
         await subscription.cancel();
@@ -1076,13 +1097,13 @@ void main() {
           format: CellFormat.currency,
         );
 
-        data.smartFill(
-          CellRange(0, 0, 1, 0),
-          CellCoordinate(3, 0),
-        );
+        data.smartFill(CellRange(0, 0, 1, 0), CellCoordinate(3, 0));
 
         expect(data.getCell(CellCoordinate(2, 0)), CellValue.number(30));
-        expect(data.getStyle(CellCoordinate(2, 0))?.backgroundColor, const Color(0xFFFF0000));
+        expect(
+          data.getStyle(CellCoordinate(2, 0))?.backgroundColor,
+          const Color(0xFFFF0000),
+        );
         expect(data.getFormat(CellCoordinate(2, 0)), CellFormat.currency);
       });
 
@@ -1097,10 +1118,7 @@ void main() {
         data[(1, 0)] = Cell.number(20, richText: spans);
         data[(2, 0)] = Cell.number(30, richText: spans);
 
-        data.smartFill(
-          CellRange(0, 0, 2, 0),
-          CellCoordinate(4, 0),
-        );
+        data.smartFill(CellRange(0, 0, 2, 0), CellCoordinate(4, 0));
 
         expect(data.getCell(CellCoordinate(3, 0)), CellValue.number(40));
         expect(data.getRichText(CellCoordinate(3, 0)), spans);
@@ -1119,10 +1137,7 @@ void main() {
         data[(0, 1)] = Cell.text('Q2', richText: spans);
         data[(0, 2)] = Cell.text('Q3', richText: spans);
 
-        data.smartFill(
-          CellRange(0, 0, 0, 2),
-          CellCoordinate(0, 4),
-        );
+        data.smartFill(CellRange(0, 0, 0, 2), CellCoordinate(0, 4));
 
         expect(data.getCell(CellCoordinate(0, 3)), CellValue.text('Q4'));
         expect(data.getRichText(CellCoordinate(0, 3)), spans);
@@ -1219,8 +1234,9 @@ void main() {
       test('setRichText stores and retrieves spans', () {
         const spans = [
           TextSpan(
-              text: 'Bold',
-              style: TextStyle(fontWeight: FontWeight.bold)),
+            text: 'Bold',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
           TextSpan(text: ' text'),
         ];
         data.setRichText(CellCoordinate(0, 0), spans);
@@ -1246,18 +1262,14 @@ void main() {
       });
 
       test('clearRange clears richText', () {
-        data.setRichText(
-            CellCoordinate(0, 0), const [TextSpan(text: 'hello')]);
+        data.setRichText(CellCoordinate(0, 0), const [TextSpan(text: 'hello')]);
         data.clearRange(CellRange(0, 0, 0, 0));
         expect(data.getRichText(CellCoordinate(0, 0)), isNull);
       });
 
       test('operator[] includes richText', () {
         const spans = [TextSpan(text: 'hi')];
-        data[(0, 0)] = const Cell(
-          value: CellValue.text('hi'),
-          richText: spans,
-        );
+        data[(0, 0)] = const Cell(value: CellValue.text('hi'), richText: spans);
         final cell = data[(0, 0)];
         expect(cell, isNotNull);
         expect(cell!.richText, spans);
@@ -1288,8 +1300,7 @@ void main() {
       });
 
       test('cells getter includes richText', () {
-        data.setRichText(
-            CellCoordinate(0, 0), const [TextSpan(text: 'hello')]);
+        data.setRichText(CellCoordinate(0, 0), const [TextSpan(text: 'hello')]);
         data.setCell(CellCoordinate(0, 0), CellValue.text('hello'));
         final cells = data.cells;
         expect(cells[CellCoordinate(0, 0)]?.richText, isNotNull);
@@ -1297,15 +1308,13 @@ void main() {
 
       test('batch setRichText works', () {
         data.batchUpdate((batch) {
-          batch.setRichText(
-              CellCoordinate(0, 0), const [TextSpan(text: 'hi')]);
+          batch.setRichText(CellCoordinate(0, 0), const [TextSpan(text: 'hi')]);
         });
         expect(data.getRichText(CellCoordinate(0, 0)), isNotNull);
       });
 
       test('batch clearValues clears richText', () {
-        data.setRichText(
-            CellCoordinate(0, 0), const [TextSpan(text: 'hello')]);
+        data.setRichText(CellCoordinate(0, 0), const [TextSpan(text: 'hello')]);
         data.batchUpdate((batch) {
           batch.clearValues(CellRange(0, 0, 0, 0));
         });
@@ -1548,8 +1557,7 @@ void main() {
       });
 
       test('out-of-bounds merge skipped', () {
-        final smallData =
-            SparseWorksheetData(rowCount: 5, columnCount: 5);
+        final smallData = SparseWorksheetData(rowCount: 5, columnCount: 5);
         smallData.mergeCells(CellRange(0, 0, 1, 1));
 
         // Move to (4,4) would create merge at (4,4)-(5,5) which is out of bounds
@@ -1608,10 +1616,7 @@ void main() {
         data.mergeCells(CellRange(0, 0, 0, 1));
 
         // Smart fill down to row 2
-        data.smartFill(
-          CellRange(0, 0, 0, 2),
-          CellCoordinate(2, 2),
-        );
+        data.smartFill(CellRange(0, 0, 0, 2), CellCoordinate(2, 2));
 
         // Merges tiled into target rows
         expect(
@@ -1631,10 +1636,7 @@ void main() {
         data.mergeCells(CellRange(0, 0, 1, 0));
 
         // Smart fill right to col 2
-        data.smartFill(
-          CellRange(0, 0, 2, 0),
-          CellCoordinate(2, 2),
-        );
+        data.smartFill(CellRange(0, 0, 2, 0), CellCoordinate(2, 2));
 
         // Merges tiled into target cols
         expect(
@@ -1780,8 +1782,7 @@ void main() {
 
       test('no expansion when exceeds worksheet bounds', () {
         // Small worksheet
-        final smallData =
-            SparseWorksheetData(rowCount: 5, columnCount: 5);
+        final smallData = SparseWorksheetData(rowCount: 5, columnCount: 5);
 
         // Source: rows 0-1 with a 2-row merge
         smallData[(0, 0)] = Cell.number(1);
@@ -1825,10 +1826,7 @@ void main() {
         data.mergeCells(CellRange(0, 1, 1, 1)); // merge in col 1
 
         // Drag to row 4 → target rows 2-4, expanded to row 5
-        data.smartFill(
-          CellRange(0, 0, 1, 1),
-          CellCoordinate(4, 0),
-        );
+        data.smartFill(CellRange(0, 0, 1, 1), CellCoordinate(4, 0));
 
         // Values in col 0 should fill the expanded area too
         expect(data.getCell(CellCoordinate(4, 0)), isNotNull);
@@ -1869,7 +1867,10 @@ void main() {
 
       test('does not clear values or styles', () {
         data.setCell(CellCoordinate(0, 0), CellValue.text('A'));
-        data.setStyle(CellCoordinate(0, 0), const CellStyle(backgroundColor: Color(0xFFFF0000)));
+        data.setStyle(
+          CellCoordinate(0, 0),
+          const CellStyle(backgroundColor: Color(0xFFFF0000)),
+        );
         data.setRichText(CellCoordinate(0, 0), [const TextSpan(text: 'A')]);
 
         data.clearRichTextInRange(CellRange(0, 0, 0, 0));
@@ -1927,9 +1928,18 @@ void main() {
 
     group('getStylesInRange', () {
       test('returns only style entries within range', () {
-        data.setStyle(CellCoordinate(0, 0), const CellStyle(backgroundColor: Color(0xFFFF0000)));
-        data.setStyle(CellCoordinate(1, 1), const CellStyle(backgroundColor: Color(0xFF00FF00)));
-        data.setStyle(CellCoordinate(5, 5), const CellStyle(backgroundColor: Color(0xFF0000FF)));
+        data.setStyle(
+          CellCoordinate(0, 0),
+          const CellStyle(backgroundColor: Color(0xFFFF0000)),
+        );
+        data.setStyle(
+          CellCoordinate(1, 1),
+          const CellStyle(backgroundColor: Color(0xFF00FF00)),
+        );
+        data.setStyle(
+          CellCoordinate(5, 5),
+          const CellStyle(backgroundColor: Color(0xFF0000FF)),
+        );
 
         final result = data.getStylesInRange(CellRange(0, 0, 2, 2)).toList();
 
@@ -1941,7 +1951,10 @@ void main() {
       });
 
       test('returns empty when no styles in range', () {
-        data.setStyle(CellCoordinate(5, 5), const CellStyle(backgroundColor: Color(0xFF0000FF)));
+        data.setStyle(
+          CellCoordinate(5, 5),
+          const CellStyle(backgroundColor: Color(0xFF0000FF)),
+        );
 
         final result = data.getStylesInRange(CellRange(0, 0, 2, 2)).toList();
         expect(result, isEmpty);

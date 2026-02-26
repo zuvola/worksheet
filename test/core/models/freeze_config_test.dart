@@ -77,7 +77,10 @@ void main() {
 
     test('toString', () {
       const config = FreezeConfig(frozenRows: 2, frozenColumns: 3);
-      expect(config.toString(), 'FreezeConfig(frozenRows: 2, frozenColumns: 3)');
+      expect(
+        config.toString(),
+        'FreezeConfig(frozenRows: 2, frozenColumns: 3)',
+      );
     });
 
     group('isFrozenRow', () {

@@ -18,10 +18,10 @@ class ViewportDelegate extends ChangeNotifier {
   ViewportDelegate({
     required double contentWidth,
     required double contentHeight,
-  })  : assert(contentWidth > 0, 'Content width must be positive'),
-        assert(contentHeight > 0, 'Content height must be positive'),
-        _contentWidth = contentWidth,
-        _contentHeight = contentHeight;
+  }) : assert(contentWidth > 0, 'Content width must be positive'),
+       assert(contentHeight > 0, 'Content height must be positive'),
+       _contentWidth = contentWidth,
+       _contentHeight = contentHeight;
 
   /// The total content width.
   double get contentWidth => _contentWidth;

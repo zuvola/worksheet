@@ -17,7 +17,11 @@ ui.Picture _createTestPicture() {
   return recorder.endRecording();
 }
 
-Tile _createTestTile(int row, int col, {ZoomBucket zoomBucket = ZoomBucket.full}) {
+Tile _createTestTile(
+  int row,
+  int col, {
+  ZoomBucket zoomBucket = ZoomBucket.full,
+}) {
   return Tile(
     coordinate: TileCoordinate(row, col),
     zoomBucket: zoomBucket,

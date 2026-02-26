@@ -11,8 +11,8 @@ enum FillAxis { vertical, horizontal }
 typedef OnFillPreviewUpdate = void Function(CellRange previewRange);
 
 /// Callback for when a fill drag completes.
-typedef OnFillComplete = void Function(
-    CellRange sourceRange, CellCoordinate destination);
+typedef OnFillComplete =
+    void Function(CellRange sourceRange, CellCoordinate destination);
 
 /// Callback for when a fill drag is cancelled.
 typedef OnFillCancel = void Function();
@@ -81,7 +81,8 @@ class FillDragHandler {
     final source = _fillSourceRange!;
 
     // Single-cell source: no series to disambiguate, expand freely
-    final isSingleCell = source.startRow == source.endRow &&
+    final isSingleCell =
+        source.startRow == source.endRow &&
         source.startColumn == source.endColumn;
     if (isSingleCell) {
       _lastFillDestination = cell;
@@ -95,8 +96,7 @@ class FillDragHandler {
 
     // Lock axis on first cell outside source range
     if (_fillAxis == null) {
-      final outsideRow =
-          cell.row < source.startRow || cell.row > source.endRow;
+      final outsideRow = cell.row < source.startRow || cell.row > source.endRow;
       final outsideCol =
           cell.column < source.startColumn || cell.column > source.endColumn;
 

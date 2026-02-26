@@ -64,9 +64,7 @@ void main() {
 
     test('extends selection when extend is true', () {
       final action = MoveSelectionAction(ctx);
-      action.invoke(
-        const MoveSelectionIntent(rowDelta: 2, extend: true),
-      );
+      action.invoke(const MoveSelectionIntent(rowDelta: 2, extend: true));
       expect(selectionController.mode, SelectionMode.range);
       expect(selectionController.anchor, const CellCoordinate(5, 5));
       expect(selectionController.focus, const CellCoordinate(7, 5));
@@ -120,9 +118,7 @@ void main() {
 
     test('shift+home extends selection to start of row', () {
       final action = GoToRowBoundaryAction(ctx);
-      action.invoke(
-        const GoToRowBoundaryIntent(end: false, extend: true),
-      );
+      action.invoke(const GoToRowBoundaryIntent(end: false, extend: true));
       expect(selectionController.mode, SelectionMode.range);
       expect(selectionController.anchor, const CellCoordinate(5, 5));
       expect(selectionController.focus, const CellCoordinate(5, 0));
@@ -130,9 +126,7 @@ void main() {
 
     test('shift+end extends selection to end of row', () {
       final action = GoToRowBoundaryAction(ctx);
-      action.invoke(
-        const GoToRowBoundaryIntent(end: true, extend: true),
-      );
+      action.invoke(const GoToRowBoundaryIntent(end: true, extend: true));
       expect(selectionController.mode, SelectionMode.range);
       expect(selectionController.anchor, const CellCoordinate(5, 5));
       expect(selectionController.focus, const CellCoordinate(5, 25));
@@ -254,11 +248,13 @@ void main() {
       selectionController.selectCell(coord);
 
       final action = ClearCellsAction(ctx);
-      action.invoke(const ClearCellsIntent(
-        clearValue: true,
-        clearStyle: false,
-        clearFormat: false,
-      ));
+      action.invoke(
+        const ClearCellsIntent(
+          clearValue: true,
+          clearStyle: false,
+          clearFormat: false,
+        ),
+      );
 
       expect(data.getCell(coord), isNull);
       expect(data.getStyle(coord), isNotNull);
@@ -275,11 +271,13 @@ void main() {
       selectionController.selectCell(coord);
 
       final action = ClearCellsAction(ctx);
-      action.invoke(const ClearCellsIntent(
-        clearValue: false,
-        clearStyle: true,
-        clearFormat: true,
-      ));
+      action.invoke(
+        const ClearCellsIntent(
+          clearValue: false,
+          clearStyle: true,
+          clearFormat: true,
+        ),
+      );
 
       expect(data.getCell(coord)?.displayValue, 'hello');
       expect(data.getStyle(coord), isNull);
@@ -310,11 +308,13 @@ void main() {
       selectionController.selectCell(coord);
 
       final action = ClearCellsAction(ctx);
-      action.invoke(const ClearCellsIntent(
-        clearValue: false,
-        clearStyle: false,
-        clearFormat: false,
-      ));
+      action.invoke(
+        const ClearCellsIntent(
+          clearValue: false,
+          clearStyle: false,
+          clearFormat: false,
+        ),
+      );
 
       expect(data.getCell(coord)?.displayValue, 'hello');
       expect(data.getStyle(coord)!.backgroundColor, const Color(0xFF00FF00));
@@ -327,11 +327,13 @@ void main() {
       selectionController.selectCell(coord);
 
       final action = ClearCellsAction(ctx);
-      action.invoke(const ClearCellsIntent(
-        clearValue: false,
-        clearStyle: false,
-        clearFormat: true,
-      ));
+      action.invoke(
+        const ClearCellsIntent(
+          clearValue: false,
+          clearStyle: false,
+          clearFormat: true,
+        ),
+      );
 
       expect(data.getCell(coord)?.displayValue, 'hello');
       expect(ctx.invalidateAndRebuildCount, 1);
@@ -343,11 +345,13 @@ void main() {
       selectionController.selectCell(coord);
 
       final action = ClearCellsAction(ctx);
-      action.invoke(const ClearCellsIntent(
-        clearValue: false,
-        clearStyle: true,
-        clearFormat: false,
-      ));
+      action.invoke(
+        const ClearCellsIntent(
+          clearValue: false,
+          clearStyle: true,
+          clearFormat: false,
+        ),
+      );
 
       expect(data.getCell(coord)?.displayValue, 'hello');
       expect(ctx.invalidateAndRebuildCount, 1);
@@ -357,21 +361,25 @@ void main() {
       const coord1 = CellCoordinate(0, 0);
       const coord2 = CellCoordinate(1, 1);
       data.setCell(coord1, CellValue.text('a'));
-      data.setStyle(coord1, const CellStyle(
-        backgroundColor: Color(0xFFFF0000),
-      ));
+      data.setStyle(
+        coord1,
+        const CellStyle(backgroundColor: Color(0xFFFF0000)),
+      );
       data.setCell(coord2, CellValue.text('b'));
-      data.setStyle(coord2, const CellStyle(
-        backgroundColor: Color(0xFF00FF00),
-      ));
+      data.setStyle(
+        coord2,
+        const CellStyle(backgroundColor: Color(0xFF00FF00)),
+      );
       selectionController.selectRange(const CellRange(0, 0, 1, 1));
 
       final action = ClearCellsAction(ctx);
-      action.invoke(const ClearCellsIntent(
-        clearValue: false,
-        clearStyle: true,
-        clearFormat: true,
-      ));
+      action.invoke(
+        const ClearCellsIntent(
+          clearValue: false,
+          clearStyle: true,
+          clearFormat: true,
+        ),
+      );
 
       expect(data.getCell(coord1)?.displayValue, 'a');
       expect(data.getCell(coord2)?.displayValue, 'b');
@@ -391,11 +399,13 @@ void main() {
       );
       final action = ClearCellsAction(roCtx);
       expect(
-        action.isEnabled(const ClearCellsIntent(
-          clearValue: false,
-          clearStyle: true,
-          clearFormat: true,
-        )),
+        action.isEnabled(
+          const ClearCellsIntent(
+            clearValue: false,
+            clearStyle: true,
+            clearFormat: true,
+          ),
+        ),
         false,
       );
     });
@@ -419,11 +429,13 @@ void main() {
       selectionController.selectRange(const CellRange(0, 0, 1, 1));
 
       final action = ClearCellsAction(ctx);
-      action.invoke(const ClearCellsIntent(
-        clearValue: false,
-        clearStyle: false,
-        clearFormat: true,
-      ));
+      action.invoke(
+        const ClearCellsIntent(
+          clearValue: false,
+          clearStyle: false,
+          clearFormat: true,
+        ),
+      );
 
       expect(data.mergedCells.isEmpty, isTrue);
       expect(data.getCell(coord)?.displayValue, 'hello');
@@ -435,11 +447,13 @@ void main() {
       selectionController.selectRange(const CellRange(0, 0, 1, 1));
 
       final action = ClearCellsAction(ctx);
-      action.invoke(const ClearCellsIntent(
-        clearValue: true,
-        clearStyle: false,
-        clearFormat: false,
-      ));
+      action.invoke(
+        const ClearCellsIntent(
+          clearValue: true,
+          clearStyle: false,
+          clearFormat: false,
+        ),
+      );
 
       expect(data.mergedCells.isEmpty, isFalse);
       expect(data.getCell(const CellCoordinate(0, 0)), isNull);
@@ -509,14 +523,8 @@ void main() {
       final action = FillDownAction(ctx);
       action.invoke(const FillDownIntent());
 
-      expect(
-        data.getCell(const CellCoordinate(1, 1))?.rawValue,
-        '=B2+C2',
-      );
-      expect(
-        data.getCell(const CellCoordinate(2, 1))?.rawValue,
-        '=B3+C3',
-      );
+      expect(data.getCell(const CellCoordinate(1, 1))?.rawValue, '=B2+C2');
+      expect(data.getCell(const CellCoordinate(2, 1))?.rawValue, '=B3+C3');
     });
 
     test('preserves absolute references when filling down', () {
@@ -535,10 +543,7 @@ void main() {
 
     test('copies formulas verbatim when adjuster is null', () {
       ctx.formulaReferenceAdjuster = null;
-      data.setCell(
-        const CellCoordinate(0, 0),
-        const CellValue.formula('=A1'),
-      );
+      data.setCell(const CellCoordinate(0, 0), const CellValue.formula('=A1'));
       selectionController.selectRange(const CellRange(0, 0, 1, 0));
 
       final action = FillDownAction(ctx);
@@ -603,10 +608,7 @@ void main() {
     });
 
     test('adjusts formula references when filling right', () {
-      data.setCell(
-        const CellCoordinate(0, 0),
-        const CellValue.formula('=A1'),
-      );
+      data.setCell(const CellCoordinate(0, 0), const CellValue.formula('=A1'));
       selectionController.selectRange(const CellRange(0, 0, 0, 2));
 
       final action = FillRightAction(ctx);
@@ -649,8 +651,10 @@ void main() {
 
       expect(ctx.pendingCutRange, const CellRange(5, 5, 5, 5));
       // Data should NOT be cleared yet (deferred cut)
-      expect(data.getCell(const CellCoordinate(5, 5)),
-          const CellValue.text('Hello'));
+      expect(
+        data.getCell(const CellCoordinate(5, 5)),
+        const CellValue.text('Hello'),
+      );
     });
   });
 
@@ -692,8 +696,10 @@ void main() {
       // Source should be cleared (deferred cut completed)
       expect(data.getCell(const CellCoordinate(0, 0)), isNull);
       // Paste destination should have the value
-      expect(data.getCell(const CellCoordinate(3, 3)),
-          const CellValue.text('Hello'));
+      expect(
+        data.getCell(const CellCoordinate(3, 3)),
+        const CellValue.text('Hello'),
+      );
     });
   });
 
@@ -764,11 +770,15 @@ void main() {
       action.invoke(const MergeCellsHorizontallyIntent());
 
       // Row 0 should be merged
-      expect(data.mergedCells.getRegion(const CellCoordinate(0, 0))?.range,
-          const CellRange(0, 0, 0, 2));
+      expect(
+        data.mergedCells.getRegion(const CellCoordinate(0, 0))?.range,
+        const CellRange(0, 0, 0, 2),
+      );
       // Row 1 should be merged separately
-      expect(data.mergedCells.getRegion(const CellCoordinate(1, 0))?.range,
-          const CellRange(1, 0, 1, 2));
+      expect(
+        data.mergedCells.getRegion(const CellCoordinate(1, 0))?.range,
+        const CellRange(1, 0, 1, 2),
+      );
       expect(data.mergedCells.regionCount, 2);
       expect(ctx.invalidateAndRebuildCount, 1);
     });
@@ -788,11 +798,15 @@ void main() {
       action.invoke(const MergeCellsVerticallyIntent());
 
       // Col 0 should be merged
-      expect(data.mergedCells.getRegion(const CellCoordinate(0, 0))?.range,
-          const CellRange(0, 0, 2, 0));
+      expect(
+        data.mergedCells.getRegion(const CellCoordinate(0, 0))?.range,
+        const CellRange(0, 0, 2, 0),
+      );
       // Col 1 should be merged separately
-      expect(data.mergedCells.getRegion(const CellCoordinate(0, 1))?.range,
-          const CellRange(0, 1, 2, 1));
+      expect(
+        data.mergedCells.getRegion(const CellCoordinate(0, 1))?.range,
+        const CellRange(0, 1, 2, 1),
+      );
       expect(data.mergedCells.regionCount, 2);
       expect(ctx.invalidateAndRebuildCount, 1);
     });
@@ -864,8 +878,7 @@ void main() {
       editController = EditController();
       rtc = RichTextEditingController();
       rtc.initFromSpans([const TextSpan(text: 'Hello')]);
-      rtc.selection =
-          const TextSelection(baseOffset: 0, extentOffset: 5);
+      rtc.selection = const TextSelection(baseOffset: 0, extentOffset: 5);
 
       editCtx = MockWorksheetActionContext(
         selectionController: selectionController,
@@ -901,18 +914,14 @@ void main() {
     });
 
     test('is disabled when editing but no richTextController', () {
-      editController.startEdit(
-        cell: const CellCoordinate(0, 0),
-      );
+      editController.startEdit(cell: const CellCoordinate(0, 0));
 
       final action = ToggleBoldAction(editCtx);
       expect(action.isEnabled(const ToggleBoldIntent()), isFalse);
     });
 
     test('is enabled when editing with richTextController', () {
-      editController.startEdit(
-        cell: const CellCoordinate(0, 0),
-      );
+      editController.startEdit(cell: const CellCoordinate(0, 0));
       editController.richTextController = rtc;
 
       final action = ToggleBoldAction(editCtx);
@@ -920,9 +929,7 @@ void main() {
     });
 
     test('invoke toggles bold on richTextController', () {
-      editController.startEdit(
-        cell: const CellCoordinate(0, 0),
-      );
+      editController.startEdit(cell: const CellCoordinate(0, 0));
       editController.richTextController = rtc;
 
       final action = ToggleBoldAction(editCtx);
@@ -932,10 +939,7 @@ void main() {
     });
 
     test('toggles bold on data-layer spans when not editing', () {
-      data.setCell(
-        const CellCoordinate(5, 5),
-        CellValue.text('Hello'),
-      );
+      data.setCell(const CellCoordinate(5, 5), CellValue.text('Hello'));
       selectionController.selectCell(const CellCoordinate(5, 5));
 
       final action = ToggleBoldAction(editCtx);
@@ -956,8 +960,7 @@ void main() {
       editController = EditController();
       rtc = RichTextEditingController();
       rtc.initFromSpans([const TextSpan(text: 'Hello')]);
-      rtc.selection =
-          const TextSelection(baseOffset: 0, extentOffset: 5);
+      rtc.selection = const TextSelection(baseOffset: 0, extentOffset: 5);
 
       editCtx = MockWorksheetActionContext(
         selectionController: selectionController,
@@ -993,9 +996,7 @@ void main() {
     });
 
     test('invoke toggles italic on richTextController', () {
-      editController.startEdit(
-        cell: const CellCoordinate(0, 0),
-      );
+      editController.startEdit(cell: const CellCoordinate(0, 0));
       editController.richTextController = rtc;
 
       final action = ToggleItalicAction(editCtx);
@@ -1005,10 +1006,7 @@ void main() {
     });
 
     test('toggles italic on data-layer spans when not editing', () {
-      data.setCell(
-        const CellCoordinate(5, 5),
-        CellValue.text('Hello'),
-      );
+      data.setCell(const CellCoordinate(5, 5), CellValue.text('Hello'));
       selectionController.selectCell(const CellCoordinate(5, 5));
 
       final action = ToggleItalicAction(editCtx);
@@ -1029,8 +1027,7 @@ void main() {
       editController = EditController();
       rtc = RichTextEditingController();
       rtc.initFromSpans([const TextSpan(text: 'Hello')]);
-      rtc.selection =
-          const TextSelection(baseOffset: 0, extentOffset: 5);
+      rtc.selection = const TextSelection(baseOffset: 0, extentOffset: 5);
 
       editCtx = MockWorksheetActionContext(
         selectionController: selectionController,
@@ -1066,9 +1063,7 @@ void main() {
     });
 
     test('invoke toggles underline on richTextController', () {
-      editController.startEdit(
-        cell: const CellCoordinate(0, 0),
-      );
+      editController.startEdit(cell: const CellCoordinate(0, 0));
       editController.richTextController = rtc;
 
       final action = ToggleUnderlineAction(editCtx);
@@ -1078,10 +1073,7 @@ void main() {
     });
 
     test('toggles underline on data-layer spans when not editing', () {
-      data.setCell(
-        const CellCoordinate(5, 5),
-        CellValue.text('Hello'),
-      );
+      data.setCell(const CellCoordinate(5, 5), CellValue.text('Hello'));
       selectionController.selectCell(const CellCoordinate(5, 5));
 
       final action = ToggleUnderlineAction(editCtx);
@@ -1102,8 +1094,7 @@ void main() {
       editController = EditController();
       rtc = RichTextEditingController();
       rtc.initFromSpans([const TextSpan(text: 'Hello')]);
-      rtc.selection =
-          const TextSelection(baseOffset: 0, extentOffset: 5);
+      rtc.selection = const TextSelection(baseOffset: 0, extentOffset: 5);
 
       editCtx = MockWorksheetActionContext(
         selectionController: selectionController,
@@ -1139,9 +1130,7 @@ void main() {
     });
 
     test('invoke toggles strikethrough on richTextController', () {
-      editController.startEdit(
-        cell: const CellCoordinate(0, 0),
-      );
+      editController.startEdit(cell: const CellCoordinate(0, 0));
       editController.richTextController = rtc;
 
       final action = ToggleStrikethroughAction(editCtx);
@@ -1151,10 +1140,7 @@ void main() {
     });
 
     test('toggles strikethrough on data-layer spans when not editing', () {
-      data.setCell(
-        const CellCoordinate(5, 5),
-        CellValue.text('Hello'),
-      );
+      data.setCell(const CellCoordinate(5, 5), CellValue.text('Hello'));
       selectionController.selectCell(const CellCoordinate(5, 5));
 
       final action = ToggleStrikethroughAction(editCtx);
@@ -1171,9 +1157,9 @@ void main() {
       selectionController.selectCell(const CellCoordinate(2, 3));
 
       final action = SetCellStyleAction(ctx);
-      action.invoke(const SetCellStyleIntent(
-        CellStyle(backgroundColor: Color(0xFFFF0000)),
-      ));
+      action.invoke(
+        const SetCellStyleIntent(CellStyle(backgroundColor: Color(0xFFFF0000))),
+      );
 
       final style = data.getStyle(const CellCoordinate(2, 3));
       expect(style, isNotNull);
@@ -1187,9 +1173,7 @@ void main() {
       selectionController.selectCell(coord);
 
       final action = SetCellStyleAction(ctx);
-      action.invoke(const SetCellStyleIntent(
-        CellStyle(wrapText: true),
-      ));
+      action.invoke(const SetCellStyleIntent(CellStyle(wrapText: true)));
 
       final style = data.getStyle(coord);
       expect(style, isNotNull);
@@ -1210,18 +1194,23 @@ void main() {
       );
 
       final action = SetCellStyleAction(editCtx);
-      expect(action.isEnabled(const SetCellStyleIntent(
-        CellStyle(backgroundColor: Color(0xFFFF0000)),
-      )), isTrue);
+      expect(
+        action.isEnabled(
+          const SetCellStyleIntent(
+            CellStyle(backgroundColor: Color(0xFFFF0000)),
+          ),
+        ),
+        isTrue,
+      );
     });
 
     test('no-op without selection', () {
       selectionController.clear();
 
       final action = SetCellStyleAction(ctx);
-      action.invoke(const SetCellStyleIntent(
-        CellStyle(backgroundColor: Color(0xFFFF0000)),
-      ));
+      action.invoke(
+        const SetCellStyleIntent(CellStyle(backgroundColor: Color(0xFFFF0000))),
+      );
 
       expect(ctx.invalidateAndRebuildCount, 0);
     });
@@ -1236,18 +1225,23 @@ void main() {
         readOnly: true,
       );
       final action = SetCellStyleAction(roCtx);
-      expect(action.isEnabled(const SetCellStyleIntent(
-        CellStyle(backgroundColor: Color(0xFFFF0000)),
-      )), isFalse);
+      expect(
+        action.isEnabled(
+          const SetCellStyleIntent(
+            CellStyle(backgroundColor: Color(0xFFFF0000)),
+          ),
+        ),
+        isFalse,
+      );
     });
 
     test('applies to multi-cell range', () {
       selectionController.selectRange(const CellRange(0, 0, 1, 1));
 
       final action = SetCellStyleAction(ctx);
-      action.invoke(const SetCellStyleIntent(
-        CellStyle(backgroundColor: Color(0xFFAABBCC)),
-      ));
+      action.invoke(
+        const SetCellStyleIntent(CellStyle(backgroundColor: Color(0xFFAABBCC))),
+      );
 
       for (int r = 0; r <= 1; r++) {
         for (int c = 0; c <= 1; c++) {
@@ -1262,14 +1256,14 @@ void main() {
       selectionController.selectRange(const CellRange(0, 0, 1, 1));
 
       final action = SetCellStyleAction(ctx);
-      action.invoke(const SetCellStyleIntent(
-        CellStyle(
-          backgroundColor: Color(0xFFAABBCC),
-          borders: CellBorders.all(
-            BorderStyle(color: Color(0xFF000000)),
+      action.invoke(
+        const SetCellStyleIntent(
+          CellStyle(
+            backgroundColor: Color(0xFFAABBCC),
+            borders: CellBorders.all(BorderStyle(color: Color(0xFF000000))),
           ),
         ),
-      ));
+      );
 
       // Anchor gets both borders and backgroundColor
       final anchorStyle = data.getStyle(const CellCoordinate(0, 0));
@@ -1284,10 +1278,16 @@ void main() {
         const CellCoordinate(1, 1),
       ]) {
         final style = data.getStyle(coord);
-        expect(style?.backgroundColor, const Color(0xFFAABBCC),
-            reason: '$coord should have backgroundColor');
-        expect(style?.borders, isNull,
-            reason: '$coord should not have borders');
+        expect(
+          style?.backgroundColor,
+          const Color(0xFFAABBCC),
+          reason: '$coord should have backgroundColor',
+        );
+        expect(
+          style?.borders,
+          isNull,
+          reason: '$coord should not have borders',
+        );
       }
     });
 
@@ -1296,22 +1296,26 @@ void main() {
       selectionController.selectRange(const CellRange(0, 0, 0, 2));
 
       final action = SetCellStyleAction(ctx);
-      action.invoke(const SetCellStyleIntent(
-        CellStyle(
-          borders: CellBorders.all(
-            BorderStyle(color: Color(0xFF000000)),
+      action.invoke(
+        const SetCellStyleIntent(
+          CellStyle(
+            borders: CellBorders.all(BorderStyle(color: Color(0xFF000000))),
           ),
         ),
-      ));
+      );
 
       // Anchor (0,0) gets borders
-      expect(data.getStyle(const CellCoordinate(0, 0))?.borders?.isNone,
-          isFalse);
+      expect(
+        data.getStyle(const CellCoordinate(0, 0))?.borders?.isNone,
+        isFalse,
+      );
       // Non-anchor (0,1) does NOT get borders
       expect(data.getStyle(const CellCoordinate(0, 1))?.borders, isNull);
       // Unmerged (0,2) gets borders normally
-      expect(data.getStyle(const CellCoordinate(0, 2))?.borders?.isNone,
-          isFalse);
+      expect(
+        data.getStyle(const CellCoordinate(0, 2))?.borders?.isNone,
+        isFalse,
+      );
     });
 
     test('non-border style applies to all cells including non-anchor', () {
@@ -1319,9 +1323,9 @@ void main() {
       selectionController.selectRange(const CellRange(0, 0, 1, 1));
 
       final action = SetCellStyleAction(ctx);
-      action.invoke(const SetCellStyleIntent(
-        CellStyle(backgroundColor: Color(0xFFAABBCC)),
-      ));
+      action.invoke(
+        const SetCellStyleIntent(CellStyle(backgroundColor: Color(0xFFAABBCC))),
+      );
 
       for (int r = 0; r <= 1; r++) {
         for (int c = 0; c <= 1; c++) {
@@ -1346,8 +1350,7 @@ void main() {
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ]);
-      rtc.selection =
-          const TextSelection(baseOffset: 0, extentOffset: 5);
+      rtc.selection = const TextSelection(baseOffset: 0, extentOffset: 5);
 
       editCtx = MockWorksheetActionContext(
         selectionController: selectionController,
@@ -1368,11 +1371,16 @@ void main() {
       editController.richTextController = rtc;
 
       final action = ClearCellsAction(editCtx);
-      expect(action.isEnabled(const ClearCellsIntent(
-        clearValue: false,
-        clearStyle: true,
-        clearFormat: false,
-      )), isTrue);
+      expect(
+        action.isEnabled(
+          const ClearCellsIntent(
+            clearValue: false,
+            clearStyle: true,
+            clearFormat: false,
+          ),
+        ),
+        isTrue,
+      );
     });
 
     test('is disabled during editing when clearValue is true', () {
@@ -1391,11 +1399,13 @@ void main() {
       editController.richTextController = rtc;
 
       final action = ClearCellsAction(editCtx);
-      action.invoke(const ClearCellsIntent(
-        clearValue: false,
-        clearStyle: true,
-        clearFormat: false,
-      ));
+      action.invoke(
+        const ClearCellsIntent(
+          clearValue: false,
+          clearStyle: true,
+          clearFormat: false,
+        ),
+      );
 
       expect(data.getStyle(coord), isNull);
       expect(editCtx.invalidateAndRebuildCount, 1);
@@ -1411,11 +1421,13 @@ void main() {
       expect(rtc.hasRichStyles, isTrue);
 
       final action = ClearCellsAction(editCtx);
-      action.invoke(const ClearCellsIntent(
-        clearValue: false,
-        clearStyle: true,
-        clearFormat: false,
-      ));
+      action.invoke(
+        const ClearCellsIntent(
+          clearValue: false,
+          clearStyle: true,
+          clearFormat: false,
+        ),
+      );
 
       expect(rtc.hasRichStyles, isFalse);
     });
@@ -1428,11 +1440,13 @@ void main() {
       editController.richTextController = rtc;
 
       final action = ClearCellsAction(editCtx);
-      action.invoke(const ClearCellsIntent(
-        clearValue: true,
-        clearStyle: false,
-        clearFormat: false,
-      ));
+      action.invoke(
+        const ClearCellsIntent(
+          clearValue: true,
+          clearStyle: false,
+          clearFormat: false,
+        ),
+      );
 
       // Rich styles should still be present
       expect(rtc.hasRichStyles, isTrue);
@@ -1446,17 +1460,17 @@ void _installMockClipboard({String? initialText}) {
   _mockClipboardText = initialText;
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(SystemChannels.platform, (call) async {
-    if (call.method == 'Clipboard.setData') {
-      final args = call.arguments as Map<dynamic, dynamic>;
-      _mockClipboardText = args['text'] as String?;
-      return null;
-    }
-    if (call.method == 'Clipboard.getData') {
-      if (_mockClipboardText == null) return null;
-      return <String, dynamic>{'text': _mockClipboardText};
-    }
-    return null;
-  });
+        if (call.method == 'Clipboard.setData') {
+          final args = call.arguments as Map<dynamic, dynamic>;
+          _mockClipboardText = args['text'] as String?;
+          return null;
+        }
+        if (call.method == 'Clipboard.getData') {
+          if (_mockClipboardText == null) return null;
+          return <String, dynamic>{'text': _mockClipboardText};
+        }
+        return null;
+      });
 }
 
 void _removeMockClipboard() {

@@ -31,9 +31,9 @@ class SpanList {
     required this.count,
     required this.defaultSize,
     Map<int, double>? customSizes,
-  })  : assert(count > 0, 'Count must be positive'),
-        assert(defaultSize > 0, 'Default size must be positive'),
-        _sizes = List<double>.filled(count, defaultSize) {
+  }) : assert(count > 0, 'Count must be positive'),
+       assert(defaultSize > 0, 'Default size must be positive'),
+       _sizes = List<double>.filled(count, defaultSize) {
     // Apply custom sizes
     if (customSizes != null) {
       for (final entry in customSizes.entries) {

@@ -22,7 +22,8 @@ class CellEditorOverlay extends StatefulWidget {
     CellValue? value, {
     CellFormat? detectedFormat,
     List<TextSpan>? richText,
-  }) onCommit;
+  })
+  onCommit;
 
   /// Called when the edit is cancelled.
   final VoidCallback onCancel;
@@ -124,7 +125,7 @@ class CellEditorOverlay extends StatefulWidget {
   /// that was being matched. The caller is responsible for inserting the
   /// function name and opening parenthesis into the text.
   final void Function(FormulaFunction fn, AutocompleteToken token)?
-      onAutocompleteAccept;
+  onAutocompleteAccept;
 
   /// Minimum width for the editor.
   static const double minWidth = 60.0;
@@ -277,7 +278,9 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
     // focus to the toolbar button. Schedule focus restoration.
     if (widget.editController.isEditing && !_focusNode.hasFocus) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && widget.editController.isEditing && !_focusNode.hasFocus) {
+        if (mounted &&
+            widget.editController.isEditing &&
+            !_focusNode.hasFocus) {
           _focusNode.requestFocus();
         }
       });
@@ -420,7 +423,8 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
     double textAreaWidth;
     if (widget.expandedBounds != null && !widget.wrapText) {
       final expandedUnzoomedWidth = widget.expandedBounds!.width / zoom;
-      final expandedEffective = expandedUnzoomedWidth < CellEditorOverlay.minWidth
+      final expandedEffective =
+          expandedUnzoomedWidth < CellEditorOverlay.minWidth
           ? CellEditorOverlay.minWidth
           : expandedUnzoomedWidth;
       textAreaWidth = expandedEffective - 2 * widget.cellPadding;
@@ -460,8 +464,10 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
         case CellVerticalAlignment.top:
           verticalOffset = widget.cellPadding;
         case CellVerticalAlignment.middle:
-          verticalOffset = ((unzoomedHeight - textHeight) / 2)
-              .clamp(0.0, double.infinity);
+          verticalOffset = ((unzoomedHeight - textHeight) / 2).clamp(
+            0.0,
+            double.infinity,
+          );
         case CellVerticalAlignment.bottom:
           verticalOffset = (unzoomedHeight - widget.cellPadding - textHeight)
               .clamp(0.0, double.infinity);
@@ -621,7 +627,10 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
       widget.editController.commitEdit(
         onCommit: (commitCell, value, {CellFormat? detectedFormat}) {
           widget.onCommitAndNavigate!(
-            commitCell, value, rowDelta, columnDelta,
+            commitCell,
+            value,
+            rowDelta,
+            columnDelta,
             detectedFormat: detectedFormat,
             richText: spans,
           );
@@ -692,7 +701,8 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
     }
 
     // Rich text formatting shortcuts (Ctrl/Cmd + key)
-    final isModifier = HardwareKeyboard.instance.isControlPressed ||
+    final isModifier =
+        HardwareKeyboard.instance.isControlPressed ||
         HardwareKeyboard.instance.isMetaPressed;
     if (isModifier) {
       if (event.logicalKey == LogicalKeyboardKey.keyB) {
@@ -733,8 +743,7 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
     // F4: cycle absolute/relative reference mode in formula mode.
     if (event.logicalKey == LogicalKeyboardKey.f4) {
       final frc = widget.formulaReferenceConfig;
-      if (frc != null &&
-          widget.editController.isFormulaMode(frc)) {
+      if (frc != null && widget.editController.isFormulaMode(frc)) {
         final formula = _textController.text;
         final cursorOffset = _textController.selection.baseOffset;
         final tokens = frc.tokenize(formula);
@@ -746,9 +755,7 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
         if (result != null) {
           _textController.value = TextEditingValue(
             text: result.text,
-            selection: TextSelection.collapsed(
-              offset: result.cursorOffset,
-            ),
+            selection: TextSelection.collapsed(offset: result.cursorOffset),
           );
           widget.editController.updateText(result.text);
           return KeyEventResult.handled;
@@ -905,7 +912,8 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
     double textAreaWidth;
     if (widget.expandedBounds != null && !widget.wrapText) {
       final expandedUnzoomedWidth = widget.expandedBounds!.width / zoom;
-      final expandedEffective = expandedUnzoomedWidth < CellEditorOverlay.minWidth
+      final expandedEffective =
+          expandedUnzoomedWidth < CellEditorOverlay.minWidth
           ? CellEditorOverlay.minWidth
           : expandedUnzoomedWidth;
       textAreaWidth = expandedEffective - 2 * widget.cellPadding;

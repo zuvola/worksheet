@@ -26,10 +26,10 @@ class CellRange {
   ///
   /// The start indices must be less than or equal to the end indices.
   const CellRange(this.startRow, this.startColumn, this.endRow, this.endColumn)
-      : assert(startRow >= 0, 'startRow must be non-negative'),
-        assert(startColumn >= 0, 'startColumn must be non-negative'),
-        assert(endRow >= startRow, 'endRow must be >= startRow'),
-        assert(endColumn >= startColumn, 'endColumn must be >= startColumn');
+    : assert(startRow >= 0, 'startRow must be non-negative'),
+      assert(startColumn >= 0, 'startColumn must be non-negative'),
+      assert(endRow >= startRow, 'endRow must be >= startRow'),
+      assert(endColumn >= startColumn, 'endColumn must be >= startColumn');
 
   /// Creates a cell range from two coordinates, normalizing the order.
   ///

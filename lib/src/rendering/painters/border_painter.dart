@@ -47,17 +47,26 @@ class BorderPainter {
     //   - Start extension (inclusive): ext=N fills pixel at (base - N). No extra.
     //   - End extension (exclusive): ext=N only fills pixel at (base + N - 1).
     //     Add 1.0 to compensate when there IS a perpendicular border to meet.
-    final effectiveStartExt = startJunctionPerpA != null ||
-            startJunctionPerpB != null
+    final effectiveStartExt =
+        startJunctionPerpA != null || startJunctionPerpB != null
         ? _extensionFromJunction(
-            startJunctionPerpA, startJunctionPerpB, width, lineStyle)
+            startJunctionPerpA,
+            startJunctionPerpB,
+            width,
+            lineStyle,
+          )
         : startExt;
     final rawEndExt = endJunctionPerpA != null || endJunctionPerpB != null
         ? _extensionFromJunction(
-            endJunctionPerpA, endJunctionPerpB, width, lineStyle)
+            endJunctionPerpA,
+            endJunctionPerpB,
+            width,
+            lineStyle,
+          )
         : null;
-    final effectiveEndExt =
-        rawEndExt != null ? (rawEndExt > 0 ? rawEndExt + 1.0 : 0.0) : endExt;
+    final effectiveEndExt = rawEndExt != null
+        ? (rawEndExt > 0 ? rawEndExt + 1.0 : 0.0)
+        : endExt;
 
     switch (lineStyle) {
       case BorderLineStyle.none:
@@ -77,23 +86,32 @@ class BorderPainter {
       case BorderLineStyle.double:
         // Inner sub-lines shorten when ANY perpendicular is double (preserves
         // gap at all junction types).
-        final shortenInnerStart = _isDoublePerp(startJunctionPerpA) ||
+        final shortenInnerStart =
+            _isDoublePerp(startJunctionPerpA) ||
             _isDoublePerp(startJunctionPerpB);
-        final shortenInnerEnd = _isDoublePerp(endJunctionPerpA) ||
-            _isDoublePerp(endJunctionPerpB);
+        final shortenInnerEnd =
+            _isDoublePerp(endJunctionPerpA) || _isDoublePerp(endJunctionPerpB);
         // Outer sub-lines shorten only when BOTH perpendiculars are double
         // (the double border continues through the junction — + junctions).
         // At L-corners and T-junctions the outer lines extend through.
-        final shortenOuterStart = _isDoublePerp(startJunctionPerpA) &&
+        final shortenOuterStart =
+            _isDoublePerp(startJunctionPerpA) &&
             _isDoublePerp(startJunctionPerpB);
-        final shortenOuterEnd = _isDoublePerp(endJunctionPerpA) &&
-            _isDoublePerp(endJunctionPerpB);
+        final shortenOuterEnd =
+            _isDoublePerp(endJunctionPerpA) && _isDoublePerp(endJunctionPerpB);
         _drawDoubleLine(
-          canvas, start, end, paint, width, outerSign,
+          canvas,
+          start,
+          end,
+          paint,
+          width,
+          outerSign,
           shortenOuterStart ? 0.0 : effectiveStartExt,
           shortenOuterEnd ? 0.0 : effectiveEndExt,
-          shortenOuterStart, shortenOuterEnd,
-          shortenInnerStart, shortenInnerEnd,
+          shortenOuterStart,
+          shortenOuterEnd,
+          shortenInnerStart,
+          shortenInnerEnd,
         );
     }
   }
@@ -124,15 +142,17 @@ class BorderPainter {
   }
 
   static double _singlePerpExtension(
-      BorderStyle? perp, double thisWidth, BorderLineStyle thisLineStyle) {
+    BorderStyle? perp,
+    double thisWidth,
+    BorderLineStyle thisLineStyle,
+  ) {
     if (perp == null || perp.isNone) return 0.0;
 
     // Suppress when perpendicular has strictly higher junction priority.
     // Priority: lineStyle index first (double > solid > dashed > dotted),
     // then raw width within the same style.
     if (perp.lineStyle.index > thisLineStyle.index) return 0.0;
-    if (perp.lineStyle.index == thisLineStyle.index &&
-        perp.width > thisWidth) {
+    if (perp.lineStyle.index == thisLineStyle.index && perp.width > thisWidth) {
       return 0.0;
     }
 
@@ -249,16 +269,20 @@ class BorderPainter {
       final outerStartX = shortenOuterStart
           ? start.dx + 1.0
           : start.dx - (outerStartExt - 1.0).clamp(0.0, outerStartExt);
-      final outerEndX =
-          shortenOuterEnd ? end.dx : end.dx + outerEndExt;
-      final innerStartX =
-          shortenInnerStart ? start.dx + 1.0 : start.dx - 1.0;
+      final outerEndX = shortenOuterEnd ? end.dx : end.dx + outerEndExt;
+      final innerStartX = shortenInnerStart ? start.dx + 1.0 : start.dx - 1.0;
       final innerEndX = shortenInnerEnd ? end.dx : end.dx + 1.0;
 
-      canvas.drawLine(Offset(outerStartX, outerY), Offset(outerEndX, outerY),
-          paint);
-      canvas.drawLine(Offset(innerStartX, innerY), Offset(innerEndX, innerY),
-          paint);
+      canvas.drawLine(
+        Offset(outerStartX, outerY),
+        Offset(outerEndX, outerY),
+        paint,
+      );
+      canvas.drawLine(
+        Offset(innerStartX, innerY),
+        Offset(innerEndX, innerY),
+        paint,
+      );
 
       // Corner dots only at + junctions (outer shortened implies inner too).
       if (shortenOuterStart) {
@@ -276,18 +300,23 @@ class BorderPainter {
       final outerX = start.dx + outerSign * width;
       final innerX = start.dx - outerSign * width;
 
-      final outerStartY =
-          shortenOuterStart ? start.dy + 1.0 : start.dy - outerStartExt;
-      final outerEndY =
-          shortenOuterEnd ? end.dy : end.dy + outerEndExt;
-      final innerStartY =
-          shortenInnerStart ? start.dy + 1.0 : start.dy - 1.0;
+      final outerStartY = shortenOuterStart
+          ? start.dy + 1.0
+          : start.dy - outerStartExt;
+      final outerEndY = shortenOuterEnd ? end.dy : end.dy + outerEndExt;
+      final innerStartY = shortenInnerStart ? start.dy + 1.0 : start.dy - 1.0;
       final innerEndY = shortenInnerEnd ? end.dy : end.dy + 1.0;
 
-      canvas.drawLine(Offset(outerX, outerStartY), Offset(outerX, outerEndY),
-          paint);
-      canvas.drawLine(Offset(innerX, innerStartY), Offset(innerX, innerEndY),
-          paint);
+      canvas.drawLine(
+        Offset(outerX, outerStartY),
+        Offset(outerX, outerEndY),
+        paint,
+      );
+      canvas.drawLine(
+        Offset(innerX, innerStartY),
+        Offset(innerX, innerEndY),
+        paint,
+      );
 
       // Corner dots only at + junctions.
       if (shortenOuterStart) {
@@ -309,8 +338,7 @@ class BorderPainter {
   /// the integer coordinate (px, py). A 1px stroke from (px, py) to
   /// (px+1, py) fills exactly that one pixel. The half-pixel sub-line
   /// positions (e.g. 39.5) are floored to target the correct pixel (39).
-  static void _drawCornerDot(
-      Canvas canvas, double x, double y, Paint paint) {
+  static void _drawCornerDot(Canvas canvas, double x, double y, Paint paint) {
     final px = x.floor().toDouble();
     final py = y.floor().toDouble();
     canvas.drawLine(Offset(px, py), Offset(px + 1.0, py), paint);

@@ -7,11 +7,14 @@ import 'package:worksheet/src/interaction/controllers/selection_controller.dart'
 void main() {
   group('SelectionMode', () {
     test('has all expected values', () {
-      expect(SelectionMode.values, containsAll([
-        SelectionMode.none,
-        SelectionMode.single,
-        SelectionMode.range,
-      ]));
+      expect(
+        SelectionMode.values,
+        containsAll([
+          SelectionMode.none,
+          SelectionMode.single,
+          SelectionMode.range,
+        ]),
+      );
     });
   });
 
@@ -369,8 +372,11 @@ void main() {
         mergedCells.merge(CellRange(0, 0, 1, 1));
         controller.selectCell(const CellCoordinate(0, 0));
         controller.moveFocus(
-          rowDelta: -1, columnDelta: 0, extend: false,
-          maxRow: 10, maxColumn: 10,
+          rowDelta: -1,
+          columnDelta: 0,
+          extend: false,
+          maxRow: 10,
+          maxColumn: 10,
         );
         expect(controller.focus, const CellCoordinate(0, 0));
       });

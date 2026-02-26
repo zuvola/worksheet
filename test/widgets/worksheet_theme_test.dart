@@ -47,10 +47,7 @@ void main() {
 
     test('copyWith creates modified copy', () {
       const original = WorksheetThemeData();
-      final modified = original.copyWith(
-        fontSize: 18.0,
-        showGridlines: false,
-      );
+      final modified = original.copyWith(fontSize: 18.0, showGridlines: false);
 
       expect(modified.fontSize, 18.0);
       expect(modified.showGridlines, isFalse);
@@ -129,9 +126,7 @@ void main() {
 
     test('copyWith with dark headerStyle', () {
       const original = WorksheetThemeData();
-      final modified = original.copyWith(
-        headerStyle: HeaderStyle.darkStyle,
-      );
+      final modified = original.copyWith(headerStyle: HeaderStyle.darkStyle);
 
       expect(modified.headerStyle, HeaderStyle.darkStyle);
       expect(modified.selectionStyle, original.selectionStyle);
@@ -226,8 +221,9 @@ void main() {
       expect(receivedTheme, customTheme);
     });
 
-    testWidgets('updateShouldNotify returns true when data changes',
-        (tester) async {
+    testWidgets('updateShouldNotify returns true when data changes', (
+      tester,
+    ) async {
       var buildCount = 0;
 
       await tester.pumpWidget(
@@ -261,8 +257,9 @@ void main() {
       expect(buildCount, 2);
     });
 
-    testWidgets('updateShouldNotify returns false when data is same',
-        (tester) async {
+    testWidgets('updateShouldNotify returns false when data is same', (
+      tester,
+    ) async {
       var buildCount = 0;
 
       await tester.pumpWidget(

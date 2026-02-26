@@ -35,7 +35,10 @@ void main() {
       const solid = BorderStyle(width: 1.0, lineStyle: BorderLineStyle.solid);
       const dashed = BorderStyle(width: 1.0, lineStyle: BorderLineStyle.dashed);
       const dotted = BorderStyle(width: 1.0, lineStyle: BorderLineStyle.dotted);
-      const double_ = BorderStyle(width: 1.0, lineStyle: BorderLineStyle.double);
+      const double_ = BorderStyle(
+        width: 1.0,
+        lineStyle: BorderLineStyle.double,
+      );
 
       // double > solid
       expect(BorderResolver.resolve(solid, double_), double_);

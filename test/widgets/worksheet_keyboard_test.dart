@@ -127,10 +127,7 @@ void main() {
       await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
       await tester.pump();
 
-      expect(
-        controller.selectedRange,
-        const CellRange(3, 3, 4, 4),
-      );
+      expect(controller.selectedRange, const CellRange(3, 3, 4, 4));
     });
 
     testWidgets('tab moves focus right', (tester) async {
@@ -207,9 +204,9 @@ void main() {
 
     testWidgets('F2 triggers onEditCell callback', (tester) async {
       CellCoordinate? editedCell;
-      await tester.pumpWidget(buildWorksheet(
-        onEditCell: (cell) => editedCell = cell,
-      ));
+      await tester.pumpWidget(
+        buildWorksheet(onEditCell: (cell) => editedCell = cell),
+      );
       selectCell(3, 2);
       await tester.pump();
 
@@ -333,15 +330,14 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('Escape cancels move drag and restores selection',
-        (tester) async {
+    testWidgets('Escape cancels move drag and restores selection', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWorksheet());
       await tester.pump();
 
       // Select range (1,1) to (2,2) programmatically
-      controller.selectionController.selectRange(
-        const CellRange(1, 1, 2, 2),
-      );
+      controller.selectionController.selectRange(const CellRange(1, 1, 2, 2));
       await tester.pump();
 
       // Start drag on selection border to move.
@@ -372,8 +368,9 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('Escape during column resize cancels without crash',
-        (tester) async {
+    testWidgets('Escape during column resize cancels without crash', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWorksheet());
       await tester.pump();
 
@@ -403,8 +400,9 @@ void main() {
       expect(controller.focusCell, const CellCoordinate(0, 0));
     });
 
-    testWidgets('mouse up after Escape does not re-complete drag',
-        (tester) async {
+    testWidgets('mouse up after Escape does not re-complete drag', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildWorksheet());
       await tester.pump();
 

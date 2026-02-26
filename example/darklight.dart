@@ -53,10 +53,8 @@ class _DarkLightExampleState extends State<DarkLightExample> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor:
-            _isDark ? const Color(0xFF333333) : null,
-        foregroundColor:
-            _isDark ? const Color(0xFFD0D0D0) : null,
+        backgroundColor: _isDark ? const Color(0xFF333333) : null,
+        foregroundColor: _isDark ? const Color(0xFFD0D0D0) : null,
         title: Text(_isDark ? 'Dark Mode' : 'Light Mode'),
         actions: [
           IconButton(

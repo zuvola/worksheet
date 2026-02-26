@@ -96,17 +96,17 @@ class SelectionStyle {
 
   @override
   int get hashCode => Object.hash(
-        fillColor,
-        borderColor,
-        borderWidth,
-        focusFillColor,
-        focusBorderColor,
-        focusBorderWidth,
-        fillHandleColor,
-        fillHandleSize,
-        fillPreviewColor,
-        fillPreviewBorderColor,
-      );
+    fillColor,
+    borderColor,
+    borderWidth,
+    focusFillColor,
+    focusBorderColor,
+    focusBorderWidth,
+    fillHandleColor,
+    fillHandleSize,
+    fillPreviewColor,
+    fillPreviewBorderColor,
+  );
 }
 
 /// Renders selection overlays for worksheets.
@@ -438,8 +438,13 @@ class SelectionRenderer {
   }
 
   /// Draws a dashed rectangle border along axis-aligned edges.
-  static void _drawDashedRect(Canvas canvas, Rect rect, Paint paint,
-      {double dashLength = 4.0, double gapLength = 3.0}) {
+  static void _drawDashedRect(
+    Canvas canvas,
+    Rect rect,
+    Paint paint, {
+    double dashLength = 4.0,
+    double gapLength = 3.0,
+  }) {
     void drawDashedLine(Offset start, Offset end) {
       final dx = end.dx - start.dx;
       final dy = end.dy - start.dy;

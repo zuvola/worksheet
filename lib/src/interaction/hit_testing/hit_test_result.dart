@@ -48,63 +48,63 @@ class WorksheetHitTestResult {
 
   /// Creates a result indicating nothing was hit.
   const WorksheetHitTestResult.none()
-      : type = HitTestType.none,
-        cell = null,
-        headerIndex = null;
+    : type = HitTestType.none,
+      cell = null,
+      headerIndex = null;
 
   /// Creates a result indicating the corner cell was hit.
   const WorksheetHitTestResult.cornerCell()
-      : type = HitTestType.cornerCell,
-        cell = null,
-        headerIndex = null;
+    : type = HitTestType.cornerCell,
+      cell = null,
+      headerIndex = null;
 
   /// Creates a result indicating a cell was hit.
   WorksheetHitTestResult.cell(CellCoordinate coordinate)
-      : type = HitTestType.cell,
-        cell = coordinate,
-        headerIndex = null;
+    : type = HitTestType.cell,
+      cell = coordinate,
+      headerIndex = null;
 
   /// Creates a result indicating a row header was hit.
   const WorksheetHitTestResult.rowHeader(int rowIndex)
-      : type = HitTestType.rowHeader,
-        cell = null,
-        headerIndex = rowIndex;
+    : type = HitTestType.rowHeader,
+      cell = null,
+      headerIndex = rowIndex;
 
   /// Creates a result indicating a column header was hit.
   const WorksheetHitTestResult.columnHeader(int columnIndex)
-      : type = HitTestType.columnHeader,
-        cell = null,
-        headerIndex = columnIndex;
+    : type = HitTestType.columnHeader,
+      cell = null,
+      headerIndex = columnIndex;
 
   /// Creates a result indicating a row resize handle was hit.
   const WorksheetHitTestResult.rowResizeHandle(int rowIndex)
-      : type = HitTestType.rowResizeHandle,
-        cell = null,
-        headerIndex = rowIndex;
+    : type = HitTestType.rowResizeHandle,
+      cell = null,
+      headerIndex = rowIndex;
 
   /// Creates a result indicating a column resize handle was hit.
   const WorksheetHitTestResult.columnResizeHandle(int columnIndex)
-      : type = HitTestType.columnResizeHandle,
-        cell = null,
-        headerIndex = columnIndex;
+    : type = HitTestType.columnResizeHandle,
+      cell = null,
+      headerIndex = columnIndex;
 
   /// Creates a result indicating the fill handle was hit.
   WorksheetHitTestResult.fillHandle(CellCoordinate coordinate)
-      : type = HitTestType.fillHandle,
-        cell = coordinate,
-        headerIndex = null;
+    : type = HitTestType.fillHandle,
+      cell = coordinate,
+      headerIndex = null;
 
   /// Creates a result indicating the selection border was hit.
   WorksheetHitTestResult.selectionBorder(CellCoordinate coordinate)
-      : type = HitTestType.selectionBorder,
-        cell = coordinate,
-        headerIndex = null;
+    : type = HitTestType.selectionBorder,
+      cell = coordinate,
+      headerIndex = null;
 
   /// Creates a result indicating a selection handle was hit.
   WorksheetHitTestResult.selectionHandle(CellCoordinate coordinate)
-      : type = HitTestType.selectionHandle,
-        cell = coordinate,
-        headerIndex = null;
+    : type = HitTestType.selectionHandle,
+      cell = coordinate,
+      headerIndex = null;
 
   /// Whether nothing was hit.
   bool get isNone => type == HitTestType.none;

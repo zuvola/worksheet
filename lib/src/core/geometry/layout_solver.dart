@@ -34,8 +34,8 @@ class LayoutSolver {
     required SpanList rows,
     required SpanList columns,
     this.mergedCells,
-  })  : _rows = rows,
-        _columns = columns;
+  }) : _rows = rows,
+       _columns = columns;
 
   /// The number of rows.
   int get rowCount => _rows.count;

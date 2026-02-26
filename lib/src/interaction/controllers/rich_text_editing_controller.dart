@@ -81,10 +81,9 @@ class RichTextEditingController extends TextEditingController {
     for (int i = 1; i <= currentText.length; i++) {
       final style = i < currentText.length ? _charStyles[i] : null;
       if (i == currentText.length || style != currentStyle) {
-        result.add(TextSpan(
-          text: currentText.substring(start, i),
-          style: currentStyle,
-        ));
+        result.add(
+          TextSpan(text: currentText.substring(start, i), style: currentStyle),
+        );
         if (i < currentText.length) {
           currentStyle = style;
           start = i;
@@ -154,12 +153,14 @@ class RichTextEditingController extends TextEditingController {
       apply: (s) {
         final existing = s ?? const TextStyle();
         final currentDec = existing.decoration;
-        if (currentDec == null ||
-            currentDec == TextDecoration.none) {
+        if (currentDec == null || currentDec == TextDecoration.none) {
           return existing.copyWith(decoration: TextDecoration.underline);
         }
         return existing.copyWith(
-          decoration: TextDecoration.combine([currentDec, TextDecoration.underline]),
+          decoration: TextDecoration.combine([
+            currentDec,
+            TextDecoration.underline,
+          ]),
         );
       },
       remove: (s) {
@@ -198,12 +199,14 @@ class RichTextEditingController extends TextEditingController {
       apply: (s) {
         final existing = s ?? const TextStyle();
         final currentDec = existing.decoration;
-        if (currentDec == null ||
-            currentDec == TextDecoration.none) {
+        if (currentDec == null || currentDec == TextDecoration.none) {
           return existing.copyWith(decoration: TextDecoration.lineThrough);
         }
         return existing.copyWith(
-          decoration: TextDecoration.combine([currentDec, TextDecoration.lineThrough]),
+          decoration: TextDecoration.combine([
+            currentDec,
+            TextDecoration.lineThrough,
+          ]),
         );
       },
       remove: (s) {
@@ -275,11 +278,13 @@ class RichTextEditingController extends TextEditingController {
 
   /// Whether all characters in the current selection are underlined.
   bool get isSelectionUnderline => _queryProperty(
-      (s) => s?.decoration?.contains(TextDecoration.underline) ?? false);
+    (s) => s?.decoration?.contains(TextDecoration.underline) ?? false,
+  );
 
   /// Whether all characters in the current selection have strikethrough.
   bool get isSelectionStrikethrough => _queryProperty(
-      (s) => s?.decoration?.contains(TextDecoration.lineThrough) ?? false);
+    (s) => s?.decoration?.contains(TextDecoration.lineThrough) ?? false,
+  );
 
   /// Checks if all characters in the selection satisfy [predicate].
   ///
@@ -293,7 +298,8 @@ class RichTextEditingController extends TextEditingController {
     _syncLength();
 
     if (sel.isCollapsed) {
-      final style = _pendingStyle ??
+      final style =
+          _pendingStyle ??
           (sel.start > 0 && sel.start <= _charStyles.length
               ? _charStyles[sel.start - 1]
               : null);
@@ -309,7 +315,8 @@ class RichTextEditingController extends TextEditingController {
   /// Sets the font family on the current selection.
   void setFontFamily(String family) {
     _applyToSelection(
-        (s) => (s ?? const TextStyle()).copyWith(fontFamily: family));
+      (s) => (s ?? const TextStyle()).copyWith(fontFamily: family),
+    );
   }
 
   @override
@@ -350,10 +357,12 @@ class RichTextEditingController extends TextEditingController {
     for (int i = 1; i <= currentText.length; i++) {
       final charStyle = i < currentText.length ? _charStyles[i] : null;
       if (i == currentText.length || charStyle != currentCharStyle) {
-        children.add(TextSpan(
-          text: currentText.substring(start, i),
-          style: currentCharStyle,
-        ));
+        children.add(
+          TextSpan(
+            text: currentText.substring(start, i),
+            style: currentCharStyle,
+          ),
+        );
         if (i < currentText.length) {
           currentCharStyle = charStyle;
           start = i;
@@ -459,7 +468,8 @@ class RichTextEditingController extends TextEditingController {
     if (sel.isCollapsed) {
       // Toggle on pending style for future typing.
       _syncLength();
-      final current = _pendingStyle ??
+      final current =
+          _pendingStyle ??
           (sel.start > 0 && sel.start <= _charStyles.length
               ? _charStyles[sel.start - 1]
               : null);
@@ -505,7 +515,8 @@ class RichTextEditingController extends TextEditingController {
 
     if (sel.isCollapsed) {
       // Apply to pending style for future typing.
-      final current = _pendingStyle ??
+      final current =
+          _pendingStyle ??
           (sel.start > 0 && sel.start <= _charStyles.length
               ? _charStyles[sel.start - 1]
               : null);

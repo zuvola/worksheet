@@ -53,10 +53,7 @@ void main() {
     });
 
     test('returns null inside double quotes mid-formula', () {
-      expect(
-        FormulaFunctionTokenizer.extractToken('=A1&"SU', 8),
-        isNull,
-      );
+      expect(FormulaFunctionTokenizer.extractToken('=A1&"SU', 8), isNull);
     });
 
     test('returns null when token contains digits', () {
@@ -94,7 +91,10 @@ void main() {
     });
 
     test('extracts token with cursor in middle of formula', () {
-      final token = FormulaFunctionTokenizer.extractToken('=SUM(A1)+AVERAGE(B1)', 16);
+      final token = FormulaFunctionTokenizer.extractToken(
+        '=SUM(A1)+AVERAGE(B1)',
+        16,
+      );
       expect(token, isNotNull);
       expect(token!.text, 'AVERAGE');
     });
@@ -131,8 +131,7 @@ void main() {
     });
 
     test('extracts token after closed string', () {
-      final token =
-          FormulaFunctionTokenizer.extractToken('="hello"+SU', 11);
+      final token = FormulaFunctionTokenizer.extractToken('="hello"+SU', 11);
       expect(token, isNotNull);
       expect(token!.text, 'SU');
     });
@@ -162,9 +161,7 @@ void main() {
   group('FormulaAutocompleteConfig', () {
     test('creates with defaults', () {
       const config = FormulaAutocompleteConfig(
-        functions: [
-          FormulaFunction(name: 'SUM', signature: 'SUM(n1, [n2])'),
-        ],
+        functions: [FormulaFunction(name: 'SUM', signature: 'SUM(n1, [n2])')],
       );
       expect(config.maxVisibleItems, 8);
       expect(config.minChars, 1);

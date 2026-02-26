@@ -110,14 +110,16 @@ class FormulaTokenizer {
         }
       }
 
-      tokens.add(FormulaToken(
-        start: match.start,
-        end: match.end,
-        text: full,
-        cell: startCell,
-        range: range,
-        color: defaultColors[colorIndex % defaultColors.length],
-      ));
+      tokens.add(
+        FormulaToken(
+          start: match.start,
+          end: match.end,
+          text: full,
+          cell: startCell,
+          range: range,
+          color: defaultColors[colorIndex % defaultColors.length],
+        ),
+      );
 
       colorIndex++;
     }

@@ -32,10 +32,10 @@ class SpilloverExtent {
   const SpilloverExtent.noSpill({
     required int column,
     required double cellWidth,
-  })  : startColumn = column,
-        endColumn = column,
-        totalWidth = cellWidth,
-        showHashFill = false;
+  }) : startColumn = column,
+       endColumn = column,
+       totalWidth = cellWidth,
+       showHashFill = false;
 }
 
 /// Pure utility for computing how far a cell's text spills into adjacent

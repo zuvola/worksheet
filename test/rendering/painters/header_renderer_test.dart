@@ -288,10 +288,7 @@ void main() {
         final recorder = PictureRecorder();
         final canvas = Canvas(recorder);
 
-        expect(
-          () => renderer.paintCornerCell(canvas),
-          returnsNormally,
-        );
+        expect(() => renderer.paintCornerCell(canvas), returnsNormally);
 
         recorder.endRecording();
       });

@@ -5,17 +5,20 @@ import 'package:worksheet/src/interaction/hit_testing/hit_test_result.dart';
 void main() {
   group('HitTestType', () {
     test('has all expected values', () {
-      expect(HitTestType.values, containsAll([
-        HitTestType.none,
-        HitTestType.cell,
-        HitTestType.rowHeader,
-        HitTestType.columnHeader,
-        HitTestType.rowResizeHandle,
-        HitTestType.columnResizeHandle,
-        HitTestType.fillHandle,
-        HitTestType.selectionBorder,
-        HitTestType.cornerCell,
-      ]));
+      expect(
+        HitTestType.values,
+        containsAll([
+          HitTestType.none,
+          HitTestType.cell,
+          HitTestType.rowHeader,
+          HitTestType.columnHeader,
+          HitTestType.rowResizeHandle,
+          HitTestType.columnResizeHandle,
+          HitTestType.fillHandle,
+          HitTestType.selectionBorder,
+          HitTestType.cornerCell,
+        ]),
+      );
     });
   });
 
@@ -130,18 +133,16 @@ void main() {
       });
 
       test('toString contains selectionBorder', () {
-        final result =
-            WorksheetHitTestResult.selectionBorder(CellCoordinate(2, 3));
+        final result = WorksheetHitTestResult.selectionBorder(
+          CellCoordinate(2, 3),
+        );
         expect(result.toString(), contains('selectionBorder'));
       });
 
       test('equality works for selection border', () {
-        final a =
-            WorksheetHitTestResult.selectionBorder(CellCoordinate(1, 2));
-        final b =
-            WorksheetHitTestResult.selectionBorder(CellCoordinate(1, 2));
-        final c =
-            WorksheetHitTestResult.selectionBorder(CellCoordinate(1, 3));
+        final a = WorksheetHitTestResult.selectionBorder(CellCoordinate(1, 2));
+        final b = WorksheetHitTestResult.selectionBorder(CellCoordinate(1, 2));
+        final c = WorksheetHitTestResult.selectionBorder(CellCoordinate(1, 3));
 
         expect(a, b);
         expect(a.hashCode, b.hashCode);

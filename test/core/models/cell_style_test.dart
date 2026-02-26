@@ -175,9 +175,7 @@ void main() {
         bottom: BorderStyle(width: 2.0),
       );
 
-      final copy = original.copyWith(
-        top: const BorderStyle(width: 3.0),
-      );
+      final copy = original.copyWith(top: const BorderStyle(width: 3.0));
 
       expect(copy.top.width, 3.0);
       expect(copy.bottom.width, 2.0);
@@ -226,7 +224,10 @@ void main() {
 
     test('defaultStyle has expected values', () {
       expect(CellStyle.defaultStyle.textAlignment, isNull);
-      expect(CellStyle.defaultStyle.verticalAlignment, CellVerticalAlignment.middle);
+      expect(
+        CellStyle.defaultStyle.verticalAlignment,
+        CellVerticalAlignment.middle,
+      );
       expect(CellStyle.defaultStyle.borders, CellBorders.none);
       expect(CellStyle.defaultStyle.wrapText, isFalse);
     });
@@ -253,7 +254,10 @@ void main() {
         expect(merged.backgroundColor, const Color(0xFF00FF00)); // from overlay
         expect(merged.textAlignment, CellTextAlignment.left); // from base
         expect(merged.wrapText, isFalse); // from base
-        expect(merged.verticalAlignment, CellVerticalAlignment.top); // from overlay
+        expect(
+          merged.verticalAlignment,
+          CellVerticalAlignment.top,
+        ); // from overlay
       });
 
       test('preserves base values when other has nulls', () {

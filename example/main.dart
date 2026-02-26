@@ -376,10 +376,7 @@ class _WorksheetExampleState extends State<WorksheetExample> {
     _data.setRichText(const CellCoordinate(0, 16), const [
       TextSpan(
         text: 'PRODUCT CATALOG',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Color(0xFFFFFFFF),
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFFFFFFF)),
       ),
     ]);
 
@@ -475,10 +472,7 @@ class _WorksheetExampleState extends State<WorksheetExample> {
     _data.setRichText(const CellCoordinate(1048575, 0), const [
       TextSpan(
         text: 'LAST ROW (1,048,576)',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Color(0xFFFFFFFF),
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFFFFFFF)),
       ),
     ]);
 
@@ -494,10 +488,7 @@ class _WorksheetExampleState extends State<WorksheetExample> {
     _data.setRichText(const CellCoordinate(0, 1000), const [
       TextSpan(
         text: 'COLUMN 1001 (ALM)',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Color(0xFFFFFFFF),
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFFFFFFF)),
       ),
     ]);
     for (var row = 1; row <= 100; row++) {
@@ -519,10 +510,7 @@ class _WorksheetExampleState extends State<WorksheetExample> {
     _data.setRichText(const CellCoordinate(0, 10000), const [
       TextSpan(
         text: 'COLUMN 10001 (NTQ)',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Color(0xFFFFFFFF),
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFFFFFFF)),
       ),
     ]);
     for (var row = 1; row <= 50; row++) {
@@ -544,10 +532,7 @@ class _WorksheetExampleState extends State<WorksheetExample> {
     _data.setRichText(const CellCoordinate(0, 16383), const [
       TextSpan(
         text: 'LAST COL (XFD)',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Color(0xFFFFFFFF),
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFFFFFFF)),
       ),
     ]);
 
@@ -563,10 +548,7 @@ class _WorksheetExampleState extends State<WorksheetExample> {
     _data.setRichText(const CellCoordinate(1048575, 16383), const [
       TextSpan(
         text: 'XFD1048576',
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Color(0xFFFFFFFF),
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFFFFFFF)),
       ),
     ]);
   }

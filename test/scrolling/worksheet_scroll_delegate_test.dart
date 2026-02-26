@@ -55,8 +55,14 @@ void main() {
 
     test('exposes viewport delegate', () {
       expect(delegate.viewportDelegate, isNotNull);
-      expect(delegate.viewportDelegate.contentWidth, equals(layoutSolver.totalWidth));
-      expect(delegate.viewportDelegate.contentHeight, equals(layoutSolver.totalHeight));
+      expect(
+        delegate.viewportDelegate.contentWidth,
+        equals(layoutSolver.totalWidth),
+      );
+      expect(
+        delegate.viewportDelegate.contentHeight,
+        equals(layoutSolver.totalHeight),
+      );
     });
 
     test('updates viewport size', () {
@@ -278,7 +284,9 @@ void main() {
       delegate.dispose();
     });
 
-    testWidgets('scrollToCell with zoom scrolls to correct position', (tester) async {
+    testWidgets('scrollToCell with zoom scrolls to correct position', (
+      tester,
+    ) async {
       final layoutSolver = LayoutSolver(
         rows: SpanList(count: 100, defaultSize: 24.0),
         columns: SpanList(count: 26, defaultSize: 100.0),
@@ -392,7 +400,9 @@ void main() {
       delegate.dispose();
     });
 
-    testWidgets('ensureCellVisible scrolls when cell is off screen', (tester) async {
+    testWidgets('ensureCellVisible scrolls when cell is off screen', (
+      tester,
+    ) async {
       final layoutSolver = LayoutSolver(
         rows: SpanList(count: 100, defaultSize: 24.0),
         columns: SpanList(count: 26, defaultSize: 100.0),
@@ -447,7 +457,9 @@ void main() {
       delegate.dispose();
     });
 
-    testWidgets('ensureCellVisible does not scroll when cell is visible', (tester) async {
+    testWidgets('ensureCellVisible does not scroll when cell is visible', (
+      tester,
+    ) async {
       final layoutSolver = LayoutSolver(
         rows: SpanList(count: 100, defaultSize: 24.0),
         columns: SpanList(count: 26, defaultSize: 100.0),
@@ -559,7 +571,9 @@ void main() {
       delegate.dispose();
     });
 
-    testWidgets('applyAnchor scrolls to maintain position after zoom', (tester) async {
+    testWidgets('applyAnchor scrolls to maintain position after zoom', (
+      tester,
+    ) async {
       final layoutSolver = LayoutSolver(
         rows: SpanList(count: 100, defaultSize: 24.0),
         columns: SpanList(count: 26, defaultSize: 100.0),

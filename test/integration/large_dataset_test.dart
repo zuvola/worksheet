@@ -40,7 +40,10 @@ void main() {
 
       // Verify data integrity
       expect(data.getCell(const CellCoordinate(0, 0))?.rawValue, 0.0);
-      expect(data.getCell(const CellCoordinate(998, 998)), isNull); // Not on 3-grid (998 % 3 = 2)
+      expect(
+        data.getCell(const CellCoordinate(998, 998)),
+        isNull,
+      ); // Not on 3-grid (998 % 3 = 2)
       expect(data.getCell(const CellCoordinate(999, 996))?.rawValue, 999996.0);
     });
 
@@ -74,18 +77,15 @@ void main() {
 
     test('visible range calculation scales with worksheet size', () {
       // Test with increasingly large worksheets
-      final sizes = [
-        (1000, 100),
-        (10000, 100),
-        (100000, 100),
-        (100000, 1000),
-      ];
+      final sizes = [(1000, 100), (10000, 100), (100000, 100), (100000, 1000)];
 
       for (final (rowCount, colCount) in sizes) {
         final rows = SpanList(defaultSize: 24.0, count: rowCount);
         final columns = SpanList(defaultSize: 80.0, count: colCount);
         final layoutSolver = LayoutSolver(rows: rows, columns: columns);
-        final rangeCalculator = VisibleRangeCalculator(layoutSolver: layoutSolver);
+        final rangeCalculator = VisibleRangeCalculator(
+          layoutSolver: layoutSolver,
+        );
 
         final stopwatch = Stopwatch()..start();
         for (int i = 0; i < 1000; i++) {
@@ -97,7 +97,9 @@ void main() {
 
         final avgMs = stopwatch.elapsedMilliseconds / 1000;
         // ignore: avoid_print
-        print('${rowCount}x$colCount: ${avgMs.toStringAsFixed(3)}ms avg per calculation');
+        print(
+          '${rowCount}x$colCount: ${avgMs.toStringAsFixed(3)}ms avg per calculation',
+        );
 
         // Visible range calculation should be O(log n) or better
         expect(avgMs, lessThan(1.0));

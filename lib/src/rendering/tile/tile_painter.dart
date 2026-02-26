@@ -147,7 +147,12 @@ class TilePainter implements TileRenderer {
     List<TextPainter> textPainters,
   ) {
     final shouldRenderText = _shouldRenderText(zoomBucket);
-    final tileLocalRect = ui.Rect.fromLTWH(0, 0, tileBounds.width, tileBounds.height);
+    final tileLocalRect = ui.Rect.fromLTWH(
+      0,
+      0,
+      tileBounds.width,
+      tileBounds.height,
+    );
 
     // Clamp cell range to valid bounds
     final maxRow = layoutSolver.rowCount - 1;
@@ -228,15 +233,29 @@ class TilePainter implements TileRenderer {
               canvas.save();
               canvas.clipRect(tileLocalRect);
               _renderCellContent(
-                  canvas, localBounds, value, style, zoomBucket, format,
-                  textPainters, tileLocalRect: tileLocalRect,
-                  coord: renderCoord);
+                canvas,
+                localBounds,
+                value,
+                style,
+                zoomBucket,
+                format,
+                textPainters,
+                tileLocalRect: tileLocalRect,
+                coord: renderCoord,
+              );
               canvas.restore();
             } else {
               _renderCellContent(
-                  canvas, localBounds, value, style, zoomBucket, format,
-                  textPainters, tileLocalRect: tileLocalRect,
-                  coord: renderCoord);
+                canvas,
+                localBounds,
+                value,
+                style,
+                zoomBucket,
+                format,
+                textPainters,
+                tileLocalRect: tileLocalRect,
+                coord: renderCoord,
+              );
             }
           }
         }
@@ -337,16 +356,20 @@ class TilePainter implements TileRenderer {
         text: textSpan,
         textDirection: TextDirection.ltr,
         textAlign: _toTextAlign(
-            mergedStyle.textAlignment ??
-                CellStyle.implicitAlignment(value.type)),
+          mergedStyle.textAlignment ?? CellStyle.implicitAlignment(value.type),
+        ),
         maxLines: 1,
       )..layout();
       final textWidth = unconstrained.width;
 
       if (textWidth <= availableWidth || availableWidth <= 0) {
         // Text fits — paint normally clipped to cell bounds.
-        final offset =
-            _calculateTextOffset(bounds, unconstrained, mergedStyle, value);
+        final offset = _calculateTextOffset(
+          bounds,
+          unconstrained,
+          mergedStyle,
+          value,
+        );
         canvas.save();
         canvas.clipRect(bounds);
         unconstrained.paint(canvas, offset);
@@ -356,8 +379,8 @@ class TilePainter implements TileRenderer {
       }
 
       // Text overflows — compute spillover.
-      final alignment = mergedStyle.textAlignment ??
-          CellStyle.implicitAlignment(value.type);
+      final alignment =
+          mergedStyle.textAlignment ?? CellStyle.implicitAlignment(value.type);
       final maxCol = layoutSolver.columnCount - 1;
 
       final extent = SpilloverCalculator.compute(
@@ -383,8 +406,12 @@ class TilePainter implements TileRenderer {
           textDirection: TextDirection.ltr,
           maxLines: 1,
         )..layout(maxWidth: availableWidth > 0 ? availableWidth : 0.0);
-        final offset =
-            _calculateTextOffset(bounds, hashPainter, mergedStyle, value);
+        final offset = _calculateTextOffset(
+          bounds,
+          hashPainter,
+          mergedStyle,
+          value,
+        );
         canvas.save();
         canvas.clipRect(bounds);
         hashPainter.paint(canvas, offset);
@@ -396,7 +423,8 @@ class TilePainter implements TileRenderer {
       if (extent.hasSpillover) {
         // Compute spill bounds in tile-local coordinates.
         final spillLeft =
-            layoutSolver.getColumnLeft(extent.startColumn) - _tileBoundsLeft(bounds, coord);
+            layoutSolver.getColumnLeft(extent.startColumn) -
+            _tileBoundsLeft(bounds, coord);
         final spillBounds = ui.Rect.fromLTWH(
           spillLeft,
           bounds.top,
@@ -412,17 +440,22 @@ class TilePainter implements TileRenderer {
         // Re-layout unconstrained text within the full spill width for
         // correct TextAlign positioning.
         unconstrained.dispose();
-        final spillPainter = TextPainter(
-          text: textSpan,
-          textDirection: TextDirection.ltr,
-          textAlign: _toTextAlign(alignment),
-          maxLines: 1,
-        )..layout(
-            minWidth: extent.totalWidth - 2 * cellPadding,
-            maxWidth: extent.totalWidth - 2 * cellPadding,
-          );
-        final offset =
-            _calculateTextOffset(spillBounds, spillPainter, mergedStyle, value);
+        final spillPainter =
+            TextPainter(
+              text: textSpan,
+              textDirection: TextDirection.ltr,
+              textAlign: _toTextAlign(alignment),
+              maxLines: 1,
+            )..layout(
+              minWidth: extent.totalWidth - 2 * cellPadding,
+              maxWidth: extent.totalWidth - 2 * cellPadding,
+            );
+        final offset = _calculateTextOffset(
+          spillBounds,
+          spillPainter,
+          mergedStyle,
+          value,
+        );
         canvas.save();
         canvas.clipRect(clipRect);
         spillPainter.paint(canvas, offset);
@@ -440,7 +473,8 @@ class TilePainter implements TileRenderer {
       text: textSpan,
       textDirection: TextDirection.ltr,
       textAlign: _toTextAlign(
-          mergedStyle.textAlignment ?? CellStyle.implicitAlignment(value.type)),
+        mergedStyle.textAlignment ?? CellStyle.implicitAlignment(value.type),
+      ),
       maxLines: wrapText ? null : 1,
       ellipsis: wrapText ? null : '\u2026',
     );
@@ -451,7 +485,12 @@ class TilePainter implements TileRenderer {
       maxWidth: layoutWidth,
     );
 
-    final offset = _calculateTextOffset(bounds, textPainter, mergedStyle, value);
+    final offset = _calculateTextOffset(
+      bounds,
+      textPainter,
+      mergedStyle,
+      value,
+    );
 
     canvas.save();
     canvas.clipRect(bounds);
@@ -550,7 +589,9 @@ class TilePainter implements TileRenderer {
       if (col == 0) continue;
       // +0.5 centers the 1px stroke on a pixel boundary so it covers exactly
       // one pixel row instead of straddling two (which Impeller renders as gray).
-      final x = (layoutSolver.getColumnLeft(col) - tileBounds.left).roundToDouble() + 0.5;
+      final x =
+          (layoutSolver.getColumnLeft(col) - tileBounds.left).roundToDouble() +
+          0.5;
       if (x < 0 || x > tileBounds.width) continue;
 
       // Find merge regions whose interior crosses this vertical line
@@ -570,8 +611,12 @@ class TilePainter implements TileRenderer {
         gaps.sort((a, b) => a.range.startRow.compareTo(b.range.startRow));
         var currentY = 0.0;
         for (final gap in gaps) {
-          final gapTop = (layoutSolver.getRowTop(gap.range.startRow) - tileBounds.top).roundToDouble();
-          final gapBottom = (layoutSolver.getRowTop(gap.range.endRow + 1) - tileBounds.top).roundToDouble();
+          final gapTop =
+              (layoutSolver.getRowTop(gap.range.startRow) - tileBounds.top)
+                  .roundToDouble();
+          final gapBottom =
+              (layoutSolver.getRowTop(gap.range.endRow + 1) - tileBounds.top)
+                  .roundToDouble();
           if (gapTop > currentY) {
             path.moveTo(x, currentY);
             path.lineTo(x, gapTop);
@@ -590,7 +635,8 @@ class TilePainter implements TileRenderer {
     // Skip row 0: its top edge is the worksheet's outer boundary, not a cell separator
     for (var row = startRow; row <= endRow; row++) {
       if (row == 0) continue;
-      final y = (layoutSolver.getRowTop(row) - tileBounds.top).roundToDouble() + 0.5;
+      final y =
+          (layoutSolver.getRowTop(row) - tileBounds.top).roundToDouble() + 0.5;
       if (y < 0 || y > tileBounds.height) continue;
 
       // Find merge regions whose interior crosses this horizontal line.
@@ -609,8 +655,14 @@ class TilePainter implements TileRenderer {
         gaps.sort((a, b) => a.range.startColumn.compareTo(b.range.startColumn));
         var currentX = 0.0;
         for (final gap in gaps) {
-          final gapLeft = (layoutSolver.getColumnLeft(gap.range.startColumn) - tileBounds.left).roundToDouble();
-          final gapRight = (layoutSolver.getColumnLeft(gap.range.endColumn + 1) - tileBounds.left).roundToDouble();
+          final gapLeft =
+              (layoutSolver.getColumnLeft(gap.range.startColumn) -
+                      tileBounds.left)
+                  .roundToDouble();
+          final gapRight =
+              (layoutSolver.getColumnLeft(gap.range.endColumn + 1) -
+                      tileBounds.left)
+                  .roundToDouble();
           if (gapLeft > currentX) {
             path.moveTo(currentX, y);
             path.lineTo(gapLeft, y);

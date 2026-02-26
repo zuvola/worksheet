@@ -54,8 +54,9 @@ class AutocompleteDropdown extends StatelessWidget {
   Widget build(BuildContext context) {
     if (matches.isEmpty) return const SizedBox.shrink();
 
-    final visibleCount =
-        matches.length < maxVisibleItems ? matches.length : maxVisibleItems;
+    final visibleCount = matches.length < maxVisibleItems
+        ? matches.length
+        : maxVisibleItems;
     final height = visibleCount * itemHeight;
 
     return Container(

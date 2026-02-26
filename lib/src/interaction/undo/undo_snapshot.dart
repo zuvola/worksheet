@@ -59,8 +59,10 @@ class UndoSnapshot {
     }
 
     // Collect merge regions
-    final merges =
-        data.mergedCells.regionsInRange(range).map((r) => r.range).toList();
+    final merges = data.mergedCells
+        .regionsInRange(range)
+        .map((r) => r.range)
+        .toList();
 
     return (cells, merges);
   }

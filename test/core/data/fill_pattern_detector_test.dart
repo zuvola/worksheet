@@ -10,9 +10,7 @@ void main() {
   group('FillPatternDetector', () {
     group('constant pattern', () {
       test('detects single cell as constant', () {
-        final pattern = FillPatternDetector.detect([
-          Cell.number(42),
-        ]);
+        final pattern = FillPatternDetector.detect([Cell.number(42)]);
 
         expect(pattern.type, FillPatternType.constant);
         expect(pattern.generate(0)?.value, CellValue.number(42));

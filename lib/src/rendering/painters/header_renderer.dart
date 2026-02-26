@@ -99,16 +99,16 @@ class HeaderStyle {
 
   @override
   int get hashCode => Object.hash(
-        backgroundColor,
-        selectedBackgroundColor,
-        textColor,
-        selectedTextColor,
-        borderColor,
-        borderWidth,
-        fontSize,
-        fontWeight,
-        fontFamily,
-      );
+    backgroundColor,
+    selectedBackgroundColor,
+    textColor,
+    selectedTextColor,
+    borderColor,
+    borderWidth,
+    fontSize,
+    fontWeight,
+    fontFamily,
+  );
 }
 
 /// Renders row and column headers for worksheets.
@@ -200,14 +200,20 @@ class HeaderRenderer {
     // the adjacent header's border line.
 
     // Pass 1: backgrounds and text
-    for (var col = visibleColumns.startIndex; col <= visibleColumns.endIndex; col++) {
+    for (
+      var col = visibleColumns.startIndex;
+      col <= visibleColumns.endIndex;
+      col++
+    ) {
       final left = layoutSolver.getColumnLeft(col);
       final width = layoutSolver.getColumnWidth(col);
 
-      final screenLeft = (left - viewportOffset.dx) * zoom + scaledRowHeaderWidth;
+      final screenLeft =
+          (left - viewportOffset.dx) * zoom + scaledRowHeaderWidth;
       final screenWidth = width * zoom;
 
-      final isSelected = selectedStartCol != null &&
+      final isSelected =
+          selectedStartCol != null &&
           selectedEndCol != null &&
           col >= selectedStartCol &&
           col <= selectedEndCol;
@@ -234,12 +240,18 @@ class HeaderRenderer {
     }
 
     // Pass 2: borders (drawn last so they're never obscured)
-    for (var col = visibleColumns.startIndex; col <= visibleColumns.endIndex; col++) {
+    for (
+      var col = visibleColumns.startIndex;
+      col <= visibleColumns.endIndex;
+      col++
+    ) {
       final colLeft = layoutSolver.getColumnLeft(col + 1);
       final tileSize = 256.0; // TileConfig default
       final tileBoundsLeft = (colLeft ~/ tileSize) * tileSize;
       final tileLocalX = (colLeft - tileBoundsLeft).roundToDouble() + 0.5;
-      final borderX = (tileBoundsLeft - viewportOffset.dx + tileLocalX) * zoom + scaledRowHeaderWidth;
+      final borderX =
+          (tileBoundsLeft - viewportOffset.dx + tileLocalX) * zoom +
+          scaledRowHeaderWidth;
       canvas.drawLine(
         Offset(borderX, 0),
         Offset(borderX, scaledColumnHeaderHeight),
@@ -291,10 +303,12 @@ class HeaderRenderer {
       final top = layoutSolver.getRowTop(row);
       final height = layoutSolver.getRowHeight(row);
 
-      final screenTop = (top - viewportOffset.dy) * zoom + scaledColumnHeaderHeight;
+      final screenTop =
+          (top - viewportOffset.dy) * zoom + scaledColumnHeaderHeight;
       final screenHeight = height * zoom;
 
-      final isSelected = selectedStartRow != null &&
+      final isSelected =
+          selectedStartRow != null &&
           selectedEndRow != null &&
           row >= selectedStartRow &&
           row <= selectedEndRow;
@@ -326,7 +340,9 @@ class HeaderRenderer {
       final tileSize = 256.0; // TileConfig default
       final tileBoundsTop = (rowTop ~/ tileSize) * tileSize;
       final tileLocalY = (rowTop - tileBoundsTop).roundToDouble() + 0.5;
-      final borderY = (tileBoundsTop - viewportOffset.dy + tileLocalY) * zoom + scaledColumnHeaderHeight;
+      final borderY =
+          (tileBoundsTop - viewportOffset.dy + tileLocalY) * zoom +
+          scaledColumnHeaderHeight;
       canvas.drawLine(
         Offset(0, borderY),
         Offset(scaledRowHeaderWidth, borderY),
@@ -341,7 +357,12 @@ class HeaderRenderer {
     final scaledRowHeaderWidth = rowHeaderWidth * zoom;
     final scaledColumnHeaderHeight = columnHeaderHeight * zoom;
 
-    final rect = Rect.fromLTWH(0, 0, scaledRowHeaderWidth, scaledColumnHeaderHeight);
+    final rect = Rect.fromLTWH(
+      0,
+      0,
+      scaledRowHeaderWidth,
+      scaledColumnHeaderHeight,
+    );
     canvas.drawRect(rect, _backgroundPaint);
   }
 
@@ -386,7 +407,9 @@ class HeaderRenderer {
     // During elastic overscroll past the start, draw the worksheet outer
     // boundary line across the full viewport (headers + content).
     if (scrollOffset.dy < 0) {
-      final shiftedY = (scaledColumnHeaderHeight - scrollOffset.dy * zoom).roundToDouble() + 0.5;
+      final shiftedY =
+          (scaledColumnHeaderHeight - scrollOffset.dy * zoom).roundToDouble() +
+          0.5;
       canvas.drawLine(
         Offset(0, shiftedY),
         Offset(viewportSize.width, shiftedY),
@@ -395,7 +418,8 @@ class HeaderRenderer {
     }
 
     if (scrollOffset.dx < 0) {
-      final shiftedX = (scaledRowHeaderWidth - scrollOffset.dx * zoom).roundToDouble() + 0.5;
+      final shiftedX =
+          (scaledRowHeaderWidth - scrollOffset.dx * zoom).roundToDouble() + 0.5;
       canvas.drawLine(
         Offset(shiftedX, 0),
         Offset(shiftedX, viewportSize.height),

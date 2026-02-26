@@ -25,9 +25,7 @@ class _BorderDemoState extends State<BorderDemo> {
         // Title row — will be merged across A1:D1
         (0, 0): Cell.text(
           'Border & Merge Demo',
-          style: const CellStyle(
-            textAlignment: CellTextAlignment.center,
-          ),
+          style: const CellStyle(textAlignment: CellTextAlignment.center),
           richText: const [
             TextSpan(
               text: 'Border & Merge Demo',
@@ -36,32 +34,71 @@ class _BorderDemoState extends State<BorderDemo> {
           ],
         ),
         // Headers
-        (2, 0): Cell.text('Region', style: _headerStyle, richText: const [
-          TextSpan(
-              text: 'Region', style: TextStyle(fontWeight: FontWeight.bold)),
-        ]),
-        (2, 1): Cell.text('Q1', style: _headerStyle, richText: const [
-          TextSpan(text: 'Q1', style: TextStyle(fontWeight: FontWeight.bold)),
-        ]),
-        (2, 2): Cell.text('Q2', style: _headerStyle, richText: const [
-          TextSpan(text: 'Q2', style: TextStyle(fontWeight: FontWeight.bold)),
-        ]),
-        (2, 3): Cell.text('Q3', style: _headerStyle, richText: const [
-          TextSpan(text: 'Q3', style: TextStyle(fontWeight: FontWeight.bold)),
-        ]),
+        (2, 0): Cell.text(
+          'Region',
+          style: _headerStyle,
+          richText: const [
+            TextSpan(
+              text: 'Region',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        (2, 1): Cell.text(
+          'Q1',
+          style: _headerStyle,
+          richText: const [
+            TextSpan(
+              text: 'Q1',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        (2, 2): Cell.text(
+          'Q2',
+          style: _headerStyle,
+          richText: const [
+            TextSpan(
+              text: 'Q2',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        (2, 3): Cell.text(
+          'Q3',
+          style: _headerStyle,
+          richText: const [
+            TextSpan(
+              text: 'Q3',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
         // Data — regions will be merged vertically
-        (3, 0): Cell.text('North', richText: const [
-          TextSpan(text: 'North', style: TextStyle(fontWeight: FontWeight.bold)),
-        ]),
+        (3, 0): Cell.text(
+          'North',
+          richText: const [
+            TextSpan(
+              text: 'North',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
         (3, 1): 12500.cell,
         (3, 2): 14200.cell,
         (3, 3): 13800.cell,
         (4, 1): 11800.cell,
         (4, 2): 13500.cell,
         (4, 3): 12900.cell,
-        (5, 0): Cell.text('South', richText: const [
-          TextSpan(text: 'South', style: TextStyle(fontWeight: FontWeight.bold)),
-        ]),
+        (5, 0): Cell.text(
+          'South',
+          richText: const [
+            TextSpan(
+              text: 'South',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
         (5, 1): 9800.cell,
         (5, 2): 10500.cell,
         (5, 3): 11200.cell,
@@ -140,8 +177,9 @@ class _BorderDemoState extends State<BorderDemo> {
           }
 
           final current = _data.getStyle(coord);
-          final merged =
-              current != null ? current.merge(styleToApply) : styleToApply;
+          final merged = current != null
+              ? current.merge(styleToApply)
+              : styleToApply;
           batch.setStyle(coord, merged);
         }
       }
@@ -150,8 +188,7 @@ class _BorderDemoState extends State<BorderDemo> {
   }
 
   void _allBorders() {
-    _applyStyle(
-        const CellStyle(borders: CellBorders.all(BorderStyle())));
+    _applyStyle(const CellStyle(borders: CellBorders.all(BorderStyle())));
   }
 
   void _outerBorder() {
@@ -169,10 +206,12 @@ class _BorderDemoState extends State<BorderDemo> {
 
           // For merged anchors, use the merge region's extent to determine
           // which edges touch the selection perimeter.
-          final int effectiveEndRow =
-              region != null ? region.range.endRow : row;
-          final int effectiveEndCol =
-              region != null ? region.range.endColumn : col;
+          final int effectiveEndRow = region != null
+              ? region.range.endRow
+              : row;
+          final int effectiveEndCol = region != null
+              ? region.range.endColumn
+              : col;
 
           final top = row == range.startRow
               ? const BorderStyle()
@@ -188,7 +227,11 @@ class _BorderDemoState extends State<BorderDemo> {
               : BorderStyle.none;
 
           final borders = CellBorders(
-              top: top, right: right, bottom: bottom, left: left);
+            top: top,
+            right: right,
+            bottom: bottom,
+            left: left,
+          );
           final style = CellStyle(borders: borders);
           final current = _data.getStyle(coord);
           final merged = current != null ? current.merge(style) : style;
@@ -200,9 +243,9 @@ class _BorderDemoState extends State<BorderDemo> {
   }
 
   void _thickBorders() {
-    _applyStyle(const CellStyle(
-      borders: CellBorders.all(BorderStyle(width: 2.0)),
-    ));
+    _applyStyle(
+      const CellStyle(borders: CellBorders.all(BorderStyle(width: 2.0))),
+    );
   }
 
   void _noBorder() {
@@ -210,17 +253,23 @@ class _BorderDemoState extends State<BorderDemo> {
   }
 
   void _dashedBorders() {
-    _applyStyle(const CellStyle(
-      borders:
-          CellBorders.all(BorderStyle(lineStyle: BorderLineStyle.dashed)),
-    ));
+    _applyStyle(
+      const CellStyle(
+        borders: CellBorders.all(
+          BorderStyle(lineStyle: BorderLineStyle.dashed),
+        ),
+      ),
+    );
   }
 
   void _doubleBorders() {
-    _applyStyle(const CellStyle(
-      borders: CellBorders.all(
-          BorderStyle(lineStyle: BorderLineStyle.double)),
-    ));
+    _applyStyle(
+      const CellStyle(
+        borders: CellBorders.all(
+          BorderStyle(lineStyle: BorderLineStyle.double),
+        ),
+      ),
+    );
   }
 
   // -- Merge / Clear helpers --
@@ -234,9 +283,7 @@ class _BorderDemoState extends State<BorderDemo> {
     _data.batchUpdate((batch) {
       for (final coord in range.cells) {
         final style = _data.getStyle(coord);
-        if (style != null &&
-            style.borders != null &&
-            !style.borders!.isNone) {
+        if (style != null && style.borders != null && !style.borders!.isNone) {
           batch.setStyle(
             coord,
             CellStyle(
@@ -368,14 +415,13 @@ class _BorderDemoState extends State<BorderDemo> {
               child: Text(
                 range != null
                     ? 'Selection: ${range.topLeft.toNotation()}'
-                        ':${range.bottomRight.toNotation()}'
-                        '  (${range.rowCount}x${range.columnCount})'
-                        '${mergeCount > 0 ? '  — $mergeCount merge(s) in selection' : ''}'
+                          ':${range.bottomRight.toNotation()}'
+                          '  (${range.rowCount}x${range.columnCount})'
+                          '${mergeCount > 0 ? '  — $mergeCount merge(s) in selection' : ''}'
                     : 'Click a cell to select, drag to select a range',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: Colors.white70),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.white70),
               ),
             ),
           ),

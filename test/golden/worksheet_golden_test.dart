@@ -48,22 +48,27 @@ void main() {
       for (var q = 0; q < 4; q++) {
         final value = (row + 1) * 1000 + (q + 1) * 100 + row * 50;
         data.setCell(
-            CellCoordinate(row + 1, q + 1), CellValue.number(value.toDouble()));
+          CellCoordinate(row + 1, q + 1),
+          CellValue.number(value.toDouble()),
+        );
       }
 
       // Total formula display
       final total = (row + 1) * 1000 * 4 + 1000 + row * 200;
-      data.setCell(CellCoordinate(row + 1, 5), CellValue.number(total.toDouble()));
-      data.setRichText(
+      data.setCell(
         CellCoordinate(row + 1, 5),
-        [TextSpan(text: total.toDouble().toString(), style: const TextStyle(fontWeight: FontWeight.bold))],
+        CellValue.number(total.toDouble()),
       );
+      data.setRichText(CellCoordinate(row + 1, 5), [
+        TextSpan(
+          text: total.toDouble().toString(),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ]);
     }
 
     // Build widget
-    await tester.pumpWidget(
-      goldenWorksheetApp(data: data),
-    );
+    await tester.pumpWidget(goldenWorksheetApp(data: data));
 
     await tester.pumpAndSettle();
 

@@ -21,10 +21,7 @@ void main() {
     int outerSign = -1,
   }) async {
     final recorder = ui.PictureRecorder();
-    final canvas = Canvas(
-      recorder,
-      const Rect.fromLTWH(0, 0, 64, 64),
-    );
+    final canvas = Canvas(recorder, const Rect.fromLTWH(0, 0, 64, 64));
 
     // White background
     canvas.drawRect(
@@ -52,8 +49,7 @@ void main() {
 
     final picture = recorder.endRecording();
     final image = await picture.toImage(64, 64);
-    final byteData =
-        await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
     picture.dispose();
     image.dispose();
     return byteData!;
@@ -194,14 +190,23 @@ void main() {
         );
 
         // Pixel at y=32 (stroke centered on 32.5) should be non-white
-        expect(isNonWhite(pixelAt(pixels, 30, 32)), isTrue,
-            reason: 'Solid line at y=32.5 draws pixels at y=32');
+        expect(
+          isNonWhite(pixelAt(pixels, 30, 32)),
+          isTrue,
+          reason: 'Solid line at y=32.5 draws pixels at y=32',
+        );
 
         // Pixel well above and below should be white
-        expect(isWhite(pixelAt(pixels, 30, 28)), isTrue,
-            reason: 'No pixels far above the line');
-        expect(isWhite(pixelAt(pixels, 30, 36)), isTrue,
-            reason: 'No pixels far below the line');
+        expect(
+          isWhite(pixelAt(pixels, 30, 28)),
+          isTrue,
+          reason: 'No pixels far above the line',
+        );
+        expect(
+          isWhite(pixelAt(pixels, 30, 36)),
+          isTrue,
+          reason: 'No pixels far below the line',
+        );
       });
 
       test('vertical solid line has pixels at expected X', () async {
@@ -211,12 +216,21 @@ void main() {
           lineStyle: BorderLineStyle.solid,
         );
 
-        expect(isNonWhite(pixelAt(pixels, 32, 30)), isTrue,
-            reason: 'Solid line at x=32.5 draws pixels at x=32');
-        expect(isWhite(pixelAt(pixels, 28, 30)), isTrue,
-            reason: 'No pixels far left of the line');
-        expect(isWhite(pixelAt(pixels, 36, 30)), isTrue,
-            reason: 'No pixels far right of the line');
+        expect(
+          isNonWhite(pixelAt(pixels, 32, 30)),
+          isTrue,
+          reason: 'Solid line at x=32.5 draws pixels at x=32',
+        );
+        expect(
+          isWhite(pixelAt(pixels, 28, 30)),
+          isTrue,
+          reason: 'No pixels far left of the line',
+        );
+        expect(
+          isWhite(pixelAt(pixels, 36, 30)),
+          isTrue,
+          reason: 'No pixels far right of the line',
+        );
       });
     });
 
@@ -235,10 +249,16 @@ void main() {
         final outerPixel = pixelAt(pixels, 30, 31);
         final innerPixel = pixelAt(pixels, 30, 33);
 
-        expect(isNonWhite(outerPixel), isTrue,
-            reason: 'Outer sub-line of double border should exist');
-        expect(isNonWhite(innerPixel), isTrue,
-            reason: 'Inner sub-line of double border should exist');
+        expect(
+          isNonWhite(outerPixel),
+          isTrue,
+          reason: 'Outer sub-line of double border should exist',
+        );
+        expect(
+          isNonWhite(innerPixel),
+          isTrue,
+          reason: 'Inner sub-line of double border should exist',
+        );
       });
     });
 
@@ -263,10 +283,16 @@ void main() {
             gapCount++;
           }
         }
-        expect(drawnCount, greaterThan(20),
-            reason: 'Dashed line should have drawn segments');
-        expect(gapCount, greaterThan(5),
-            reason: 'Dashed line should have gaps between segments');
+        expect(
+          drawnCount,
+          greaterThan(20),
+          reason: 'Dashed line should have drawn segments',
+        );
+        expect(
+          gapCount,
+          greaterThan(5),
+          reason: 'Dashed line should have gaps between segments',
+        );
       });
 
       test('dotted line has shorter segments than dashed', () async {
@@ -286,10 +312,16 @@ void main() {
             gapCount++;
           }
         }
-        expect(drawnCount, greaterThan(10),
-            reason: 'Dotted line should have drawn dots');
-        expect(gapCount, greaterThan(10),
-            reason: 'Dotted line should have more gaps than dashed');
+        expect(
+          drawnCount,
+          greaterThan(10),
+          reason: 'Dotted line should have drawn dots',
+        );
+        expect(
+          gapCount,
+          greaterThan(10),
+          reason: 'Dotted line should have more gaps than dashed',
+        );
       });
     });
 
@@ -303,18 +335,33 @@ void main() {
         );
 
         // 3px stroke centered on y=32.5 → covers y=31, 32, 33
-        expect(isNonWhite(pixelAt(pixels, 30, 31)), isTrue,
-            reason: 'Top row of 3px line');
-        expect(isNonWhite(pixelAt(pixels, 30, 32)), isTrue,
-            reason: 'Center row of 3px line');
-        expect(isNonWhite(pixelAt(pixels, 30, 33)), isTrue,
-            reason: 'Bottom row of 3px line');
+        expect(
+          isNonWhite(pixelAt(pixels, 30, 31)),
+          isTrue,
+          reason: 'Top row of 3px line',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, 30, 32)),
+          isTrue,
+          reason: 'Center row of 3px line',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, 30, 33)),
+          isTrue,
+          reason: 'Bottom row of 3px line',
+        );
 
         // Rows above and below should be white
-        expect(isWhite(pixelAt(pixels, 30, 29)), isTrue,
-            reason: 'No pixels above 3px line');
-        expect(isWhite(pixelAt(pixels, 30, 35)), isTrue,
-            reason: 'No pixels below 3px line');
+        expect(
+          isWhite(pixelAt(pixels, 30, 29)),
+          isTrue,
+          reason: 'No pixels above 3px line',
+        );
+        expect(
+          isWhite(pixelAt(pixels, 30, 35)),
+          isTrue,
+          reason: 'No pixels below 3px line',
+        );
       });
 
       test('none style produces no pixels', () async {
@@ -326,8 +373,11 @@ void main() {
 
         // All pixels along the line should be white
         for (var x = 10; x < 55; x++) {
-          expect(isWhite(pixelAt(pixels, x, 32)), isTrue,
-              reason: 'none style should produce no pixels at x=$x');
+          expect(
+            isWhite(pixelAt(pixels, x, 32)),
+            isTrue,
+            reason: 'none style should produce no pixels at x=$x',
+          );
         }
       });
     });
@@ -347,10 +397,7 @@ void main() {
         BorderStyle? endJunctionPerpB,
       }) async {
         final recorder = ui.PictureRecorder();
-        final canvas = Canvas(
-          recorder,
-          const Rect.fromLTWH(0, 0, 64, 64),
-        );
+        final canvas = Canvas(recorder, const Rect.fromLTWH(0, 0, 64, 64));
         canvas.drawRect(
           const Rect.fromLTWH(0, 0, 64, 64),
           Paint()..color = const Color(0xFFFFFFFF),
@@ -378,51 +425,60 @@ void main() {
 
         final picture = recorder.endRecording();
         final image = await picture.toImage(64, 64);
-        final byteData =
-            await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+        final byteData = await image.toByteData(
+          format: ui.ImageByteFormat.rawRgba,
+        );
         picture.dispose();
         image.dispose();
         return byteData!;
       }
 
-      test('thick perpendicular at start suppresses extension for thin edge',
-          () async {
-        // Horizontal solid W=1 line from x=20 to x=44 at y=32.5
-        // With a thick (width=5) perpendicular border at start.
-        // Since the perp (W=5) is strictly wider than this edge (W=1),
-        // the extension is suppressed — the thick perp's stroke already
-        // covers the junction area.
-        final withJunction = await renderEdgeWithJunction(
-          start: const Offset(20, 32.5),
-          end: const Offset(44, 32.5),
-          lineStyle: BorderLineStyle.solid,
-          startJunctionPerpA: const BorderStyle(width: 5.0),
-        );
+      test(
+        'thick perpendicular at start suppresses extension for thin edge',
+        () async {
+          // Horizontal solid W=1 line from x=20 to x=44 at y=32.5
+          // With a thick (width=5) perpendicular border at start.
+          // Since the perp (W=5) is strictly wider than this edge (W=1),
+          // the extension is suppressed — the thick perp's stroke already
+          // covers the junction area.
+          final withJunction = await renderEdgeWithJunction(
+            start: const Offset(20, 32.5),
+            end: const Offset(44, 32.5),
+            lineStyle: BorderLineStyle.solid,
+            startJunctionPerpA: const BorderStyle(width: 5.0),
+          );
 
-        // Without junction: line starts at x=20
-        final withoutJunction = await renderEdgeWithJunction(
-          start: const Offset(20, 32.5),
-          end: const Offset(44, 32.5),
-          lineStyle: BorderLineStyle.solid,
-        );
+          // Without junction: line starts at x=20
+          final withoutJunction = await renderEdgeWithJunction(
+            start: const Offset(20, 32.5),
+            end: const Offset(44, 32.5),
+            lineStyle: BorderLineStyle.solid,
+          );
 
-        // With the width-priority rule, W=5 > W=1, so extension is suppressed.
-        // Both should have the same pixel coverage left of start.
-        var junctionLeftCount = 0;
-        var noJunctionLeftCount = 0;
-        for (var x = 15; x < 20; x++) {
-          if (isNonWhite(pixelAt(withJunction, x, 32))) junctionLeftCount++;
-          if (isNonWhite(pixelAt(withoutJunction, x, 32))) {
-            noJunctionLeftCount++;
+          // With the width-priority rule, W=5 > W=1, so extension is suppressed.
+          // Both should have the same pixel coverage left of start.
+          var junctionLeftCount = 0;
+          var noJunctionLeftCount = 0;
+          for (var x = 15; x < 20; x++) {
+            if (isNonWhite(pixelAt(withJunction, x, 32))) junctionLeftCount++;
+            if (isNonWhite(pixelAt(withoutJunction, x, 32))) {
+              noJunctionLeftCount++;
+            }
           }
-        }
-        expect(junctionLeftCount, equals(noJunctionLeftCount),
-            reason: 'Thin edge should not extend into wider perp zone');
+          expect(
+            junctionLeftCount,
+            equals(noJunctionLeftCount),
+            reason: 'Thin edge should not extend into wider perp zone',
+          );
 
-        // Verify the main line body is drawn too.
-        expect(isNonWhite(pixelAt(withJunction, 30, 32)), isTrue,
-            reason: 'Main line body should be drawn');
-      });
+          // Verify the main line body is drawn too.
+          expect(
+            isNonWhite(pixelAt(withJunction, 30, 32)),
+            isTrue,
+            reason: 'Main line body should be drawn',
+          );
+        },
+      );
 
       test('no perpendicular at end means no extension', () async {
         final pixels = await renderEdgeWithJunction(
@@ -434,33 +490,41 @@ void main() {
         );
 
         // End should stop at x=44 (no extension)
-        expect(isWhite(pixelAt(pixels, 46, 32)), isTrue,
-            reason: 'No extension past end when no junction');
-      });
-
-      test('thinner same-style perpendicular extends by visual width / 2',
-          () async {
-        // Solid W=3 edge with solid W=2 perpendicular at end.
-        // Same style (both solid), perp W=2 < this W=3 → not suppressed.
-        // Extension uses visual width: (2-1)/2 = 0.5, plus +1.0 end
-        // compensation = 1.5.
-        final pixels = await renderEdgeWithJunction(
-          start: const Offset(20, 32.5),
-          end: const Offset(44, 32.5),
-          lineStyle: BorderLineStyle.solid,
-          width: 3.0,
-          endJunctionPerpA: const BorderStyle(
-            width: 2.0,
-            lineStyle: BorderLineStyle.solid,
-          ),
+        expect(
+          isWhite(pixelAt(pixels, 46, 32)),
+          isTrue,
+          reason: 'No extension past end when no junction',
         );
-
-        // Extension at end: (2-1)/2 = 0.5, +1.0 end compensation = 1.5
-        // Line extends to x=44+1.5=45.5 (butt cap → last pixel x=44)
-        // The extended pixel should be non-white.
-        expect(isNonWhite(pixelAt(pixels, 44, 32)), isTrue,
-            reason: 'Line should extend right due to thinner perpendicular');
       });
+
+      test(
+        'thinner same-style perpendicular extends by visual width / 2',
+        () async {
+          // Solid W=3 edge with solid W=2 perpendicular at end.
+          // Same style (both solid), perp W=2 < this W=3 → not suppressed.
+          // Extension uses visual width: (2-1)/2 = 0.5, plus +1.0 end
+          // compensation = 1.5.
+          final pixels = await renderEdgeWithJunction(
+            start: const Offset(20, 32.5),
+            end: const Offset(44, 32.5),
+            lineStyle: BorderLineStyle.solid,
+            width: 3.0,
+            endJunctionPerpA: const BorderStyle(
+              width: 2.0,
+              lineStyle: BorderLineStyle.solid,
+            ),
+          );
+
+          // Extension at end: (2-1)/2 = 0.5, +1.0 end compensation = 1.5
+          // Line extends to x=44+1.5=45.5 (butt cap → last pixel x=44)
+          // The extended pixel should be non-white.
+          expect(
+            isNonWhite(pixelAt(pixels, 44, 32)),
+            isTrue,
+            reason: 'Line should extend right due to thinner perpendicular',
+          );
+        },
+      );
 
       test('double border inner sub-line spans full edge length', () async {
         // The inner sub-line should run from start to end without shortening.
@@ -477,16 +541,25 @@ void main() {
         // With no shortening, inner runs from x=10 to x=54 (butt cap: x=10..53)
 
         // Start side: inner should be drawn at x=10
-        expect(isNonWhite(pixelAt(pixels, 10, 33)), isTrue,
-            reason: 'Inner sub-line starts at the edge start');
+        expect(
+          isNonWhite(pixelAt(pixels, 10, 33)),
+          isTrue,
+          reason: 'Inner sub-line starts at the edge start',
+        );
 
         // End side: butt cap means the last drawn pixel is x=53
-        expect(isNonWhite(pixelAt(pixels, 53, 33)), isTrue,
-            reason: 'Inner sub-line reaches near the edge end');
+        expect(
+          isNonWhite(pixelAt(pixels, 53, 33)),
+          isTrue,
+          reason: 'Inner sub-line reaches near the edge end',
+        );
 
         // Middle of inner sub-line
-        expect(isNonWhite(pixelAt(pixels, 30, 33)), isTrue,
-            reason: 'Inner sub-line exists in the middle');
+        expect(
+          isNonWhite(pixelAt(pixels, 30, 33)),
+          isTrue,
+          reason: 'Inner sub-line exists in the middle',
+        );
       });
 
       test('fallback to startExt/endExt when no junction params', () async {
@@ -518,10 +591,16 @@ void main() {
           if (isNonWhite(pixelAt(withExt, x, 32))) extRightCount++;
           if (isNonWhite(pixelAt(withoutExt, x, 32))) noExtRightCount++;
         }
-        expect(extLeftCount, greaterThan(noExtLeftCount),
-            reason: 'startExt=3 should extend line left');
-        expect(extRightCount, greaterThan(noExtRightCount),
-            reason: 'endExt=3 should extend line right');
+        expect(
+          extLeftCount,
+          greaterThan(noExtLeftCount),
+          reason: 'startExt=3 should extend line left',
+        );
+        expect(
+          extRightCount,
+          greaterThan(noExtRightCount),
+          reason: 'endExt=3 should extend line right',
+        );
       });
     });
   });

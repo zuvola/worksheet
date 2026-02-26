@@ -25,9 +25,7 @@ class _MergeDemoState extends State<MergeDemo> {
         // Title row — will be merged across A1:D1
         (0, 0): Cell.text(
           'Quarterly Sales Report',
-          style: const CellStyle(
-            textAlignment: CellTextAlignment.center,
-          ),
+          style: const CellStyle(textAlignment: CellTextAlignment.center),
           richText: const [
             TextSpan(
               text: 'Quarterly Sales Report',
@@ -36,31 +34,71 @@ class _MergeDemoState extends State<MergeDemo> {
           ],
         ),
         // Headers
-        (2, 0): Cell.text('Region', style: _headerStyle, richText: const [
-          TextSpan(text: 'Region', style: TextStyle(fontWeight: FontWeight.bold)),
-        ]),
-        (2, 1): Cell.text('Q1', style: _headerStyle, richText: const [
-          TextSpan(text: 'Q1', style: TextStyle(fontWeight: FontWeight.bold)),
-        ]),
-        (2, 2): Cell.text('Q2', style: _headerStyle, richText: const [
-          TextSpan(text: 'Q2', style: TextStyle(fontWeight: FontWeight.bold)),
-        ]),
-        (2, 3): Cell.text('Q3', style: _headerStyle, richText: const [
-          TextSpan(text: 'Q3', style: TextStyle(fontWeight: FontWeight.bold)),
-        ]),
+        (2, 0): Cell.text(
+          'Region',
+          style: _headerStyle,
+          richText: const [
+            TextSpan(
+              text: 'Region',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        (2, 1): Cell.text(
+          'Q1',
+          style: _headerStyle,
+          richText: const [
+            TextSpan(
+              text: 'Q1',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        (2, 2): Cell.text(
+          'Q2',
+          style: _headerStyle,
+          richText: const [
+            TextSpan(
+              text: 'Q2',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        (2, 3): Cell.text(
+          'Q3',
+          style: _headerStyle,
+          richText: const [
+            TextSpan(
+              text: 'Q3',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
         // Data — regions will be merged vertically
-        (3, 0): Cell.text('North', richText: const [
-          TextSpan(text: 'North', style: TextStyle(fontWeight: FontWeight.bold)),
-        ]),
+        (3, 0): Cell.text(
+          'North',
+          richText: const [
+            TextSpan(
+              text: 'North',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
         (3, 1): 12500.cell,
         (3, 2): 14200.cell,
         (3, 3): 13800.cell,
         (4, 1): 11800.cell,
         (4, 2): 13500.cell,
         (4, 3): 12900.cell,
-        (5, 0): Cell.text('South', richText: const [
-          TextSpan(text: 'South', style: TextStyle(fontWeight: FontWeight.bold)),
-        ]),
+        (5, 0): Cell.text(
+          'South',
+          richText: const [
+            TextSpan(
+              text: 'South',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
         (5, 1): 9800.cell,
         (5, 2): 10500.cell,
         (5, 3): 11200.cell,
@@ -248,14 +286,13 @@ class _MergeDemoState extends State<MergeDemo> {
               child: Text(
                 range != null
                     ? 'Selection: ${range.topLeft.toNotation()}'
-                        ':${range.bottomRight.toNotation()}'
-                        '  (${range.rowCount}x${range.columnCount})'
-                        '${mergeCount > 0 ? '  — $mergeCount merge(s) in selection' : ''}'
+                          ':${range.bottomRight.toNotation()}'
+                          '  (${range.rowCount}x${range.columnCount})'
+                          '${mergeCount > 0 ? '  — $mergeCount merge(s) in selection' : ''}'
                     : 'Click a cell to select, drag to select a range',
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: Colors.white70),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: Colors.white70),
               ),
             ),
           ),

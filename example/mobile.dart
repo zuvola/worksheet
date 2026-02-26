@@ -60,9 +60,7 @@ class _MobileExampleState extends State<MobileExample> {
       'Discount',
       'Net',
     ];
-    const headerStyle = CellStyle(
-      backgroundColor: Color(0xFF4472C4),
-    );
+    const headerStyle = CellStyle(backgroundColor: Color(0xFF4472C4));
     const headerTextStyle = TextStyle(
       color: Color(0xFFFFFFFF),
       fontWeight: FontWeight.bold,

@@ -618,8 +618,7 @@ class SparseWorksheetData implements WorksheetData {
     if (sourceMerges.isEmpty) return;
 
     // 2. Unmerge everything in target range
-    final targetRegions =
-        _mergedCells.regionsInRange(targetRange).toList();
+    final targetRegions = _mergedCells.regionsInRange(targetRange).toList();
     for (final region in targetRegions) {
       _mergedCells.unmerge(region.anchor);
     }
@@ -664,14 +663,12 @@ class SparseWorksheetData implements WorksheetData {
 
       for (int offset = 0; offset < targetWidth; offset += sourceWidth) {
         for (final merge in sourceMerges) {
-          final mergeRelStartCol =
-              merge.startColumn - sourceRange.startColumn;
+          final mergeRelStartCol = merge.startColumn - sourceRange.startColumn;
           final mergeRelEndCol = merge.endColumn - sourceRange.startColumn;
 
           final newStartCol =
               targetRange.startColumn + offset + mergeRelStartCol;
-          final newEndCol =
-              targetRange.startColumn + offset + mergeRelEndCol;
+          final newEndCol = targetRange.startColumn + offset + mergeRelEndCol;
 
           // Skip incomplete tiles at boundary
           if (newEndCol > targetRange.endColumn) continue;
@@ -723,12 +720,7 @@ class SparseWorksheetData implements WorksheetData {
     if (value == null && style == null && format == null && richText == null) {
       return null;
     }
-    return Cell(
-      value: value,
-      style: style,
-      format: format,
-      richText: richText,
-    );
+    return Cell(value: value, style: style, format: format, richText: richText);
   }
 
   @override
@@ -747,8 +739,9 @@ class SparseWorksheetData implements WorksheetData {
       for (int row = range.startRow; row <= range.endRow; row++) {
         for (int col = range.startColumn; col <= range.endColumn; col++) {
           final coord = CellCoordinate(row, col);
-          final cell =
-              valueGenerator != null ? valueGenerator(coord, sourceCell) : sourceCell;
+          final cell = valueGenerator != null
+              ? valueGenerator(coord, sourceCell)
+              : sourceCell;
 
           if (cell != null) {
             if (cell.value != null) {
@@ -801,12 +794,7 @@ class SparseWorksheetData implements WorksheetData {
     } else if (horizontal) {
       final startCol = fillRight ? range.endColumn + 1 : destination.column;
       final endCol = fillRight ? destination.column : range.startColumn - 1;
-      targetRange = CellRange(
-        range.startRow,
-        startCol,
-        range.endRow,
-        endCol,
-      );
+      targetRange = CellRange(range.startRow, startCol, range.endRow, endCol);
     } else {
       return null; // destination is inside the source range, nothing to do
     }
@@ -857,16 +845,20 @@ class SparseWorksheetData implements WorksheetData {
       if (valueGenerator != null) {
         // Use generator, skip auto-detection
         for (int row = targetRange.startRow; row <= targetRange.endRow; row++) {
-          for (int col = targetRange.startColumn;
-              col <= targetRange.endColumn;
-              col++) {
+          for (
+            int col = targetRange.startColumn;
+            col <= targetRange.endColumn;
+            col++
+          ) {
             final coord = CellCoordinate(row, col);
             final cell = valueGenerator(coord, null);
             if (cell != null) {
               if (cell.value != null) batch.setCell(coord, cell.value);
               if (cell.style != null) batch.setStyle(coord, cell.style);
               if (cell.format != null) batch.setFormat(coord, cell.format);
-              if (cell.richText != null) batch.setRichText(coord, cell.richText);
+              if (cell.richText != null) {
+                batch.setRichText(coord, cell.richText);
+              }
             }
           }
         }
@@ -892,9 +884,11 @@ class SparseWorksheetData implements WorksheetData {
           final sourceLen = sourceCells.length;
 
           if (fillDown) {
-            for (int row = targetRange.startRow;
-                row <= targetRange.endRow;
-                row++) {
+            for (
+              int row = targetRange.startRow;
+              row <= targetRange.endRow;
+              row++
+            ) {
               final index = sourceLen + (row - targetRange.startRow);
               final cell = pattern.generate(index);
               final coord = CellCoordinate(row, col);
@@ -902,14 +896,18 @@ class SparseWorksheetData implements WorksheetData {
                 if (cell.value != null) batch.setCell(coord, cell.value);
                 if (cell.style != null) batch.setStyle(coord, cell.style);
                 if (cell.format != null) batch.setFormat(coord, cell.format);
-                if (cell.richText != null) batch.setRichText(coord, cell.richText);
+                if (cell.richText != null) {
+                  batch.setRichText(coord, cell.richText);
+                }
               }
             }
           } else {
             // Fill up: generate in reverse order
-            for (int row = targetRange.endRow;
-                row >= targetRange.startRow;
-                row--) {
+            for (
+              int row = targetRange.endRow;
+              row >= targetRange.startRow;
+              row--
+            ) {
               final distFromSource = targetRange.endRow - row + 1;
               final index = sourceLen + (distFromSource - 1);
               final cell = pattern.generate(index);
@@ -918,7 +916,9 @@ class SparseWorksheetData implements WorksheetData {
                 if (cell.value != null) batch.setCell(coord, cell.value);
                 if (cell.style != null) batch.setStyle(coord, cell.style);
                 if (cell.format != null) batch.setFormat(coord, cell.format);
-                if (cell.richText != null) batch.setRichText(coord, cell.richText);
+                if (cell.richText != null) {
+                  batch.setRichText(coord, cell.richText);
+                }
               }
             }
           }
@@ -941,9 +941,11 @@ class SparseWorksheetData implements WorksheetData {
           final sourceLen = sourceCells.length;
 
           if (fillRight) {
-            for (int col = targetRange.startColumn;
-                col <= targetRange.endColumn;
-                col++) {
+            for (
+              int col = targetRange.startColumn;
+              col <= targetRange.endColumn;
+              col++
+            ) {
               final index = sourceLen + (col - targetRange.startColumn);
               final cell = pattern.generate(index);
               final coord = CellCoordinate(row, col);
@@ -951,14 +953,18 @@ class SparseWorksheetData implements WorksheetData {
                 if (cell.value != null) batch.setCell(coord, cell.value);
                 if (cell.style != null) batch.setStyle(coord, cell.style);
                 if (cell.format != null) batch.setFormat(coord, cell.format);
-                if (cell.richText != null) batch.setRichText(coord, cell.richText);
+                if (cell.richText != null) {
+                  batch.setRichText(coord, cell.richText);
+                }
               }
             }
           } else {
             // Fill left: generate in reverse order
-            for (int col = targetRange.endColumn;
-                col >= targetRange.startColumn;
-                col--) {
+            for (
+              int col = targetRange.endColumn;
+              col >= targetRange.startColumn;
+              col--
+            ) {
               final distFromSource = targetRange.endColumn - col + 1;
               final index = sourceLen + (distFromSource - 1);
               final cell = pattern.generate(index);
@@ -967,7 +973,9 @@ class SparseWorksheetData implements WorksheetData {
                 if (cell.value != null) batch.setCell(coord, cell.value);
                 if (cell.style != null) batch.setStyle(coord, cell.style);
                 if (cell.format != null) batch.setFormat(coord, cell.format);
-                if (cell.richText != null) batch.setRichText(coord, cell.richText);
+                if (cell.richText != null) {
+                  batch.setRichText(coord, cell.richText);
+                }
               }
             }
           }

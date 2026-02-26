@@ -34,19 +34,21 @@ class _WrapTextDemoState extends State<WrapTextDemo> {
       columnCount: 10,
       cells: {
         // Header
-        (0, 0): Cell.text('Feature',
-            style: _headerStyle,
-            richText: [TextSpan(text: 'Feature', style: _headerTextStyle)]),
-        (0, 1): Cell.text('Description',
-            style: _headerStyle,
-            richText: [
-              TextSpan(text: 'Description', style: _headerTextStyle)
-            ]),
-        (0, 2): Cell.text('Alignment',
-            style: _headerStyle,
-            richText: [
-              TextSpan(text: 'Alignment', style: _headerTextStyle)
-            ]),
+        (0, 0): Cell.text(
+          'Feature',
+          style: _headerStyle,
+          richText: [TextSpan(text: 'Feature', style: _headerTextStyle)],
+        ),
+        (0, 1): Cell.text(
+          'Description',
+          style: _headerStyle,
+          richText: [TextSpan(text: 'Description', style: _headerTextStyle)],
+        ),
+        (0, 2): Cell.text(
+          'Alignment',
+          style: _headerStyle,
+          richText: [TextSpan(text: 'Alignment', style: _headerTextStyle)],
+        ),
 
         // Explicit newlines with wrapText
         (1, 0): Cell.text('Newlines'),

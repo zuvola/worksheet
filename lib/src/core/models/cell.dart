@@ -53,37 +53,37 @@ class Cell {
 
   /// Creates a cell with a text value.
   Cell.text(String text, {this.style, this.format, this.richText})
-      : value = CellValue.text(text);
+    : value = CellValue.text(text);
 
   /// Creates a cell with a numeric value.
   Cell.number(num n, {this.style, this.format, this.richText})
-      : value = CellValue.number(n);
+    : value = CellValue.number(n);
 
   /// Creates a cell with a boolean value.
   Cell.boolean(bool b, {this.style, this.format})
-      : value = CellValue.boolean(b),
-        richText = null;
+    : value = CellValue.boolean(b),
+      richText = null;
 
   /// Creates a cell with a formula.
   Cell.formula(String formula, {this.style, this.format})
-      : value = CellValue.formula(formula),
-        richText = null;
+    : value = CellValue.formula(formula),
+      richText = null;
 
   /// Creates a cell with a date value.
   Cell.date(DateTime date, {this.style, this.format})
-      : value = CellValue.date(date),
-        richText = null;
+    : value = CellValue.date(date),
+      richText = null;
 
   /// Creates a cell with a duration value.
   Cell.duration(Duration duration, {this.style, this.format})
-      : value = CellValue.duration(duration),
-        richText = null;
+    : value = CellValue.duration(duration),
+      richText = null;
 
   /// Creates a cell with only a style (no value).
   const Cell.withStyle(CellStyle this.style)
-      : value = null,
-        format = null,
-        richText = null;
+    : value = null,
+      format = null,
+      richText = null;
 
   /// Whether this cell has a value.
   bool get hasValue => value != null;

@@ -62,9 +62,7 @@ void main() {
 
     final picture = recorder.endRecording();
     final image = await picture.toImage(imageWidth, imageHeight);
-    final byteData = await image.toByteData(
-      format: ui.ImageByteFormat.rawRgba,
-    );
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
     picture.dispose();
     image.dispose();
     return byteData!;
@@ -108,59 +106,83 @@ void main() {
     });
 
     group('basic edge drawing', () {
-      test('single cell solid border on all 4 sides draws pixels at edges',
-          () async {
-        data.setStyle(
-          const CellCoordinate(1, 1),
-          const CellStyle(
-            borders: CellBorders.all(BorderStyle(
-              color: Color(0xFF000000),
-              lineStyle: BorderLineStyle.solid,
-            )),
-          ),
-        );
+      test(
+        'single cell solid border on all 4 sides draws pixels at edges',
+        () async {
+          data.setStyle(
+            const CellCoordinate(1, 1),
+            const CellStyle(
+              borders: CellBorders.all(
+                BorderStyle(
+                  color: Color(0xFF000000),
+                  lineStyle: BorderLineStyle.solid,
+                ),
+              ),
+            ),
+          );
 
-        final pixels = await renderBorders(data);
+          final pixels = await renderBorders(data);
 
-        // Cell (1,1) has bounds: left=20, top=20, right=40, bottom=40
-        // Top border: y ~ 20.5 → drawn at y=20 (after rounding)
-        // Bottom border: y ~ 40.5 → drawn at y=40
-        // Left border: x ~ 20.5 → drawn at x=20
-        // Right border: x ~ 40.5 → drawn at x=40
+          // Cell (1,1) has bounds: left=20, top=20, right=40, bottom=40
+          // Top border: y ~ 20.5 → drawn at y=20 (after rounding)
+          // Bottom border: y ~ 40.5 → drawn at y=40
+          // Left border: x ~ 20.5 → drawn at x=20
+          // Right border: x ~ 40.5 → drawn at x=40
 
-        // Top edge: pixel at (30, 20) should be non-white (mid-top edge)
-        expect(isNonWhite(pixelAt(pixels, 30, 20)), isTrue,
-            reason: 'Top border should have pixels at y=20');
+          // Top edge: pixel at (30, 20) should be non-white (mid-top edge)
+          expect(
+            isNonWhite(pixelAt(pixels, 30, 20)),
+            isTrue,
+            reason: 'Top border should have pixels at y=20',
+          );
 
-        // Bottom edge: pixel at (30, 40) should be non-white
-        expect(isNonWhite(pixelAt(pixels, 30, 40)), isTrue,
-            reason: 'Bottom border should have pixels at y=40');
+          // Bottom edge: pixel at (30, 40) should be non-white
+          expect(
+            isNonWhite(pixelAt(pixels, 30, 40)),
+            isTrue,
+            reason: 'Bottom border should have pixels at y=40',
+          );
 
-        // Left edge: pixel at (20, 30) should be non-white
-        expect(isNonWhite(pixelAt(pixels, 20, 30)), isTrue,
-            reason: 'Left border should have pixels at x=20');
+          // Left edge: pixel at (20, 30) should be non-white
+          expect(
+            isNonWhite(pixelAt(pixels, 20, 30)),
+            isTrue,
+            reason: 'Left border should have pixels at x=20',
+          );
 
-        // Right edge: pixel at (40, 30) should be non-white
-        expect(isNonWhite(pixelAt(pixels, 40, 30)), isTrue,
-            reason: 'Right border should have pixels at x=40');
+          // Right edge: pixel at (40, 30) should be non-white
+          expect(
+            isNonWhite(pixelAt(pixels, 40, 30)),
+            isTrue,
+            reason: 'Right border should have pixels at x=40',
+          );
 
-        // Interior should be white
-        expect(isWhite(pixelAt(pixels, 30, 30)), isTrue,
-            reason: 'Interior of cell should remain white');
+          // Interior should be white
+          expect(
+            isWhite(pixelAt(pixels, 30, 30)),
+            isTrue,
+            reason: 'Interior of cell should remain white',
+          );
 
-        // Exterior should be white
-        expect(isWhite(pixelAt(pixels, 10, 10)), isTrue,
-            reason: 'Outside cell should remain white');
-      });
+          // Exterior should be white
+          expect(
+            isWhite(pixelAt(pixels, 10, 10)),
+            isTrue,
+            reason: 'Outside cell should remain white',
+          );
+        },
+      );
 
       test('cell at row=0, col=0 renders borders without crash', () async {
         data.setStyle(
           const CellCoordinate(0, 0),
           const CellStyle(
-            borders: CellBorders.all(BorderStyle(
-              color: Color(0xFF000000),
-              lineStyle: BorderLineStyle.solid,
-            )),
+            borders: CellBorders.all(
+              BorderStyle(
+                color: Color(0xFF000000),
+                lineStyle: BorderLineStyle.solid,
+              ),
+            ),
           ),
         );
 
@@ -171,10 +193,16 @@ void main() {
         // Check that a pixel near the top-left is drawn
         final topMid = pixelAt(pixels, 10, 0);
         final leftMid = pixelAt(pixels, 0, 10);
-        expect(isNonWhite(topMid) || isNonWhite(pixelAt(pixels, 10, 1)), isTrue,
-            reason: 'Top border at row=0 should render');
-        expect(isNonWhite(leftMid) || isNonWhite(pixelAt(pixels, 1, 10)), isTrue,
-            reason: 'Left border at col=0 should render');
+        expect(
+          isNonWhite(topMid) || isNonWhite(pixelAt(pixels, 10, 1)),
+          isTrue,
+          reason: 'Top border at row=0 should render',
+        );
+        expect(
+          isNonWhite(leftMid) || isNonWhite(pixelAt(pixels, 1, 10)),
+          isTrue,
+          reason: 'Left border at col=0 should render',
+        );
       });
 
       test('double border draws two sub-lines with gap', () async {
@@ -201,10 +229,16 @@ void main() {
         final outerLine = pixelAt(pixels, 50, 39);
         final innerLine = pixelAt(pixels, 50, 41);
 
-        expect(isNonWhite(outerLine), isTrue,
-            reason: 'Outer sub-line of double border');
-        expect(isNonWhite(innerLine), isTrue,
-            reason: 'Inner sub-line of double border');
+        expect(
+          isNonWhite(outerLine),
+          isTrue,
+          reason: 'Outer sub-line of double border',
+        );
+        expect(
+          isNonWhite(innerLine),
+          isTrue,
+          reason: 'Inner sub-line of double border',
+        );
       });
     });
 
@@ -243,12 +277,14 @@ void main() {
         // Shared edge at x=40 (right edge of (1,1), left edge of (1,2))
         // Thick (3px, red) should win over thin (1px, blue)
         final pixel = pixelAt(pixels, 40, 30);
-        expect(isColor(pixel, const Color(0xFFFF0000)), isTrue,
-            reason: 'Thick red border should win at shared edge');
+        expect(
+          isColor(pixel, const Color(0xFFFF0000)),
+          isTrue,
+          reason: 'Thick red border should win at shared edge',
+        );
       });
 
-      test('adjacent cells: solid right vs double left — double wins',
-          () async {
+      test('adjacent cells: solid right vs double left — double wins', () async {
         // Cell (1,1) has solid right border
         data.setStyle(
           const CellCoordinate(1, 1),
@@ -284,10 +320,16 @@ void main() {
         // with a gap at x=40. Check the sub-line positions for blue pixels.
         final outerPixel = pixelAt(pixels, 39, 30);
         final innerPixel = pixelAt(pixels, 41, 30);
-        expect(isColor(outerPixel, const Color(0xFF0000FF)), isTrue,
-            reason: 'Outer sub-line of double (blue) should win at x=39');
-        expect(isColor(innerPixel, const Color(0xFF0000FF)), isTrue,
-            reason: 'Inner sub-line of double (blue) should win at x=41');
+        expect(
+          isColor(outerPixel, const Color(0xFF0000FF)),
+          isTrue,
+          reason: 'Outer sub-line of double (blue) should win at x=39',
+        );
+        expect(
+          isColor(innerPixel, const Color(0xFF0000FF)),
+          isTrue,
+          reason: 'Inner sub-line of double (blue) should win at x=41',
+        );
       });
     });
 
@@ -296,10 +338,12 @@ void main() {
         data.setStyle(
           const CellCoordinate(2, 2),
           const CellStyle(
-            borders: CellBorders.all(BorderStyle(
-              color: Color(0xFF000000),
-              lineStyle: BorderLineStyle.solid,
-            )),
+            borders: CellBorders.all(
+              BorderStyle(
+                color: Color(0xFF000000),
+                lineStyle: BorderLineStyle.solid,
+              ),
+            ),
           ),
         );
 
@@ -318,18 +362,23 @@ void main() {
         ];
 
         final hasCornerPixels = topLeftArea.any(isNonWhite);
-        expect(hasCornerPixels, isTrue,
-            reason: 'Corner area should have border pixels (L-join filled)');
+        expect(
+          hasCornerPixels,
+          isTrue,
+          reason: 'Corner area should have border pixels (L-join filled)',
+        );
       });
 
       test('all 4 sides solid produces clean rectangle', () async {
         data.setStyle(
           const CellCoordinate(2, 2),
           const CellStyle(
-            borders: CellBorders.all(BorderStyle(
-              color: Color(0xFF000000),
-              lineStyle: BorderLineStyle.solid,
-            )),
+            borders: CellBorders.all(
+              BorderStyle(
+                color: Color(0xFF000000),
+                lineStyle: BorderLineStyle.solid,
+              ),
+            ),
           ),
         );
 
@@ -352,14 +401,26 @@ void main() {
         }
 
         // All edges should have substantial pixel coverage
-        expect(topEdgeCount, greaterThan(15),
-            reason: 'Top edge should be mostly filled');
-        expect(bottomEdgeCount, greaterThan(15),
-            reason: 'Bottom edge should be mostly filled');
-        expect(leftEdgeCount, greaterThan(15),
-            reason: 'Left edge should be mostly filled');
-        expect(rightEdgeCount, greaterThan(15),
-            reason: 'Right edge should be mostly filled');
+        expect(
+          topEdgeCount,
+          greaterThan(15),
+          reason: 'Top edge should be mostly filled',
+        );
+        expect(
+          bottomEdgeCount,
+          greaterThan(15),
+          reason: 'Bottom edge should be mostly filled',
+        );
+        expect(
+          leftEdgeCount,
+          greaterThan(15),
+          reason: 'Left edge should be mostly filled',
+        );
+        expect(
+          rightEdgeCount,
+          greaterThan(15),
+          reason: 'Right edge should be mostly filled',
+        );
       });
     });
 
@@ -370,10 +431,12 @@ void main() {
         data.setStyle(
           const CellCoordinate(1, 1),
           const CellStyle(
-            borders: CellBorders.all(BorderStyle(
-              color: Color(0xFF000000),
-              lineStyle: BorderLineStyle.solid,
-            )),
+            borders: CellBorders.all(
+              BorderStyle(
+                color: Color(0xFF000000),
+                lineStyle: BorderLineStyle.solid,
+              ),
+            ),
           ),
         );
 
@@ -381,17 +444,29 @@ void main() {
 
         // Merged region (1,1)-(1,3): left=20, top=20, right=80, bottom=40
         // Left edge at x=20, right edge at x=80
-        expect(isNonWhite(pixelAt(pixels, 20, 30)), isTrue,
-            reason: 'Left border of merge at x=20');
-        expect(isNonWhite(pixelAt(pixels, 80, 30)), isTrue,
-            reason: 'Right border of merge at x=80');
+        expect(
+          isNonWhite(pixelAt(pixels, 20, 30)),
+          isTrue,
+          reason: 'Left border of merge at x=20',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, 80, 30)),
+          isTrue,
+          reason: 'Right border of merge at x=80',
+        );
 
         // Internal edges (x=40, x=60) should NOT have border pixels
         // (borders are only at the merge region boundary)
-        expect(isWhite(pixelAt(pixels, 40, 30)), isTrue,
-            reason: 'Internal edge at x=40 should not have border');
-        expect(isWhite(pixelAt(pixels, 60, 30)), isTrue,
-            reason: 'Internal edge at x=60 should not have border');
+        expect(
+          isWhite(pixelAt(pixels, 40, 30)),
+          isTrue,
+          reason: 'Internal edge at x=40 should not have border',
+        );
+        expect(
+          isWhite(pixelAt(pixels, 60, 30)),
+          isTrue,
+          reason: 'Internal edge at x=60 should not have border',
+        );
       });
     });
 
@@ -420,10 +495,12 @@ void main() {
       late ByteData pixels;
 
       setUp(() async {
-        const doubleBorders = CellBorders.all(BorderStyle(
-          color: Color(0xFF000000),
-          lineStyle: BorderLineStyle.double,
-        ));
+        const doubleBorders = CellBorders.all(
+          BorderStyle(
+            color: Color(0xFF000000),
+            lineStyle: BorderLineStyle.double,
+          ),
+        );
         for (var r = 1; r <= 2; r++) {
           for (var c = 1; c <= 2; c++) {
             data.setStyle(
@@ -443,28 +520,55 @@ void main() {
       ///   ■ □ ■
       void expectPlusJunction3x3(int cx, int cy, String label) {
         // Center: white (both gap channels cross).
-        expect(isWhite(pixelAt(pixels, cx, cy)), isTrue,
-            reason: '$label: center ($cx,$cy) should be white gap');
+        expect(
+          isWhite(pixelAt(pixels, cx, cy)),
+          isTrue,
+          reason: '$label: center ($cx,$cy) should be white gap',
+        );
 
         // 4 mid-edge pixels: white (gap channel preserved in both directions).
-        expect(isWhite(pixelAt(pixels, cx, cy - 1)), isTrue,
-            reason: '$label: top-center should be white (V gap)');
-        expect(isWhite(pixelAt(pixels, cx - 1, cy)), isTrue,
-            reason: '$label: mid-left should be white (H gap)');
-        expect(isWhite(pixelAt(pixels, cx + 1, cy)), isTrue,
-            reason: '$label: mid-right should be white (H gap)');
-        expect(isWhite(pixelAt(pixels, cx, cy + 1)), isTrue,
-            reason: '$label: bottom-center should be white (V gap)');
+        expect(
+          isWhite(pixelAt(pixels, cx, cy - 1)),
+          isTrue,
+          reason: '$label: top-center should be white (V gap)',
+        );
+        expect(
+          isWhite(pixelAt(pixels, cx - 1, cy)),
+          isTrue,
+          reason: '$label: mid-left should be white (H gap)',
+        );
+        expect(
+          isWhite(pixelAt(pixels, cx + 1, cy)),
+          isTrue,
+          reason: '$label: mid-right should be white (H gap)',
+        );
+        expect(
+          isWhite(pixelAt(pixels, cx, cy + 1)),
+          isTrue,
+          reason: '$label: bottom-center should be white (V gap)',
+        );
 
         // 4 corner pixels: filled (perpendicular sub-lines cross).
-        expect(isNonWhite(pixelAt(pixels, cx - 1, cy - 1)), isTrue,
-            reason: '$label: top-left corner should be filled');
-        expect(isNonWhite(pixelAt(pixels, cx + 1, cy - 1)), isTrue,
-            reason: '$label: top-right corner should be filled');
-        expect(isNonWhite(pixelAt(pixels, cx - 1, cy + 1)), isTrue,
-            reason: '$label: bottom-left corner should be filled');
-        expect(isNonWhite(pixelAt(pixels, cx + 1, cy + 1)), isTrue,
-            reason: '$label: bottom-right corner should be filled');
+        expect(
+          isNonWhite(pixelAt(pixels, cx - 1, cy - 1)),
+          isTrue,
+          reason: '$label: top-left corner should be filled',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, cx + 1, cy - 1)),
+          isTrue,
+          reason: '$label: top-right corner should be filled',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, cx - 1, cy + 1)),
+          isTrue,
+          reason: '$label: bottom-left corner should be filled',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, cx + 1, cy + 1)),
+          isTrue,
+          reason: '$label: bottom-right corner should be filled',
+        );
       }
 
       /// Asserts the 3x3 pixel block at an **L-corner or T-junction**
@@ -479,18 +583,33 @@ void main() {
       /// the + junction's 4).
       void expectEdgeJunction3x3(int cx, int cy, String label) {
         // Center: white (gap channels still cross at the center).
-        expect(isWhite(pixelAt(pixels, cx, cy)), isTrue,
-            reason: '$label: center ($cx,$cy) should be white gap');
+        expect(
+          isWhite(pixelAt(pixels, cx, cy)),
+          isTrue,
+          reason: '$label: center ($cx,$cy) should be white gap',
+        );
 
         // 4 corner pixels: always filled.
-        expect(isNonWhite(pixelAt(pixels, cx - 1, cy - 1)), isTrue,
-            reason: '$label: top-left corner should be filled');
-        expect(isNonWhite(pixelAt(pixels, cx + 1, cy - 1)), isTrue,
-            reason: '$label: top-right corner should be filled');
-        expect(isNonWhite(pixelAt(pixels, cx - 1, cy + 1)), isTrue,
-            reason: '$label: bottom-left corner should be filled');
-        expect(isNonWhite(pixelAt(pixels, cx + 1, cy + 1)), isTrue,
-            reason: '$label: bottom-right corner should be filled');
+        expect(
+          isNonWhite(pixelAt(pixels, cx - 1, cy - 1)),
+          isTrue,
+          reason: '$label: top-left corner should be filled',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, cx + 1, cy - 1)),
+          isTrue,
+          reason: '$label: top-right corner should be filled',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, cx - 1, cy + 1)),
+          isTrue,
+          reason: '$label: bottom-left corner should be filled',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, cx + 1, cy + 1)),
+          isTrue,
+          reason: '$label: bottom-right corner should be filled',
+        );
 
         // Count total filled among the 8 surrounding pixels. A + junction
         // has exactly 4 (the corners only). L-corners and T-junctions must
@@ -505,9 +624,13 @@ void main() {
           isNonWhite(pixelAt(pixels, cx, cy + 1)),
           isNonWhite(pixelAt(pixels, cx + 1, cy + 1)),
         ].where((b) => b).length;
-        expect(surroundingFilled, greaterThanOrEqualTo(5),
-            reason: '$label: should have >= 5 of 8 surrounding pixels filled '
-                '(more than + junction\'s 4, got $surroundingFilled)');
+        expect(
+          surroundingFilled,
+          greaterThanOrEqualTo(5),
+          reason:
+              '$label: should have >= 5 of 8 surrounding pixels filled '
+              '(more than + junction\'s 4, got $surroundingFilled)',
+        );
       }
 
       // --- L-corners (2 borders meet, outer lines connect solidly) ---
@@ -555,50 +678,85 @@ void main() {
       test('inner sub-lines exist mid-edge (not just at junctions)', () {
         // Horizontal inner sub-lines at y=21 and y=41 (inner offset from
         // top borders of row 1 and row 2)
-        expect(isNonWhite(pixelAt(pixels, 30, 21)), isTrue,
-            reason: 'Horizontal inner sub-line at mid-edge (30,21)');
-        expect(isNonWhite(pixelAt(pixels, 50, 21)), isTrue,
-            reason: 'Horizontal inner sub-line at mid-edge (50,21)');
-        expect(isNonWhite(pixelAt(pixels, 30, 41)), isTrue,
-            reason: 'Horizontal inner sub-line at mid-edge (30,41)');
-        expect(isNonWhite(pixelAt(pixels, 50, 41)), isTrue,
-            reason: 'Horizontal inner sub-line at mid-edge (50,41)');
-
-        // Vertical inner sub-lines at x=21 and x=41
-        expect(isNonWhite(pixelAt(pixels, 21, 30)), isTrue,
-            reason: 'Vertical inner sub-line at mid-edge (21,30)');
-        expect(isNonWhite(pixelAt(pixels, 21, 50)), isTrue,
-            reason: 'Vertical inner sub-line at mid-edge (21,50)');
-        expect(isNonWhite(pixelAt(pixels, 41, 30)), isTrue,
-            reason: 'Vertical inner sub-line at mid-edge (41,30)');
-        expect(isNonWhite(pixelAt(pixels, 41, 50)), isTrue,
-            reason: 'Vertical inner sub-line at mid-edge (41,50)');
-      });
-
-      test('inner sub-line does not leak past outer at isolated cell', () async {
-        // Separate data with a single cell — L-junction corners.
-        final singleData = SparseWorksheetData(rowCount: 5, columnCount: 5);
-        singleData.setStyle(
-          const CellCoordinate(2, 2),
-          const CellStyle(
-            borders: CellBorders.all(BorderStyle(
-              color: Color(0xFF000000),
-              lineStyle: BorderLineStyle.double,
-            )),
-          ),
+        expect(
+          isNonWhite(pixelAt(pixels, 30, 21)),
+          isTrue,
+          reason: 'Horizontal inner sub-line at mid-edge (30,21)',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, 50, 21)),
+          isTrue,
+          reason: 'Horizontal inner sub-line at mid-edge (50,21)',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, 30, 41)),
+          isTrue,
+          reason: 'Horizontal inner sub-line at mid-edge (30,41)',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, 50, 41)),
+          isTrue,
+          reason: 'Horizontal inner sub-line at mid-edge (50,41)',
         );
 
-        final singlePixels = await renderBorders(singleData);
-        singleData.dispose();
-
-        // Cell (2,2): bounds left=40, top=40, right=60, bottom=60
-        // Top border inner at y≈41. The inner should not leak past the
-        // outer's lateral extent.
-        expect(isWhite(pixelAt(singlePixels, 38, 41)), isTrue,
-            reason: 'Inner should not leak left past outer');
-        expect(isWhite(pixelAt(singlePixels, 62, 41)), isTrue,
-            reason: 'Inner should not leak right past outer');
+        // Vertical inner sub-lines at x=21 and x=41
+        expect(
+          isNonWhite(pixelAt(pixels, 21, 30)),
+          isTrue,
+          reason: 'Vertical inner sub-line at mid-edge (21,30)',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, 21, 50)),
+          isTrue,
+          reason: 'Vertical inner sub-line at mid-edge (21,50)',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, 41, 30)),
+          isTrue,
+          reason: 'Vertical inner sub-line at mid-edge (41,30)',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, 41, 50)),
+          isTrue,
+          reason: 'Vertical inner sub-line at mid-edge (41,50)',
+        );
       });
+
+      test(
+        'inner sub-line does not leak past outer at isolated cell',
+        () async {
+          // Separate data with a single cell — L-junction corners.
+          final singleData = SparseWorksheetData(rowCount: 5, columnCount: 5);
+          singleData.setStyle(
+            const CellCoordinate(2, 2),
+            const CellStyle(
+              borders: CellBorders.all(
+                BorderStyle(
+                  color: Color(0xFF000000),
+                  lineStyle: BorderLineStyle.double,
+                ),
+              ),
+            ),
+          );
+
+          final singlePixels = await renderBorders(singleData);
+          singleData.dispose();
+
+          // Cell (2,2): bounds left=40, top=40, right=60, bottom=60
+          // Top border inner at y≈41. The inner should not leak past the
+          // outer's lateral extent.
+          expect(
+            isWhite(pixelAt(singlePixels, 38, 41)),
+            isTrue,
+            reason: 'Inner should not leak left past outer',
+          );
+          expect(
+            isWhite(pixelAt(singlePixels, 62, 41)),
+            isTrue,
+            reason: 'Inner should not leak right past outer',
+          );
+        },
+      );
     });
 
     // Regression tests for thick solid borders.
@@ -612,11 +770,13 @@ void main() {
         data.setStyle(
           const CellCoordinate(2, 2),
           const CellStyle(
-            borders: CellBorders.all(BorderStyle(
-              color: Color(0xFF000000),
-              lineStyle: BorderLineStyle.solid,
-              width: 2.0,
-            )),
+            borders: CellBorders.all(
+              BorderStyle(
+                color: Color(0xFF000000),
+                lineStyle: BorderLineStyle.solid,
+                width: 2.0,
+              ),
+            ),
           ),
         );
 
@@ -627,35 +787,58 @@ void main() {
         // V-left at x=40.5, strokeWidth=2: fills x=40,41
         //
         // Key assertion: no pixels above/left of the border.
-        expect(isWhite(pixelAt(pixels, 50, 39)), isTrue,
-            reason: 'Row above top border (y=39) should be white');
-        expect(isWhite(pixelAt(pixels, 39, 50)), isTrue,
-            reason: 'Column left of left border (x=39) should be white');
+        expect(
+          isWhite(pixelAt(pixels, 50, 39)),
+          isTrue,
+          reason: 'Row above top border (y=39) should be white',
+        );
+        expect(
+          isWhite(pixelAt(pixels, 39, 50)),
+          isTrue,
+          reason: 'Column left of left border (x=39) should be white',
+        );
 
         // Border pixels should be present.
-        expect(isNonWhite(pixelAt(pixels, 50, 40)), isTrue,
-            reason: 'Top border row 1 (y=40)');
-        expect(isNonWhite(pixelAt(pixels, 50, 41)), isTrue,
-            reason: 'Top border row 2 (y=41)');
-        expect(isNonWhite(pixelAt(pixels, 40, 50)), isTrue,
-            reason: 'Left border col 1 (x=40)');
-        expect(isNonWhite(pixelAt(pixels, 41, 50)), isTrue,
-            reason: 'Left border col 2 (x=41)');
+        expect(
+          isNonWhite(pixelAt(pixels, 50, 40)),
+          isTrue,
+          reason: 'Top border row 1 (y=40)',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, 50, 41)),
+          isTrue,
+          reason: 'Top border row 2 (y=41)',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, 40, 50)),
+          isTrue,
+          reason: 'Left border col 1 (x=40)',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, 41, 50)),
+          isTrue,
+          reason: 'Left border col 2 (x=41)',
+        );
 
         // Interior should still be white.
-        expect(isWhite(pixelAt(pixels, 50, 50)), isTrue,
-            reason: 'Cell interior should be white');
+        expect(
+          isWhite(pixelAt(pixels, 50, 50)),
+          isTrue,
+          reason: 'Cell interior should be white',
+        );
       });
 
       test('width=3 border does not overshoot cell boundary', () async {
         data.setStyle(
           const CellCoordinate(2, 2),
           const CellStyle(
-            borders: CellBorders.all(BorderStyle(
-              color: Color(0xFF000000),
-              lineStyle: BorderLineStyle.solid,
-              width: 3.0,
-            )),
+            borders: CellBorders.all(
+              BorderStyle(
+                color: Color(0xFF000000),
+                lineStyle: BorderLineStyle.solid,
+                width: 3.0,
+              ),
+            ),
           ),
         );
 
@@ -666,35 +849,61 @@ void main() {
         // V-left at x=40.5, strokeWidth=3: fills x=39,40,41
         //
         // Key assertion: no pixels outside the 3px border width.
-        expect(isWhite(pixelAt(pixels, 50, 38)), isTrue,
-            reason: 'Row above top border (y=38) should be white');
-        expect(isWhite(pixelAt(pixels, 38, 50)), isTrue,
-            reason: 'Column left of left border (x=38) should be white');
+        expect(
+          isWhite(pixelAt(pixels, 50, 38)),
+          isTrue,
+          reason: 'Row above top border (y=38) should be white',
+        );
+        expect(
+          isWhite(pixelAt(pixels, 38, 50)),
+          isTrue,
+          reason: 'Column left of left border (x=38) should be white',
+        );
 
         // Border pixels should be present (3px wide).
-        expect(isNonWhite(pixelAt(pixels, 50, 39)), isTrue,
-            reason: 'Top border row 1 (y=39)');
-        expect(isNonWhite(pixelAt(pixels, 50, 40)), isTrue,
-            reason: 'Top border row 2 (y=40)');
-        expect(isNonWhite(pixelAt(pixels, 50, 41)), isTrue,
-            reason: 'Top border row 3 (y=41)');
-        expect(isNonWhite(pixelAt(pixels, 39, 50)), isTrue,
-            reason: 'Left border col 1 (x=39)');
-        expect(isNonWhite(pixelAt(pixels, 40, 50)), isTrue,
-            reason: 'Left border col 2 (x=40)');
-        expect(isNonWhite(pixelAt(pixels, 41, 50)), isTrue,
-            reason: 'Left border col 3 (x=41)');
+        expect(
+          isNonWhite(pixelAt(pixels, 50, 39)),
+          isTrue,
+          reason: 'Top border row 1 (y=39)',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, 50, 40)),
+          isTrue,
+          reason: 'Top border row 2 (y=40)',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, 50, 41)),
+          isTrue,
+          reason: 'Top border row 3 (y=41)',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, 39, 50)),
+          isTrue,
+          reason: 'Left border col 1 (x=39)',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, 40, 50)),
+          isTrue,
+          reason: 'Left border col 2 (x=40)',
+        );
+        expect(
+          isNonWhite(pixelAt(pixels, 41, 50)),
+          isTrue,
+          reason: 'Left border col 3 (x=41)',
+        );
       });
 
       test('width=2 corners are filled without gaps', () async {
         data.setStyle(
           const CellCoordinate(2, 2),
           const CellStyle(
-            borders: CellBorders.all(BorderStyle(
-              color: Color(0xFF000000),
-              lineStyle: BorderLineStyle.solid,
-              width: 2.0,
-            )),
+            borders: CellBorders.all(
+              BorderStyle(
+                color: Color(0xFF000000),
+                lineStyle: BorderLineStyle.solid,
+                width: 2.0,
+              ),
+            ),
           ),
         );
 
@@ -704,16 +913,22 @@ void main() {
         // The 2x2 corner block at top-left (40,40)-(41,41) should be solid.
         for (var x = 40; x <= 41; x++) {
           for (var y = 40; y <= 41; y++) {
-            expect(isNonWhite(pixelAt(pixels, x, y)), isTrue,
-                reason: 'Top-left corner pixel ($x,$y) should be filled');
+            expect(
+              isNonWhite(pixelAt(pixels, x, y)),
+              isTrue,
+              reason: 'Top-left corner pixel ($x,$y) should be filled',
+            );
           }
         }
 
         // Bottom-right corner: H fills y=60,61; V fills x=60,61.
         for (var x = 60; x <= 61; x++) {
           for (var y = 60; y <= 61; y++) {
-            expect(isNonWhite(pixelAt(pixels, x, y)), isTrue,
-                reason: 'Bottom-right corner pixel ($x,$y) should be filled');
+            expect(
+              isNonWhite(pixelAt(pixels, x, y)),
+              isTrue,
+              reason: 'Bottom-right corner pixel ($x,$y) should be filled',
+            );
           }
         }
       });
@@ -757,84 +972,103 @@ void main() {
         // Left border W1 at x=40.5, fills x=40
         //
         // The thick top border should cover pixel (40,39).
-        expect(isNonWhite(pixelAt(pixels, 40, 39)), isTrue,
-            reason: 'Thick top border should cover pixel (40,39)');
+        expect(
+          isNonWhite(pixelAt(pixels, 40, 39)),
+          isTrue,
+          reason: 'Thick top border should cover pixel (40,39)',
+        );
         // The thin left border should NOT extend into thick top's zone (y=39).
-        expect(isWhite(pixelAt(pixels, 39, 40)), isTrue,
-            reason:
-                'Thin left should not extend up into thick top zone at (39,40)');
+        expect(
+          isWhite(pixelAt(pixels, 39, 40)),
+          isTrue,
+          reason:
+              'Thin left should not extend up into thick top zone at (39,40)',
+        );
       });
 
-      test('thick top + thin left, different colors — thick color preserved',
-          () async {
-        // Cell (2,2): thick W3 red top, thin W1 blue left
-        data.setStyle(
-          const CellCoordinate(2, 2),
-          const CellStyle(
-            borders: CellBorders(
-              top: BorderStyle(
-                color: Color(0xFFFF0000),
-                lineStyle: BorderLineStyle.solid,
-                width: 3.0,
-              ),
-              left: BorderStyle(
-                color: Color(0xFF0000FF),
-                lineStyle: BorderLineStyle.solid,
-                width: 1.0,
+      test(
+        'thick top + thin left, different colors — thick color preserved',
+        () async {
+          // Cell (2,2): thick W3 red top, thin W1 blue left
+          data.setStyle(
+            const CellCoordinate(2, 2),
+            const CellStyle(
+              borders: CellBorders(
+                top: BorderStyle(
+                  color: Color(0xFFFF0000),
+                  lineStyle: BorderLineStyle.solid,
+                  width: 3.0,
+                ),
+                left: BorderStyle(
+                  color: Color(0xFF0000FF),
+                  lineStyle: BorderLineStyle.solid,
+                  width: 1.0,
+                ),
               ),
             ),
-          ),
-        );
+          );
 
-        final pixels = await renderBorders(data);
+          final pixels = await renderBorders(data);
 
-        // Cell (2,2): bounds left=40, top=40, right=60, bottom=60
-        // Top W3 at y=40.5: fills y=39,40,41 — red
-        // Left W1 at x=40.5: fills x=40 — blue
-        //
-        // Pixel (40,39) belongs to thick red top border's stroke zone.
-        // The thin blue left border should NOT extend up and overwrite it.
-        expect(isColor(pixelAt(pixels, 40, 39), const Color(0xFFFF0000)), isTrue,
+          // Cell (2,2): bounds left=40, top=40, right=60, bottom=60
+          // Top W3 at y=40.5: fills y=39,40,41 — red
+          // Left W1 at x=40.5: fills x=40 — blue
+          //
+          // Pixel (40,39) belongs to thick red top border's stroke zone.
+          // The thin blue left border should NOT extend up and overwrite it.
+          expect(
+            isColor(pixelAt(pixels, 40, 39), const Color(0xFFFF0000)),
+            isTrue,
             reason:
-                'Thick red top pixel at (40,39) should be RED, not overwritten by blue left');
-        // Junction corner at (40,40) should be covered (both borders paint here).
-        expect(isNonWhite(pixelAt(pixels, 40, 40)), isTrue,
-            reason: 'Junction corner (40,40) should be covered');
-      });
+                'Thick red top pixel at (40,39) should be RED, not overwritten by blue left',
+          );
+          // Junction corner at (40,40) should be covered (both borders paint here).
+          expect(
+            isNonWhite(pixelAt(pixels, 40, 40)),
+            isTrue,
+            reason: 'Junction corner (40,40) should be covered',
+          );
+        },
+      );
 
-      test('thick left + thin top, different colors — thick color preserved',
-          () async {
-        // Cell (2,2): thin W1 red top, thick W3 blue left
-        data.setStyle(
-          const CellCoordinate(2, 2),
-          const CellStyle(
-            borders: CellBorders(
-              top: BorderStyle(
-                color: Color(0xFFFF0000),
-                lineStyle: BorderLineStyle.solid,
-                width: 1.0,
-              ),
-              left: BorderStyle(
-                color: Color(0xFF0000FF),
-                lineStyle: BorderLineStyle.solid,
-                width: 3.0,
+      test(
+        'thick left + thin top, different colors — thick color preserved',
+        () async {
+          // Cell (2,2): thin W1 red top, thick W3 blue left
+          data.setStyle(
+            const CellCoordinate(2, 2),
+            const CellStyle(
+              borders: CellBorders(
+                top: BorderStyle(
+                  color: Color(0xFFFF0000),
+                  lineStyle: BorderLineStyle.solid,
+                  width: 1.0,
+                ),
+                left: BorderStyle(
+                  color: Color(0xFF0000FF),
+                  lineStyle: BorderLineStyle.solid,
+                  width: 3.0,
+                ),
               ),
             ),
-          ),
-        );
+          );
 
-        final pixels = await renderBorders(data);
+          final pixels = await renderBorders(data);
 
-        // Cell (2,2): bounds left=40, top=40, right=60, bottom=60
-        // Left W3 at x=40.5: fills x=39,40,41 — blue
-        // Top W1 at y=40.5: fills y=40 — red
-        //
-        // Pixel (39,40) belongs to thick blue left border's stroke zone.
-        // The thin red top border should NOT extend left and overwrite it.
-        expect(isColor(pixelAt(pixels, 39, 40), const Color(0xFF0000FF)), isTrue,
+          // Cell (2,2): bounds left=40, top=40, right=60, bottom=60
+          // Left W3 at x=40.5: fills x=39,40,41 — blue
+          // Top W1 at y=40.5: fills y=40 — red
+          //
+          // Pixel (39,40) belongs to thick blue left border's stroke zone.
+          // The thin red top border should NOT extend left and overwrite it.
+          expect(
+            isColor(pixelAt(pixels, 39, 40), const Color(0xFF0000FF)),
+            isTrue,
             reason:
-                'Thick blue left pixel at (39,40) should be BLUE, not overwritten by red top');
-      });
+                'Thick blue left pixel at (39,40) should be BLUE, not overwritten by red top',
+          );
+        },
+      );
 
       test('equal-width different colors — both present, no gaps', () async {
         // Cell (2,2): W2 red top, W2 blue left
@@ -864,15 +1098,17 @@ void main() {
         // The 2x2 corner block at (40,40)-(41,41) should all be non-white.
         for (var x = 40; x <= 41; x++) {
           for (var y = 40; y <= 41; y++) {
-            expect(isNonWhite(pixelAt(pixels, x, y)), isTrue,
-                reason:
-                    'Equal-width corner pixel ($x,$y) should be filled — no gaps');
+            expect(
+              isNonWhite(pixelAt(pixels, x, y)),
+              isTrue,
+              reason:
+                  'Equal-width corner pixel ($x,$y) should be filled — no gaps',
+            );
           }
         }
       });
 
-      test('double top + thick left — double outer sub-line preserved',
-          () async {
+      test('double top + thick left — double outer sub-line preserved', () async {
         // Cell (2,2): double W=1 red top, solid W=3 blue left
         data.setStyle(
           const CellCoordinate(2, 2),
@@ -900,48 +1136,58 @@ void main() {
         //
         // The double border has higher priority than thick solid.
         // Pixel at (40,39) is the double's outer sub-line — should be RED.
-        expect(isColor(pixelAt(pixels, 40, 39), const Color(0xFFFF0000)), isTrue,
-            reason:
-                'Double outer sub-line at (40,39) should be RED, not overwritten by thick left');
+        expect(
+          isColor(pixelAt(pixels, 40, 39), const Color(0xFFFF0000)),
+          isTrue,
+          reason:
+              'Double outer sub-line at (40,39) should be RED, not overwritten by thick left',
+        );
         // Junction area at (40,40) should be covered.
-        expect(isNonWhite(pixelAt(pixels, 40, 40)), isTrue,
-            reason: 'Junction pixel (40,40) should be covered');
+        expect(
+          isNonWhite(pixelAt(pixels, 40, 40)),
+          isTrue,
+          reason: 'Junction pixel (40,40) should be covered',
+        );
       });
 
-      test('double top + thick left — double inner sub-line preserved',
-          () async {
-        // Same setup as above — double paints in a later pass than thick,
-        // so the inner sub-line at y=41 should also be RED.
-        data.setStyle(
-          const CellCoordinate(2, 2),
-          const CellStyle(
-            borders: CellBorders(
-              top: BorderStyle(
-                color: Color(0xFFFF0000),
-                lineStyle: BorderLineStyle.double,
-                width: 1.0,
-              ),
-              left: BorderStyle(
-                color: Color(0xFF0000FF),
-                lineStyle: BorderLineStyle.solid,
-                width: 3.0,
+      test(
+        'double top + thick left — double inner sub-line preserved',
+        () async {
+          // Same setup as above — double paints in a later pass than thick,
+          // so the inner sub-line at y=41 should also be RED.
+          data.setStyle(
+            const CellCoordinate(2, 2),
+            const CellStyle(
+              borders: CellBorders(
+                top: BorderStyle(
+                  color: Color(0xFFFF0000),
+                  lineStyle: BorderLineStyle.double,
+                  width: 1.0,
+                ),
+                left: BorderStyle(
+                  color: Color(0xFF0000FF),
+                  lineStyle: BorderLineStyle.solid,
+                  width: 3.0,
+                ),
               ),
             ),
-          ),
-        );
+          );
 
-        final pixels = await renderBorders(data);
+          final pixels = await renderBorders(data);
 
-        // Inner sub-line of double top at y=41, within the thick left's
-        // stroke zone (x=39..41). Because double paints after thick in
-        // multi-pass, the RED inner sub-line should be preserved.
-        expect(isColor(pixelAt(pixels, 40, 41), const Color(0xFFFF0000)), isTrue,
+          // Inner sub-line of double top at y=41, within the thick left's
+          // stroke zone (x=39..41). Because double paints after thick in
+          // multi-pass, the RED inner sub-line should be preserved.
+          expect(
+            isColor(pixelAt(pixels, 40, 41), const Color(0xFFFF0000)),
+            isTrue,
             reason:
-                'Double inner sub-line at (40,41) should be RED (multi-pass)');
-      });
+                'Double inner sub-line at (40,41) should be RED (multi-pass)',
+          );
+        },
+      );
 
-      test('double left + thick top — double outer sub-line preserved',
-          () async {
+      test('double left + thick top — double outer sub-line preserved', () async {
         // Cell (2,2): solid W=3 red top, double W=1 blue left
         data.setStyle(
           const CellCoordinate(2, 2),
@@ -968,9 +1214,12 @@ void main() {
         //
         // The double border has higher priority. Pixel at (39,40) is the
         // double's outer sub-line zone — should be BLUE.
-        expect(isColor(pixelAt(pixels, 39, 40), const Color(0xFF0000FF)), isTrue,
-            reason:
-                'Double outer sub-line at (39,40) should be BLUE, not overwritten by thick top');
+        expect(
+          isColor(pixelAt(pixels, 39, 40), const Color(0xFF0000FF)),
+          isTrue,
+          reason:
+              'Double outer sub-line at (39,40) should be BLUE, not overwritten by thick top',
+        );
       });
 
       test('double + normal — double preserved', () async {
@@ -1000,9 +1249,12 @@ void main() {
         //
         // Double has higher priority than normal solid.
         // Pixel at (40,39) is the double's outer sub-line — should be RED.
-        expect(isColor(pixelAt(pixels, 40, 39), const Color(0xFFFF0000)), isTrue,
-            reason:
-                'Double outer sub-line at (40,39) should be RED, not overwritten by normal left');
+        expect(
+          isColor(pixelAt(pixels, 40, 39), const Color(0xFFFF0000)),
+          isTrue,
+          reason:
+              'Double outer sub-line at (40,39) should be RED, not overwritten by normal left',
+        );
       });
     });
 
@@ -1028,10 +1280,7 @@ void main() {
 
         // Render with widthScale=2.0
         final recorder = ui.PictureRecorder();
-        final canvas = Canvas(
-          recorder,
-          const Rect.fromLTWH(0, 0, 100, 100),
-        );
+        final canvas = Canvas(recorder, const Rect.fromLTWH(0, 0, 100, 100));
         canvas.drawRect(
           const Rect.fromLTWH(0, 0, 100, 100),
           Paint()..color = const Color(0xFFFFFFFF),
@@ -1058,8 +1307,9 @@ void main() {
 
         final picture = recorder.endRecording();
         final image = await picture.toImage(100, 100);
-        final byteData =
-            await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+        final byteData = await image.toByteData(
+          format: ui.ImageByteFormat.rawRgba,
+        );
         picture.dispose();
         image.dispose();
 
@@ -1069,8 +1319,11 @@ void main() {
         for (var dy = 38; dy <= 43; dy++) {
           if (isNonWhite(pixelAt(byteData!, 50, dy))) nonWhiteCount++;
         }
-        expect(nonWhiteCount, greaterThanOrEqualTo(2),
-            reason: 'widthScale=2.0 should produce a 2px wide border line');
+        expect(
+          nonWhiteCount,
+          greaterThanOrEqualTo(2),
+          reason: 'widthScale=2.0 should produce a 2px wide border line',
+        );
       });
     });
   });

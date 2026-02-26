@@ -68,16 +68,15 @@ class CellFormatResult {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is CellFormatResult &&
-          other.text == text &&
-          other.color == color;
+      other is CellFormatResult && other.text == text && other.color == color;
 
   @override
   int get hashCode => Object.hash(text, color);
 
   @override
-  String toString() =>
-      color != null ? 'CellFormatResult($text, color=$color)' : 'CellFormatResult($text)';
+  String toString() => color != null
+      ? 'CellFormatResult($text, color=$color)'
+      : 'CellFormatResult($text)';
 }
 
 /// Locale-specific formatting data for cell formats.
@@ -149,16 +148,41 @@ class FormatLocale {
   /// German (Germany) locale.
   static const deDe = FormatLocale(
     monthNames: [
-      'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-      'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember',
+      'Januar',
+      'Februar',
+      'März',
+      'April',
+      'Mai',
+      'Juni',
+      'Juli',
+      'August',
+      'September',
+      'Oktober',
+      'November',
+      'Dezember',
     ],
     monthAbbr: [
-      'Jan', 'Feb', 'Mrz', 'Apr', 'Mai', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez',
+      'Jan',
+      'Feb',
+      'Mrz',
+      'Apr',
+      'Mai',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Dez',
     ],
     dayNames: [
-      'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag',
-      'Freitag', 'Samstag', 'Sonntag',
+      'Montag',
+      'Dienstag',
+      'Mittwoch',
+      'Donnerstag',
+      'Freitag',
+      'Samstag',
+      'Sonntag',
     ],
     dayAbbr: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'],
     decimalSeparator: ',',
@@ -170,16 +194,41 @@ class FormatLocale {
   /// French (France) locale.
   static const frFr = FormatLocale(
     monthNames: [
-      'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-      'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+      'janvier',
+      'février',
+      'mars',
+      'avril',
+      'mai',
+      'juin',
+      'juillet',
+      'août',
+      'septembre',
+      'octobre',
+      'novembre',
+      'décembre',
     ],
     monthAbbr: [
-      'janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin',
-      'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.',
+      'janv.',
+      'févr.',
+      'mars',
+      'avr.',
+      'mai',
+      'juin',
+      'juil.',
+      'août',
+      'sept.',
+      'oct.',
+      'nov.',
+      'déc.',
     ],
     dayNames: [
-      'lundi', 'mardi', 'mercredi', 'jeudi',
-      'vendredi', 'samedi', 'dimanche',
+      'lundi',
+      'mardi',
+      'mercredi',
+      'jeudi',
+      'vendredi',
+      'samedi',
+      'dimanche',
     ],
     dayAbbr: ['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'],
     decimalSeparator: ',',
@@ -191,17 +240,34 @@ class FormatLocale {
   /// Japanese locale.
   static const jaJp = FormatLocale(
     monthNames: [
-      '1月', '2月', '3月', '4月', '5月', '6月',
-      '7月', '8月', '9月', '10月', '11月', '12月',
+      '1月',
+      '2月',
+      '3月',
+      '4月',
+      '5月',
+      '6月',
+      '7月',
+      '8月',
+      '9月',
+      '10月',
+      '11月',
+      '12月',
     ],
     monthAbbr: [
-      '1月', '2月', '3月', '4月', '5月', '6月',
-      '7月', '8月', '9月', '10月', '11月', '12月',
+      '1月',
+      '2月',
+      '3月',
+      '4月',
+      '5月',
+      '6月',
+      '7月',
+      '8月',
+      '9月',
+      '10月',
+      '11月',
+      '12月',
     ],
-    dayNames: [
-      '月曜日', '火曜日', '水曜日', '木曜日',
-      '金曜日', '土曜日', '日曜日',
-    ],
+    dayNames: ['月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日', '日曜日'],
     dayAbbr: ['月', '火', '水', '木', '金', '土', '日'],
     currencySymbol: '¥',
   );
@@ -209,17 +275,34 @@ class FormatLocale {
   /// Chinese (Simplified) locale.
   static const zhCn = FormatLocale(
     monthNames: [
-      '一月', '二月', '三月', '四月', '五月', '六月',
-      '七月', '八月', '九月', '十月', '十一月', '十二月',
+      '一月',
+      '二月',
+      '三月',
+      '四月',
+      '五月',
+      '六月',
+      '七月',
+      '八月',
+      '九月',
+      '十月',
+      '十一月',
+      '十二月',
     ],
     monthAbbr: [
-      '1月', '2月', '3月', '4月', '5月', '6月',
-      '7月', '8月', '9月', '10月', '11月', '12月',
+      '1月',
+      '2月',
+      '3月',
+      '4月',
+      '5月',
+      '6月',
+      '7月',
+      '8月',
+      '9月',
+      '10月',
+      '11月',
+      '12月',
     ],
-    dayNames: [
-      '星期一', '星期二', '星期三', '星期四',
-      '星期五', '星期六', '星期日',
-    ],
+    dayNames: ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日'],
     dayAbbr: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
     currencySymbol: '¥',
   );
@@ -238,21 +321,45 @@ class FormatLocale {
   /// Looks up a locale by Windows LCID hex code (e.g., `"0409"` for en-US).
   ///
   /// Returns [enUs] if the code is not recognized.
-  static FormatLocale fromLcid(String code) =>
-      _lcidMap[code] ?? enUs;
+  static FormatLocale fromLcid(String code) => _lcidMap[code] ?? enUs;
 
   // Shared English name lists
   static const _enMonthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December',
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
   ];
   static const _enMonthAbbr = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
   static const _enDayNames = [
-    'Monday', 'Tuesday', 'Wednesday', 'Thursday',
-    'Friday', 'Saturday', 'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
   ];
   static const _enDayAbbr = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 }
@@ -297,134 +404,192 @@ class CellFormat {
   // --- Static const presets ---
 
   /// General format: default display behaviour.
-  static const general =
-      CellFormat(type: CellFormatType.general, formatCode: 'General');
+  static const general = CellFormat(
+    type: CellFormatType.general,
+    formatCode: 'General',
+  );
 
   /// Number with thousands separator, no decimals: 1,234
-  static const integer =
-      CellFormat(type: CellFormatType.number, formatCode: '#,##0');
+  static const integer = CellFormat(
+    type: CellFormatType.number,
+    formatCode: '#,##0',
+  );
 
   /// Number with 2 decimal places, no thousands: 1234.56
-  static const decimal =
-      CellFormat(type: CellFormatType.number, formatCode: '0.00');
+  static const decimal = CellFormat(
+    type: CellFormatType.number,
+    formatCode: '0.00',
+  );
 
   /// Number with thousands separator and 2 decimals: 1,234.56
-  static const number =
-      CellFormat(type: CellFormatType.number, formatCode: '#,##0.00');
+  static const number = CellFormat(
+    type: CellFormatType.number,
+    formatCode: '#,##0.00',
+  );
 
   /// Currency: $1,234.56
-  static const currency =
-      CellFormat(type: CellFormatType.currency, formatCode: r'$#,##0.00');
+  static const currency = CellFormat(
+    type: CellFormatType.currency,
+    formatCode: r'$#,##0.00',
+  );
 
   /// Percentage, no decimals: 42%
-  static const percentage =
-      CellFormat(type: CellFormatType.percentage, formatCode: '0%');
+  static const percentage = CellFormat(
+    type: CellFormatType.percentage,
+    formatCode: '0%',
+  );
 
   /// Percentage with 2 decimals: 42.56%
-  static const percentageDecimal =
-      CellFormat(type: CellFormatType.percentage, formatCode: '0.00%');
+  static const percentageDecimal = CellFormat(
+    type: CellFormatType.percentage,
+    formatCode: '0.00%',
+  );
 
   /// Scientific notation: 1.23E+04
-  static const scientific =
-      CellFormat(type: CellFormatType.scientific, formatCode: '0.00E+00');
+  static const scientific = CellFormat(
+    type: CellFormatType.scientific,
+    formatCode: '0.00E+00',
+  );
 
   /// ISO date: 2024-01-15
-  static const dateIso =
-      CellFormat(type: CellFormatType.date, formatCode: 'yyyy-MM-dd');
+  static const dateIso = CellFormat(
+    type: CellFormatType.date,
+    formatCode: 'yyyy-MM-dd',
+  );
 
   /// US date: 1/15/2024
-  static const dateUs =
-      CellFormat(type: CellFormatType.date, formatCode: 'm/d/yyyy');
+  static const dateUs = CellFormat(
+    type: CellFormatType.date,
+    formatCode: 'm/d/yyyy',
+  );
 
   /// Short date: 15-Jan-24
-  static const dateShort =
-      CellFormat(type: CellFormatType.date, formatCode: 'd-mmm-yy');
+  static const dateShort = CellFormat(
+    type: CellFormatType.date,
+    formatCode: 'd-mmm-yy',
+  );
 
   /// Short date with 4-digit year: 15-Jan-2024
-  static const dateShortLong =
-      CellFormat(type: CellFormatType.date, formatCode: 'd-mmm-yyyy');
+  static const dateShortLong = CellFormat(
+    type: CellFormatType.date,
+    formatCode: 'd-mmm-yyyy',
+  );
 
   /// Slash-separated with abbreviated month: 15/Jan/2024
-  static const dateSlashMonth =
-      CellFormat(type: CellFormatType.date, formatCode: 'd/mmm/yyyy');
+  static const dateSlashMonth = CellFormat(
+    type: CellFormatType.date,
+    formatCode: 'd/mmm/yyyy',
+  );
 
   /// Full month name date: 15 January 2024
-  static const dateLong =
-      CellFormat(type: CellFormatType.date, formatCode: 'd mmmm yyyy');
+  static const dateLong = CellFormat(
+    type: CellFormatType.date,
+    formatCode: 'd mmmm yyyy',
+  );
 
   /// EU date with slashes: 15/1/2024
-  static const dateEu =
-      CellFormat(type: CellFormatType.date, formatCode: 'd/m/yyyy');
+  static const dateEu = CellFormat(
+    type: CellFormatType.date,
+    formatCode: 'd/m/yyyy',
+  );
 
   /// US date with dashes: 1-15-2024
-  static const dateUsDash =
-      CellFormat(type: CellFormatType.date, formatCode: 'm-d-yyyy');
+  static const dateUsDash = CellFormat(
+    type: CellFormatType.date,
+    formatCode: 'm-d-yyyy',
+  );
 
   /// EU date with dashes: 15-1-2024
-  static const dateEuDash =
-      CellFormat(type: CellFormatType.date, formatCode: 'd-m-yyyy');
+  static const dateEuDash = CellFormat(
+    type: CellFormatType.date,
+    formatCode: 'd-m-yyyy',
+  );
 
   /// US date with dots: 1.15.2024
-  static const dateUsDot =
-      CellFormat(type: CellFormatType.date, formatCode: 'm.d.yyyy');
+  static const dateUsDot = CellFormat(
+    type: CellFormatType.date,
+    formatCode: 'm.d.yyyy',
+  );
 
   /// EU date with dots: 15.1.2024
-  static const dateEuDot =
-      CellFormat(type: CellFormatType.date, formatCode: 'd.m.yyyy');
+  static const dateEuDot = CellFormat(
+    type: CellFormatType.date,
+    formatCode: 'd.m.yyyy',
+  );
 
   /// US date zero-padded: 01/15/2024
-  static const dateUsPadded =
-      CellFormat(type: CellFormatType.date, formatCode: 'mm/dd/yyyy');
+  static const dateUsPadded = CellFormat(
+    type: CellFormatType.date,
+    formatCode: 'mm/dd/yyyy',
+  );
 
   /// EU date zero-padded: 15/01/2024
-  static const dateEuPadded =
-      CellFormat(type: CellFormatType.date, formatCode: 'dd/mm/yyyy');
+  static const dateEuPadded = CellFormat(
+    type: CellFormatType.date,
+    formatCode: 'dd/mm/yyyy',
+  );
 
   /// Year-month-day with abbreviated month: 2024-Jan-15
-  static const dateYearMonthDay =
-      CellFormat(type: CellFormatType.date, formatCode: 'yyyy-mmm-dd');
+  static const dateYearMonthDay = CellFormat(
+    type: CellFormatType.date,
+    formatCode: 'yyyy-mmm-dd',
+  );
 
   /// Month-year: Jan-24
-  static const dateMonthYear =
-      CellFormat(type: CellFormatType.date, formatCode: 'mmm-yy');
+  static const dateMonthYear = CellFormat(
+    type: CellFormatType.date,
+    formatCode: 'mmm-yy',
+  );
 
   /// 24-hour time: 14:30
-  static const time24 =
-      CellFormat(type: CellFormatType.time, formatCode: 'H:mm');
+  static const time24 = CellFormat(
+    type: CellFormatType.time,
+    formatCode: 'H:mm',
+  );
 
   /// 24-hour time with seconds: 14:30:05
-  static const time24Seconds =
-      CellFormat(type: CellFormatType.time, formatCode: 'H:mm:ss');
+  static const time24Seconds = CellFormat(
+    type: CellFormatType.time,
+    formatCode: 'H:mm:ss',
+  );
 
   /// 12-hour time: 2:30 PM
-  static const time12 =
-      CellFormat(type: CellFormatType.time, formatCode: 'h:mm AM/PM');
+  static const time12 = CellFormat(
+    type: CellFormatType.time,
+    formatCode: 'h:mm AM/PM',
+  );
 
   /// Text pass-through.
-  static const text =
-      CellFormat(type: CellFormatType.text, formatCode: '@');
+  static const text = CellFormat(type: CellFormatType.text, formatCode: '@');
 
   /// Basic fraction: # ?/?
-  static const fraction =
-      CellFormat(type: CellFormatType.fraction, formatCode: '# ?/?');
+  static const fraction = CellFormat(
+    type: CellFormatType.fraction,
+    formatCode: '# ?/?',
+  );
 
   /// Duration hours:minutes:seconds — 1:30:05
-  static const duration =
-      CellFormat(type: CellFormatType.duration, formatCode: '[h]:mm:ss');
+  static const duration = CellFormat(
+    type: CellFormatType.duration,
+    formatCode: '[h]:mm:ss',
+  );
 
   /// Duration hours:minutes — 1:30
-  static const durationShort =
-      CellFormat(type: CellFormatType.duration, formatCode: '[h]:mm');
+  static const durationShort = CellFormat(
+    type: CellFormatType.duration,
+    formatCode: '[h]:mm',
+  );
 
   /// Duration minutes:seconds — 90:05
-  static const durationMinSec =
-      CellFormat(type: CellFormatType.duration, formatCode: '[m]:ss');
+  static const durationMinSec = CellFormat(
+    type: CellFormatType.duration,
+    formatCode: '[m]:ss',
+  );
 
   /// Formats a [CellValue] according to this format code.
   ///
   /// Convenience wrapper around [formatRich] that returns just the text.
-  String format(CellValue value) =>
-      formatRich(value).text;
+  String format(CellValue value) => formatRich(value).text;
 
   /// Formats a [CellValue] with rich metadata including color overrides.
   ///
@@ -438,9 +603,12 @@ class CellFormat {
     CellValue value, {
     double? availableWidth,
     FormatLocale? locale,
-  }) =>
-      _CellFormatEngine.formatRich(value, this,
-          availableWidth: availableWidth, locale: locale);
+  }) => _CellFormatEngine.formatRich(
+    value,
+    this,
+    availableWidth: availableWidth,
+    locale: locale,
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -475,37 +643,37 @@ class DateFormatDetector {
   static List<CellFormat> _candidates({required bool dayFirst}) {
     if (dayFirst) {
       return const [
-        CellFormat.dateIso,           // yyyy-MM-dd
-        CellFormat.dateYearMonthDay,  // yyyy-mmm-dd
-        CellFormat.dateShort,         // d-mmm-yy
-        CellFormat.dateShortLong,     // d-mmm-yyyy
-        CellFormat.dateSlashMonth,    // d/mmm/yyyy
-        CellFormat.dateLong,          // d mmmm yyyy
-        CellFormat.dateEuPadded,      // dd/mm/yyyy
-        CellFormat.dateEu,            // d/m/yyyy
-        CellFormat.dateUsPadded,      // mm/dd/yyyy
-        CellFormat.dateUs,            // m/d/yyyy
-        CellFormat.dateEuDash,        // d-m-yyyy
-        CellFormat.dateUsDash,        // m-d-yyyy
-        CellFormat.dateEuDot,         // d.m.yyyy
-        CellFormat.dateUsDot,         // m.d.yyyy
+        CellFormat.dateIso, // yyyy-MM-dd
+        CellFormat.dateYearMonthDay, // yyyy-mmm-dd
+        CellFormat.dateShort, // d-mmm-yy
+        CellFormat.dateShortLong, // d-mmm-yyyy
+        CellFormat.dateSlashMonth, // d/mmm/yyyy
+        CellFormat.dateLong, // d mmmm yyyy
+        CellFormat.dateEuPadded, // dd/mm/yyyy
+        CellFormat.dateEu, // d/m/yyyy
+        CellFormat.dateUsPadded, // mm/dd/yyyy
+        CellFormat.dateUs, // m/d/yyyy
+        CellFormat.dateEuDash, // d-m-yyyy
+        CellFormat.dateUsDash, // m-d-yyyy
+        CellFormat.dateEuDot, // d.m.yyyy
+        CellFormat.dateUsDot, // m.d.yyyy
       ];
     }
     return const [
-      CellFormat.dateIso,           // yyyy-MM-dd
-      CellFormat.dateYearMonthDay,  // yyyy-mmm-dd
-      CellFormat.dateShort,         // d-mmm-yy
-      CellFormat.dateShortLong,     // d-mmm-yyyy
-      CellFormat.dateSlashMonth,    // d/mmm/yyyy
-      CellFormat.dateLong,          // d mmmm yyyy
-      CellFormat.dateUsPadded,      // mm/dd/yyyy
-      CellFormat.dateUs,            // m/d/yyyy
-      CellFormat.dateEuPadded,      // dd/mm/yyyy
-      CellFormat.dateEu,            // d/m/yyyy
-      CellFormat.dateUsDash,        // m-d-yyyy
-      CellFormat.dateEuDash,        // d-m-yyyy
-      CellFormat.dateUsDot,         // m.d.yyyy
-      CellFormat.dateEuDot,         // d.m.yyyy
+      CellFormat.dateIso, // yyyy-MM-dd
+      CellFormat.dateYearMonthDay, // yyyy-mmm-dd
+      CellFormat.dateShort, // d-mmm-yy
+      CellFormat.dateShortLong, // d-mmm-yyyy
+      CellFormat.dateSlashMonth, // d/mmm/yyyy
+      CellFormat.dateLong, // d mmmm yyyy
+      CellFormat.dateUsPadded, // mm/dd/yyyy
+      CellFormat.dateUs, // m/d/yyyy
+      CellFormat.dateEuPadded, // dd/mm/yyyy
+      CellFormat.dateEu, // d/m/yyyy
+      CellFormat.dateUsDash, // m-d-yyyy
+      CellFormat.dateEuDash, // d-m-yyyy
+      CellFormat.dateUsDot, // m.d.yyyy
+      CellFormat.dateEuDot, // d.m.yyyy
     ];
   }
 
@@ -568,7 +736,9 @@ class NumberFormatDetector {
         final hasDecimal = numStr.contains('.');
         return (
           value: CellValue.number(number / 100),
-          format: hasDecimal ? CellFormat.percentageDecimal : CellFormat.percentage,
+          format: hasDecimal
+              ? CellFormat.percentageDecimal
+              : CellFormat.percentage,
         );
       }
     }
@@ -581,10 +751,7 @@ class NumberFormatDetector {
       final afterSymbol = trimmed.substring(cs.length).trim();
       final parsed = _parseFormattedNumber(afterSymbol, ts, ds);
       if (parsed != null) {
-        return (
-          value: CellValue.number(parsed),
-          format: CellFormat.currency,
-        );
+        return (value: CellValue.number(parsed), format: CellFormat.currency);
       }
     }
 
@@ -674,8 +841,8 @@ class DurationFormatDetector {
   DurationFormatDetector._();
 
   static const _candidates = [
-    CellFormat.duration,       // [h]:mm:ss
-    CellFormat.durationShort,  // [h]:mm
+    CellFormat.duration, // [h]:mm:ss
+    CellFormat.durationShort, // [h]:mm
     CellFormat.durationMinSec, // [m]:ss
   ];
 
@@ -843,18 +1010,30 @@ class _CellFormatEngine {
     switch (value.type) {
       case CellValueType.number:
         return _formatNumberRich(
-            value.rawValue as double, fmt, availableWidth, loc);
+          value.rawValue as double,
+          fmt,
+          availableWidth,
+          loc,
+        );
       case CellValueType.date:
         return CellFormatResult(
-            _formatDateTime(value.rawValue as DateTime, fmt, loc));
+          _formatDateTime(value.rawValue as DateTime, fmt, loc),
+        );
       case CellValueType.duration:
-        return CellFormatResult(_formatDuration(value.rawValue as Duration, fmt));
+        return CellFormatResult(
+          _formatDuration(value.rawValue as Duration, fmt),
+        );
       case CellValueType.text:
         if (fmt.type == CellFormatType.number ||
             fmt.type == CellFormatType.currency ||
             fmt.type == CellFormatType.accounting) {
           return CellFormatResult(
-              _formatTextSection(value.rawValue as String, fmt.formatCode, availableWidth));
+            _formatTextSection(
+              value.rawValue as String,
+              fmt.formatCode,
+              availableWidth,
+            ),
+          );
         }
         return CellFormatResult(value.rawValue as String);
       case CellValueType.boolean:
@@ -873,7 +1052,9 @@ class _CellFormatEngine {
   ) {
     switch (fmt.type) {
       case CellFormatType.percentage:
-        return CellFormatResult(_formatPercentage(number, fmt.formatCode, locale));
+        return CellFormatResult(
+          _formatPercentage(number, fmt.formatCode, locale),
+        );
       case CellFormatType.scientific:
         return CellFormatResult(_formatScientific(number, fmt.formatCode));
       case CellFormatType.fraction:
@@ -881,13 +1062,22 @@ class _CellFormatEngine {
       case CellFormatType.number:
       case CellFormatType.currency:
       case CellFormatType.accounting:
-        return _formatWithSections(number, fmt.formatCode, availableWidth, locale);
+        return _formatWithSections(
+          number,
+          fmt.formatCode,
+          availableWidth,
+          locale,
+        );
       case CellFormatType.custom:
       case CellFormatType.special:
-        return CellFormatResult(_formatNumericCode(number, fmt.formatCode, locale));
+        return CellFormatResult(
+          _formatNumericCode(number, fmt.formatCode, locale),
+        );
       case CellFormatType.date:
       case CellFormatType.time:
-        return CellFormatResult(_formatNumericCode(number, fmt.formatCode, locale));
+        return CellFormatResult(
+          _formatNumericCode(number, fmt.formatCode, locale),
+        );
       case CellFormatType.duration:
       case CellFormatType.general:
       case CellFormatType.text:
@@ -941,7 +1131,9 @@ class _CellFormatEngine {
   /// In Excel, commas after the last digit placeholder (`0`, `#`, `?`) scale
   /// the number by dividing by 1000 per comma. E.g., `#,##0,` divides by
   /// 1000; `#,##0,,` divides by 1,000,000.
-  static ({int scalerCount, String cleanedCode}) _detectCommaScaler(String code) {
+  static ({int scalerCount, String cleanedCode}) _detectCommaScaler(
+    String code,
+  ) {
     // Find the position of the last digit placeholder
     var lastDigitPos = -1;
     for (var i = code.length - 1; i >= 0; i--) {
@@ -963,7 +1155,8 @@ class _CellFormatEngine {
     if (scalerCount == 0) return (scalerCount: 0, cleanedCode: code);
 
     // Remove the scaler commas from the code
-    final cleaned = code.substring(0, lastDigitPos + 1) +
+    final cleaned =
+        code.substring(0, lastDigitPos + 1) +
         code.substring(lastDigitPos + 1 + scalerCount);
     return (scalerCount: scalerCount, cleanedCode: cleaned);
   }
@@ -991,13 +1184,16 @@ class _CellFormatEngine {
 
     // Parse decimal places from code (before the % sign)
     final percentIndex = code.indexOf('%');
-    final beforePercent =
-        percentIndex > 0 ? code.substring(0, percentIndex) : code;
+    final beforePercent = percentIndex > 0
+        ? code.substring(0, percentIndex)
+        : code;
     final dotIndex = beforePercent.indexOf('.');
     int decimalPlaces = 0;
     if (dotIndex != -1) {
-      decimalPlaces =
-          beforePercent.substring(dotIndex + 1).replaceAll(RegExp(r'[^0#]'), '').length;
+      decimalPlaces = beforePercent
+          .substring(dotIndex + 1)
+          .replaceAll(RegExp(r'[^0#]'), '')
+          .length;
     }
 
     var formatted = percentage.toStringAsFixed(decimalPlaces);
@@ -1030,8 +1226,10 @@ class _CellFormatEngine {
       final beforeE = code.substring(0, actualEIndex);
       final dotIndex = beforeE.indexOf('.');
       if (dotIndex != -1) {
-        decimalPlaces =
-            beforeE.substring(dotIndex + 1).replaceAll(RegExp(r'[^0#]'), '').length;
+        decimalPlaces = beforeE
+            .substring(dotIndex + 1)
+            .replaceAll(RegExp(r'[^0#]'), '')
+            .length;
       }
     }
 
@@ -1097,7 +1295,9 @@ class _CellFormatEngine {
       }
 
       // Check for conditions: >100, <=50, =0, <>0
-      final condMatch = RegExp(r'^(>=|<=|<>|>|<|=)(.+)$').firstMatch(bracketContent);
+      final condMatch = RegExp(
+        r'^(>=|<=|<>|>|<|=)(.+)$',
+      ).firstMatch(bracketContent);
       if (condMatch != null) {
         final op = condMatch.group(1)!;
         final threshold = double.tryParse(condMatch.group(2)!);
@@ -1263,7 +1463,12 @@ class _CellFormatEngine {
         .firstOrNull;
 
     final result = _applyFormatSection(
-        section, value, availableWidth, effectiveLocale, currencyOverride);
+      section,
+      value,
+      availableWidth,
+      effectiveLocale,
+      currencyOverride,
+    );
     final text = prependMinus ? '-$result' : result;
     return CellFormatResult(text, color: sectionColor);
   }
@@ -1276,8 +1481,7 @@ class _CellFormatEngine {
   /// - `_X` — space equal to width of character X (→ single space)
   /// - `*X` — repeat fill character
   /// - `?` — digit placeholder showing space for insignificant zeros
-  static String _placeholder(int index) =>
-      String.fromCharCode(0xE000 + index);
+  static String _placeholder(int index) => String.fromCharCode(0xE000 + index);
 
   /// Sentinel for *X repeat-fill position.
   static const _fillPlaceholder = '\uE100';
@@ -1320,13 +1524,11 @@ class _CellFormatEngine {
     code = processed.toString();
 
     // Step 2: Replace _X with single space (skip PUA placeholder chars)
-    code = code.replaceAllMapped(
-        RegExp('_[^\uE000-\uE0FF]'), (_) => ' ');
+    code = code.replaceAllMapped(RegExp('_[^\uE000-\uE0FF]'), (_) => ' ');
 
     // Step 3: Replace *X with fill placeholder + character
     String? fillChar;
-    code = code.replaceAllMapped(
-        RegExp('\\*([^\uE000-\uE0FF])'), (m) {
+    code = code.replaceAllMapped(RegExp('\\*([^\uE000-\uE0FF])'), (m) {
       fillChar = m.group(1);
       return _fillPlaceholder;
     });
@@ -1358,7 +1560,11 @@ class _CellFormatEngine {
     final numericPattern = RegExp(r'[#0][#0,]*\.?[0#?]*');
     final match = numericPattern.firstMatch(code);
     if (match != null) {
-      final formatted = _formatNumericCode(effectiveNumber, match.group(0)!, locale);
+      final formatted = _formatNumericCode(
+        effectiveNumber,
+        match.group(0)!,
+        locale,
+      );
       code = code.replaceFirst(numericPattern, formatted);
     }
 
@@ -1450,13 +1656,11 @@ class _CellFormatEngine {
     var result = processed.toString();
 
     // Replace _X with single space (skip PUA placeholder chars)
-    result = result.replaceAllMapped(
-        RegExp('_[^\uE000-\uE0FF]'), (_) => ' ');
+    result = result.replaceAllMapped(RegExp('_[^\uE000-\uE0FF]'), (_) => ' ');
 
     // Replace *X with fill placeholder
     String? fillChar;
-    result = result.replaceAllMapped(
-        RegExp('\\*([^\uE000-\uE0FF])'), (m) {
+    result = result.replaceAllMapped(RegExp('\\*([^\uE000-\uE0FF])'), (m) {
       fillChar = m.group(1);
       return _fillPlaceholder;
     });
@@ -1496,7 +1700,9 @@ class _CellFormatEngine {
     }
 
     // Parse fraction format to determine constraints
-    final fractionMatch = RegExp(r'([?#]+)\s*/\s*([?#0-9]+)').firstMatch(formatCode);
+    final fractionMatch = RegExp(
+      r'([?#]+)\s*/\s*([?#0-9]+)',
+    ).firstMatch(formatCode);
     int maxDen = 9; // default: single digit
     int? fixedDen;
 
@@ -1761,15 +1967,19 @@ class _CellFormatEngine {
       if (t.type == _DateToken.mmAmbig || t.type == _DateToken.mAmbig) {
         final padded = t.type == _DateToken.mmAmbig;
         if (type == CellFormatType.time || _isMinuteContext(tokens, i)) {
-          result.add(_FmtToken(
-            padded ? _DateToken.minPadded : _DateToken.minUnpadded,
-            t.raw,
-          ));
+          result.add(
+            _FmtToken(
+              padded ? _DateToken.minPadded : _DateToken.minUnpadded,
+              t.raw,
+            ),
+          );
         } else {
-          result.add(_FmtToken(
-            padded ? _DateToken.monPadded : _DateToken.monUnpadded,
-            t.raw,
-          ));
+          result.add(
+            _FmtToken(
+              padded ? _DateToken.monPadded : _DateToken.monUnpadded,
+              t.raw,
+            ),
+          );
         }
       } else {
         result.add(t);
@@ -1875,7 +2085,11 @@ class _CellFormatEngine {
   }
 
   /// Formats a DateTime value using date/time format codes.
-  static String _formatDateTime(DateTime date, CellFormat fmt, FormatLocale locale) {
+  static String _formatDateTime(
+    DateTime date,
+    CellFormat fmt,
+    FormatLocale locale,
+  ) {
     // Step 1: Extract literals into PUA placeholders
     final (stripped, literals) = _extractLiterals(fmt.formatCode);
 
@@ -1886,11 +2100,13 @@ class _CellFormatEngine {
     tokens = _resolveAmbiguousM(tokens, fmt.type);
 
     // Step 4: Detect AM/PM
-    final hasAmPm = tokens.any((t) =>
-        t.type == _DateToken.ampmUpper ||
-        t.type == _DateToken.ampmLower ||
-        t.type == _DateToken.apUpper ||
-        t.type == _DateToken.apLower);
+    final hasAmPm = tokens.any(
+      (t) =>
+          t.type == _DateToken.ampmUpper ||
+          t.type == _DateToken.ampmLower ||
+          t.type == _DateToken.apUpper ||
+          t.type == _DateToken.apLower,
+    );
     final isPM = date.hour >= 12;
     var hour12 = date.hour % 12;
     if (hour12 == 0) hour12 = 12;
@@ -1913,22 +2129,35 @@ class _CellFormatEngine {
 
 /// Classifies every token in a date/time format string.
 enum _DateToken {
-  yyyy, yy,
-  mmmmm, mmmm, mmm,
-  monthPadded,  // MM — explicit month, never ambiguous
-  mmAmbig,      // mm — ambiguous, resolved to monPadded or minPadded
-  mAmbig,       // m — ambiguous, resolved to monUnpadded or minUnpadded
-  monPadded, monUnpadded,   // resolved month tokens
-  minPadded, minUnpadded,   // resolved minute tokens
-  dddd, ddd, dd, d,
-  hourH24Padded, hourH24,   // HH, H — 24-hour
-  hh, h,                    // hh, h — 12-hour (or 24-hour without AM/PM)
-  ss, s,
-  fracSec1,                 // .0 — tenths of a second
-  fracSec2,                 // .00 — hundredths of a second
-  fracSec3,                 // .000 — milliseconds
-  ampmUpper, ampmLower,     // AM/PM, am/pm
-  apUpper, apLower,         // A/P, a/p
+  yyyy,
+  yy,
+  mmmmm,
+  mmmm,
+  mmm,
+  monthPadded, // MM — explicit month, never ambiguous
+  mmAmbig, // mm — ambiguous, resolved to monPadded or minPadded
+  mAmbig, // m — ambiguous, resolved to monUnpadded or minUnpadded
+  monPadded,
+  monUnpadded, // resolved month tokens
+  minPadded,
+  minUnpadded, // resolved minute tokens
+  dddd,
+  ddd,
+  dd,
+  d,
+  hourH24Padded,
+  hourH24, // HH, H — 24-hour
+  hh,
+  h, // hh, h — 12-hour (or 24-hour without AM/PM)
+  ss,
+  s,
+  fracSec1, // .0 — tenths of a second
+  fracSec2, // .00 — hundredths of a second
+  fracSec3, // .000 — milliseconds
+  ampmUpper,
+  ampmLower, // AM/PM, am/pm
+  apUpper,
+  apLower, // A/P, a/p
   literal,
 }
 

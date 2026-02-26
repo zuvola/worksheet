@@ -56,7 +56,10 @@ void main() {
         );
 
         // Trying to scroll to -20 (below min)
-        final boundaryCondition = physics.applyBoundaryConditions(position, -20);
+        final boundaryCondition = physics.applyBoundaryConditions(
+          position,
+          -20,
+        );
         // Should return -20 (the overflow amount)
         expect(boundaryCondition, -20.0);
       });
@@ -74,7 +77,10 @@ void main() {
         );
 
         // Trying to scroll to 1020 (above max)
-        final boundaryCondition = physics.applyBoundaryConditions(position, 1020);
+        final boundaryCondition = physics.applyBoundaryConditions(
+          position,
+          1020,
+        );
         expect(boundaryCondition, 20.0);
       });
 
@@ -90,7 +96,10 @@ void main() {
           devicePixelRatio: 1.0,
         );
 
-        final boundaryCondition = physics.applyBoundaryConditions(position, 510);
+        final boundaryCondition = physics.applyBoundaryConditions(
+          position,
+          510,
+        );
         expect(boundaryCondition, 0.0);
       });
     });
@@ -143,11 +152,17 @@ void main() {
         );
 
         // Below threshold
-        final slowSimulation = physics.createBallisticSimulation(position, 100.0);
+        final slowSimulation = physics.createBallisticSimulation(
+          position,
+          100.0,
+        );
         expect(slowSimulation, isNull);
 
         // Above threshold
-        final fastSimulation = physics.createBallisticSimulation(position, 600.0);
+        final fastSimulation = physics.createBallisticSimulation(
+          position,
+          600.0,
+        );
         expect(fastSimulation, isNotNull);
       });
     });

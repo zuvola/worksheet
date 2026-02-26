@@ -16,19 +16,22 @@ void main() {
         expect(anchor.viewportOffset, const Offset(100, 50));
       });
 
-      test('fromFocalPoint calculates worksheet position from scroll and zoom', () {
-        // Viewport focal point at (200, 100) with scroll offset (1000, 500) at zoom 2.0
-        // Worksheet position = (scrollOffset + focalPoint) / zoom
-        // = (1000 + 200, 500 + 100) / 2.0 = (600, 300)
-        final anchor = ScrollAnchor.fromFocalPoint(
-          focalPoint: const Offset(200, 100),
-          scrollOffset: const Offset(1000, 500),
-          zoom: 2.0,
-        );
+      test(
+        'fromFocalPoint calculates worksheet position from scroll and zoom',
+        () {
+          // Viewport focal point at (200, 100) with scroll offset (1000, 500) at zoom 2.0
+          // Worksheet position = (scrollOffset + focalPoint) / zoom
+          // = (1000 + 200, 500 + 100) / 2.0 = (600, 300)
+          final anchor = ScrollAnchor.fromFocalPoint(
+            focalPoint: const Offset(200, 100),
+            scrollOffset: const Offset(1000, 500),
+            zoom: 2.0,
+          );
 
-        expect(anchor.worksheetPosition, const Offset(600, 300));
-        expect(anchor.viewportOffset, const Offset(200, 100));
-      });
+          expect(anchor.worksheetPosition, const Offset(600, 300));
+          expect(anchor.viewportOffset, const Offset(200, 100));
+        },
+      );
 
       test('fromFocalPoint works at 100% zoom', () {
         final anchor = ScrollAnchor.fromFocalPoint(

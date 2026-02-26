@@ -73,32 +73,32 @@ abstract mixin class WorksheetActionContext {
       mutation();
       return;
     }
-    final selBefore = (
-      selectionController.anchor,
-      selectionController.focus,
+    final selBefore = (selectionController.anchor, selectionController.focus);
+    final (cellsBefore, mergesBefore) = UndoSnapshot.capture(
+      worksheetData,
+      affectedRange,
     );
-    final (cellsBefore, mergesBefore) =
-        UndoSnapshot.capture(worksheetData, affectedRange);
 
     mutation();
 
-    final selAfter = (
-      selectionController.anchor,
-      selectionController.focus,
+    final selAfter = (selectionController.anchor, selectionController.focus);
+    final (cellsAfter, mergesAfter) = UndoSnapshot.capture(
+      worksheetData,
+      affectedRange,
     );
-    final (cellsAfter, mergesAfter) =
-        UndoSnapshot.capture(worksheetData, affectedRange);
 
-    um.push(UndoEntry(
-      label: label,
-      affectedRange: affectedRange,
-      cellsBefore: cellsBefore,
-      mergesBefore: mergesBefore,
-      selectionBefore: selBefore,
-      cellsAfter: cellsAfter,
-      mergesAfter: mergesAfter,
-      selectionAfter: selAfter,
-    ));
+    um.push(
+      UndoEntry(
+        label: label,
+        affectedRange: affectedRange,
+        cellsBefore: cellsBefore,
+        mergesBefore: mergesBefore,
+        selectionBefore: selBefore,
+        cellsAfter: cellsAfter,
+        mergesAfter: mergesAfter,
+        selectionAfter: selAfter,
+      ),
+    );
   }
 
   /// Performs an undo operation: restores the before-state of the most
@@ -111,7 +111,8 @@ abstract mixin class WorksheetActionContext {
 
     // Only restore cells/merges when the entry has cell data.
     // Resize-only entries have empty cells and merges.
-    final hasCellData = entry.cellsBefore.isNotEmpty ||
+    final hasCellData =
+        entry.cellsBefore.isNotEmpty ||
         entry.mergesBefore.isNotEmpty ||
         entry.cellsAfter.isNotEmpty ||
         entry.mergesAfter.isNotEmpty;
@@ -150,7 +151,8 @@ abstract mixin class WorksheetActionContext {
     final entry = um.redo();
     if (entry == null) return;
 
-    final hasCellData = entry.cellsBefore.isNotEmpty ||
+    final hasCellData =
+        entry.cellsBefore.isNotEmpty ||
         entry.mergesBefore.isNotEmpty ||
         entry.cellsAfter.isNotEmpty ||
         entry.mergesAfter.isNotEmpty;

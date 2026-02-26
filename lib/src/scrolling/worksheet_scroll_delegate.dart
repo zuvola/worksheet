@@ -42,7 +42,9 @@ class WorksheetScrollDelegate {
       contentHeight: layoutSolver.totalHeight,
     );
 
-    horizontalController = ScrollController(initialScrollOffset: initialScrollX);
+    horizontalController = ScrollController(
+      initialScrollOffset: initialScrollX,
+    );
     verticalController = ScrollController(initialScrollOffset: initialScrollY);
   }
 
@@ -129,10 +131,9 @@ class WorksheetScrollDelegate {
     bool animate = false,
   }) {
     final cellBounds = layoutSolver.getCellBounds(
-      layoutSolver.getCellAt(Offset(
-        layoutSolver.getColumnLeft(column),
-        layoutSolver.getRowTop(row),
-      ))!,
+      layoutSolver.getCellAt(
+        Offset(layoutSolver.getColumnLeft(column), layoutSolver.getRowTop(row)),
+      )!,
     );
 
     final targetX = cellBounds.left * zoom;
@@ -158,10 +159,9 @@ class WorksheetScrollDelegate {
     bool animate = false,
   }) {
     final cellBounds = layoutSolver.getCellBounds(
-      layoutSolver.getCellAt(Offset(
-        layoutSolver.getColumnLeft(column),
-        layoutSolver.getRowTop(row),
-      ))!,
+      layoutSolver.getCellAt(
+        Offset(layoutSolver.getColumnLeft(column), layoutSolver.getRowTop(row)),
+      )!,
     );
 
     // Convert to screen coordinates

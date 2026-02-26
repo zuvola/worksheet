@@ -43,8 +43,7 @@ void main() {
   }
 
   group('Formula autocomplete integration', () {
-    testWidgets('no autocomplete dropdown when config is null',
-        (tester) async {
+    testWidgets('no autocomplete dropdown when config is null', (tester) async {
       await tester.pumpWidget(buildTestWorksheet(config: null));
       await tester.pump();
 
@@ -52,8 +51,9 @@ void main() {
       expect(find.byType(AutocompleteDropdown), findsNothing);
     });
 
-    testWidgets('autocomplete controller created when config provided',
-        (tester) async {
+    testWidgets('autocomplete controller created when config provided', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildTestWorksheet());
       await tester.pump();
 
@@ -61,8 +61,9 @@ void main() {
       expect(find.byType(Worksheet), findsOneWidget);
     });
 
-    testWidgets('autocomplete dropdown not shown when not editing',
-        (tester) async {
+    testWidgets('autocomplete dropdown not shown when not editing', (
+      tester,
+    ) async {
       await tester.pumpWidget(buildTestWorksheet());
       await tester.pump();
 
@@ -110,8 +111,7 @@ void main() {
       expect(controller.isVisible, isFalse);
     });
 
-    testWidgets('AutocompleteController backspace re-filters',
-        (tester) async {
+    testWidgets('AutocompleteController backspace re-filters', (tester) async {
       final controller = AutocompleteController(config: autocompleteConfig);
       addTearDown(controller.dispose);
 
@@ -125,8 +125,9 @@ void main() {
       expect(controller.matches.length, 3); // SUM, SUMIF, SUMPRODUCT
     });
 
-    testWidgets('AutocompleteController no dropdown when typing digits',
-        (tester) async {
+    testWidgets('AutocompleteController no dropdown when typing digits', (
+      tester,
+    ) async {
       final controller = AutocompleteController(config: autocompleteConfig);
       addTearDown(controller.dispose);
 

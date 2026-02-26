@@ -82,24 +82,21 @@ abstract class WorksheetData {
   /// Iterates only populated rich text entries. O(populated_cells).
   Iterable<MapEntry<CellCoordinate, List<TextSpan>>> getRichTextInRange(
     CellRange range,
-  ) =>
-      const [];
+  ) => const [];
 
   /// Returns all cells with styles within [range].
   ///
   /// Iterates only populated style entries. O(populated_cells).
   Iterable<MapEntry<CellCoordinate, CellStyle>> getStylesInRange(
     CellRange range,
-  ) =>
-      const [];
+  ) => const [];
 
   /// Returns all cells with formats within [range].
   ///
   /// Iterates only populated format entries. O(populated_cells).
   Iterable<MapEntry<CellCoordinate, CellFormat>> getFormatsInRange(
     CellRange range,
-  ) =>
-      const [];
+  ) => const [];
 
   /// Pattern fill from range to target cell - either override this or provide a generator
   ///

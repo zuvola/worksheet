@@ -141,17 +141,26 @@ class WorksheetThemeData {
       headerStyle: t < 0.5 ? a.headerStyle : b.headerStyle,
       gridlineColor: Color.lerp(a.gridlineColor, b.gridlineColor, t)!,
       gridlineWidth: lerpDouble(a.gridlineWidth, b.gridlineWidth, t)!,
-      cellBackgroundColor:
-          Color.lerp(a.cellBackgroundColor, b.cellBackgroundColor, t)!,
+      cellBackgroundColor: Color.lerp(
+        a.cellBackgroundColor,
+        b.cellBackgroundColor,
+        t,
+      )!,
       textColor: Color.lerp(a.textColor, b.textColor, t)!,
       fontSize: lerpDouble(a.fontSize, b.fontSize, t)!,
       fontFamily: t < 0.5 ? a.fontFamily : b.fontFamily,
       rowHeaderWidth: lerpDouble(a.rowHeaderWidth, b.rowHeaderWidth, t)!,
-      columnHeaderHeight:
-          lerpDouble(a.columnHeaderHeight, b.columnHeaderHeight, t)!,
+      columnHeaderHeight: lerpDouble(
+        a.columnHeaderHeight,
+        b.columnHeaderHeight,
+        t,
+      )!,
       defaultRowHeight: lerpDouble(a.defaultRowHeight, b.defaultRowHeight, t)!,
-      defaultColumnWidth:
-          lerpDouble(a.defaultColumnWidth, b.defaultColumnWidth, t)!,
+      defaultColumnWidth: lerpDouble(
+        a.defaultColumnWidth,
+        b.defaultColumnWidth,
+        t,
+      )!,
       cellPadding: lerpDouble(a.cellPadding, b.cellPadding, t)!,
       showGridlines: t < 0.5 ? a.showGridlines : b.showGridlines,
       showHeaders: t < 0.5 ? a.showHeaders : b.showHeaders,
@@ -181,22 +190,22 @@ class WorksheetThemeData {
 
   @override
   int get hashCode => Object.hash(
-        selectionStyle,
-        headerStyle,
-        gridlineColor,
-        gridlineWidth,
-        cellBackgroundColor,
-        textColor,
-        fontSize,
-        fontFamily,
-        rowHeaderWidth,
-        columnHeaderHeight,
-        defaultRowHeight,
-        defaultColumnWidth,
-        cellPadding,
-        showGridlines,
-        showHeaders,
-      );
+    selectionStyle,
+    headerStyle,
+    gridlineColor,
+    gridlineWidth,
+    cellBackgroundColor,
+    textColor,
+    fontSize,
+    fontFamily,
+    rowHeaderWidth,
+    columnHeaderHeight,
+    defaultRowHeight,
+    defaultColumnWidth,
+    cellPadding,
+    showGridlines,
+    showHeaders,
+  );
 }
 
 /// An inherited widget that provides [WorksheetThemeData] to its descendants.
@@ -206,11 +215,7 @@ class WorksheetTheme extends InheritedWidget {
   /// The theme data.
   final WorksheetThemeData data;
 
-  const WorksheetTheme({
-    super.key,
-    required this.data,
-    required super.child,
-  });
+  const WorksheetTheme({super.key, required this.data, required super.child});
 
   /// Returns the [WorksheetThemeData] from the closest [WorksheetTheme] ancestor.
   ///

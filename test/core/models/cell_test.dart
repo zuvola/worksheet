@@ -117,8 +117,14 @@ void main() {
       });
 
       test('different styles are not equal', () {
-        final a = Cell.text('hi', style: const CellStyle(backgroundColor: Color(0xFFFF0000)));
-        final b = Cell.text('hi', style: const CellStyle(backgroundColor: Color(0xFF00FF00)));
+        final a = Cell.text(
+          'hi',
+          style: const CellStyle(backgroundColor: Color(0xFFFF0000)),
+        );
+        final b = Cell.text(
+          'hi',
+          style: const CellStyle(backgroundColor: Color(0xFF00FF00)),
+        );
         expect(a, isNot(equals(b)));
       });
 
@@ -168,13 +174,14 @@ void main() {
         final boolCell = Cell.boolean(true, format: CellFormat.general);
         expect(boolCell.format, CellFormat.general);
 
-        final formulaCell =
-            Cell.formula('=A1', format: CellFormat.number);
+        final formulaCell = Cell.formula('=A1', format: CellFormat.number);
         expect(formulaCell.format, CellFormat.number);
       });
 
       test('Cell.withStyle has null format', () {
-        const cell = Cell.withStyle(CellStyle(backgroundColor: Color(0xFFFF0000)));
+        const cell = Cell.withStyle(
+          CellStyle(backgroundColor: Color(0xFFFF0000)),
+        );
         expect(cell.format, isNull);
         expect(cell.hasFormat, isFalse);
       });
@@ -233,7 +240,10 @@ void main() {
 
     group('copyWithFormat', () {
       test('copies with new format', () {
-        final original = Cell.number(42, style: const CellStyle(backgroundColor: Color(0xFFFF0000)));
+        final original = Cell.number(
+          42,
+          style: const CellStyle(backgroundColor: Color(0xFFFF0000)),
+        );
         final copied = original.copyWithFormat(CellFormat.currency);
         expect(copied.value, original.value);
         expect(copied.style, original.style);
@@ -249,7 +259,10 @@ void main() {
 
       test('preserves richText through copyWithFormat', () {
         final spans = [
-          const TextSpan(text: '42', style: TextStyle(fontWeight: FontWeight.bold)),
+          const TextSpan(
+            text: '42',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
         ];
         final original = Cell.number(42, richText: spans);
         final copied = original.copyWithFormat(CellFormat.currency);
@@ -266,10 +279,7 @@ void main() {
 
       test('constructor with richText', () {
         const spans = [TextSpan(text: 'hello')];
-        const cell = Cell(
-          value: CellValue.text('hello'),
-          richText: spans,
-        );
+        const cell = Cell(value: CellValue.text('hello'), richText: spans);
         expect(cell.richText, spans);
         expect(cell.hasRichText, isTrue);
         expect(cell.isEmpty, isFalse);

@@ -2,15 +2,7 @@ import 'package:any_date/any_date.dart';
 import 'package:flutter/foundation.dart';
 
 /// The type of value stored in a cell.
-enum CellValueType {
-  text,
-  number,
-  boolean,
-  formula,
-  error,
-  date,
-  duration,
-}
+enum CellValueType { text, number, boolean, formula, error, date, duration }
 
 /// An immutable value that can be stored in a worksheet cell.
 ///
@@ -43,7 +35,8 @@ class CellValue {
   const CellValue.boolean(bool value) : this._(CellValueType.boolean, value);
 
   /// Creates a formula value.
-  const CellValue.formula(String formula) : this._(CellValueType.formula, formula);
+  const CellValue.formula(String formula)
+    : this._(CellValueType.formula, formula);
 
   /// Creates an error value.
   const CellValue.error(String error) : this._(CellValueType.error, error);
@@ -53,7 +46,7 @@ class CellValue {
 
   /// Creates a duration value.
   const CellValue.duration(Duration duration)
-      : this._(CellValueType.duration, duration);
+    : this._(CellValueType.duration, duration);
 
   /// Parses text into a [CellValue], detecting the type automatically.
   ///
@@ -198,7 +191,9 @@ class CellValue {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is CellValue && other.type == type && other.rawValue == rawValue;
+    return other is CellValue &&
+        other.type == type &&
+        other.rawValue == rawValue;
   }
 
   @override

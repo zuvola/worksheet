@@ -141,13 +141,14 @@ class EditingBoundsCalculator {
     // ignores trailing newlines when computing height).
     final measureText = text.endsWith('\n') ? '$text\u200B' : text;
     final availableWidth = cellBounds.width - 2 * cellPadding;
-    final textPainter = TextPainter(
-      text: TextSpan(text: measureText, style: textStyle),
-      textDirection: TextDirection.ltr,
-    )..layout(
-        minWidth: availableWidth > 0 ? availableWidth : 0,
-        maxWidth: availableWidth > 0 ? availableWidth : 0,
-      );
+    final textPainter =
+        TextPainter(
+          text: TextSpan(text: measureText, style: textStyle),
+          textDirection: TextDirection.ltr,
+        )..layout(
+          minWidth: availableWidth > 0 ? availableWidth : 0,
+          maxWidth: availableWidth > 0 ? availableWidth : 0,
+        );
     final textHeight = textPainter.height;
     textPainter.dispose();
 
@@ -167,7 +168,9 @@ class EditingBoundsCalculator {
 
       // Stop at merged cells
       if (mergedCells != null) {
-        final region = mergedCells.getRegion(CellCoordinate(nextRow, cell.column));
+        final region = mergedCells.getRegion(
+          CellCoordinate(nextRow, cell.column),
+        );
         if (region != null) break;
       }
 

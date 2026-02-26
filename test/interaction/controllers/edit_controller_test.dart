@@ -23,10 +23,7 @@ void main() {
     });
 
     test('defaults to zero deltas', () {
-      const result = EditCommitResult(
-        cell: CellCoordinate(0, 0),
-        value: null,
-      );
+      const result = EditCommitResult(cell: CellCoordinate(0, 0), value: null);
 
       expect(result.rowDelta, 0);
       expect(result.columnDelta, 0);
@@ -173,7 +170,8 @@ void main() {
 
         CellValue? committedValue;
         controller.commitEdit(
-          onCommit: (cell, value, {CellFormat? detectedFormat}) => committedValue = value,
+          onCommit: (cell, value, {CellFormat? detectedFormat}) =>
+              committedValue = value,
         );
 
         expect(committedValue?.type, CellValueType.number);
@@ -186,7 +184,8 @@ void main() {
 
         CellValue? committedValue;
         controller.commitEdit(
-          onCommit: (cell, value, {CellFormat? detectedFormat}) => committedValue = value,
+          onCommit: (cell, value, {CellFormat? detectedFormat}) =>
+              committedValue = value,
         );
 
         expect(committedValue?.type, CellValueType.number);
@@ -199,7 +198,8 @@ void main() {
 
         CellValue? committedValue;
         controller.commitEdit(
-          onCommit: (cell, value, {CellFormat? detectedFormat}) => committedValue = value,
+          onCommit: (cell, value, {CellFormat? detectedFormat}) =>
+              committedValue = value,
         );
 
         expect(committedValue, const CellValue.boolean(true));
@@ -211,7 +211,8 @@ void main() {
 
         CellValue? committedValue;
         controller.commitEdit(
-          onCommit: (cell, value, {CellFormat? detectedFormat}) => committedValue = value,
+          onCommit: (cell, value, {CellFormat? detectedFormat}) =>
+              committedValue = value,
         );
 
         expect(committedValue, const CellValue.boolean(false));
@@ -223,7 +224,8 @@ void main() {
 
         CellValue? committedValue;
         controller.commitEdit(
-          onCommit: (cell, value, {CellFormat? detectedFormat}) => committedValue = value,
+          onCommit: (cell, value, {CellFormat? detectedFormat}) =>
+              committedValue = value,
         );
 
         expect(committedValue, const CellValue.formula('=A1+B1'));
@@ -235,7 +237,8 @@ void main() {
 
         CellValue? committedValue;
         controller.commitEdit(
-          onCommit: (cell, value, {CellFormat? detectedFormat}) => committedValue = value,
+          onCommit: (cell, value, {CellFormat? detectedFormat}) =>
+              committedValue = value,
         );
 
         expect(committedValue, isNull);
@@ -244,7 +247,9 @@ void main() {
       test('returns to idle state', () {
         controller.startEdit(cell: const CellCoordinate(0, 0));
 
-        controller.commitEdit(onCommit: (_, _, {CellFormat? detectedFormat}) {});
+        controller.commitEdit(
+          onCommit: (_, _, {CellFormat? detectedFormat}) {},
+        );
 
         expect(controller.state, EditState.idle);
         expect(controller.isEditing, isFalse);
@@ -254,7 +259,9 @@ void main() {
       });
 
       test('returns null if not editing', () {
-        final result = controller.commitEdit(onCommit: (_, _, {CellFormat? detectedFormat}) {});
+        final result = controller.commitEdit(
+          onCommit: (_, _, {CellFormat? detectedFormat}) {},
+        );
 
         expect(result, isNull);
       });
@@ -539,8 +546,10 @@ void main() {
 
         expect(detected, CellFormat.duration);
         expect(committedValue?.isDuration, isTrue);
-        expect(committedValue?.asDuration,
-            const Duration(hours: 1, minutes: 30, seconds: 5));
+        expect(
+          committedValue?.asDuration,
+          const Duration(hours: 1, minutes: 30, seconds: 5),
+        );
       });
 
       test('1:30 → durationShort format', () {
@@ -558,8 +567,10 @@ void main() {
 
         expect(detected, CellFormat.durationShort);
         expect(committedValue?.isDuration, isTrue);
-        expect(committedValue?.asDuration,
-            const Duration(hours: 1, minutes: 30));
+        expect(
+          committedValue?.asDuration,
+          const Duration(hours: 1, minutes: 30),
+        );
       });
     });
 
@@ -634,8 +645,7 @@ void main() {
       setUp(() {
         rtc = RichTextEditingController();
         rtc.initFromSpans([const TextSpan(text: 'Hello')]);
-        rtc.selection =
-            const TextSelection(baseOffset: 0, extentOffset: 5);
+        rtc.selection = const TextSelection(baseOffset: 0, extentOffset: 5);
         controller.richTextController = rtc;
       });
 

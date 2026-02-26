@@ -60,10 +60,7 @@ class ScaleHandler extends ChangeNotifier {
     final newScrollX = worksheetFocal.dx * newZoom - _focalPoint.dx;
     final newScrollY = worksheetFocal.dy * newZoom - _focalPoint.dy;
 
-    return Offset(
-      newScrollX - _scrollOffset.dx,
-      newScrollY - _scrollOffset.dy,
-    );
+    return Offset(newScrollX - _scrollOffset.dx, newScrollY - _scrollOffset.dy);
   }
 
   /// Called when a scale gesture starts.
@@ -88,10 +85,7 @@ class ScaleHandler extends ChangeNotifier {
   ///
   /// [scale] is the current scale relative to the start.
   /// [focalPoint] is the current center of the pinch.
-  void onScaleUpdate({
-    required double scale,
-    required Offset focalPoint,
-  }) {
+  void onScaleUpdate({required double scale, required Offset focalPoint}) {
     if (!_isScaling) return;
 
     // Calculate the new zoom level
@@ -145,10 +139,7 @@ class ScaleHandler extends ChangeNotifier {
     final newScrollX = worksheetAnchor.dx * newZoom - anchor.dx;
     final newScrollY = worksheetAnchor.dy * newZoom - anchor.dy;
 
-    return Offset(
-      newScrollX - scrollOffset.dx,
-      newScrollY - scrollOffset.dy,
-    );
+    return Offset(newScrollX - scrollOffset.dx, newScrollY - scrollOffset.dy);
   }
 
   /// Zooms to fit the given rectangle in the viewport.
@@ -178,12 +169,17 @@ class ScaleHandler extends ChangeNotifier {
     final scaledRectWidth = rect.width * zoom;
     final scaledRectHeight = rect.height * zoom;
 
-    final scrollX = rect.left * zoom - (viewportSize.width - scaledRectWidth) / 2;
-    final scrollY = rect.top * zoom - (viewportSize.height - scaledRectHeight) / 2;
+    final scrollX =
+        rect.left * zoom - (viewportSize.width - scaledRectWidth) / 2;
+    final scrollY =
+        rect.top * zoom - (viewportSize.height - scaledRectHeight) / 2;
 
     return (
       zoom: zoom,
-      scroll: Offset(scrollX.clamp(0, double.infinity), scrollY.clamp(0, double.infinity)),
+      scroll: Offset(
+        scrollX.clamp(0, double.infinity),
+        scrollY.clamp(0, double.infinity),
+      ),
     );
   }
 }

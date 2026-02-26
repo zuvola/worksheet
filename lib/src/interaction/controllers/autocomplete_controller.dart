@@ -16,7 +16,7 @@ class AutocompleteController extends ChangeNotifier {
   AutocompleteToken? _currentToken;
 
   AutocompleteController({required FormulaAutocompleteConfig config})
-      : _config = config;
+    : _config = config;
 
   /// Whether the dropdown should be visible.
   bool get isVisible => _isVisible;
@@ -171,7 +171,9 @@ class AutocompleteController extends ChangeNotifier {
     final text = controller.text;
     final replacement = '${fn.name}(';
     final newText =
-        text.substring(0, token.start) + replacement + text.substring(token.end);
+        text.substring(0, token.start) +
+        replacement +
+        text.substring(token.end);
     final cursorOffset = token.start + replacement.length;
     controller.value = TextEditingValue(
       text: newText,

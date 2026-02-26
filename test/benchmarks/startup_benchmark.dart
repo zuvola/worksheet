@@ -14,7 +14,7 @@ class MockWorksheetData implements WorksheetData {
   final MergedCellRegistry mergedCells = MergedCellRegistry();
 
   MockWorksheetData({this.rows = 1000, this.cols = 100})
-      : _changesController = StreamController.broadcast();
+    : _changesController = StreamController.broadcast();
 
   @override
   CellValue? getCell(CellCoordinate coord) {
@@ -42,7 +42,8 @@ class MockWorksheetData implements WorksheetData {
 
   @override
   Future<void> batchUpdateAsync(
-      Future<void> Function(WorksheetDataBatch batch) updates) async {
+    Future<void> Function(WorksheetDataBatch batch) updates,
+  ) async {
     final dummyBatch = _MockWorksheetDataBatch();
     await updates(dummyBatch);
     notifyListeners();
@@ -58,16 +59,26 @@ class MockWorksheetData implements WorksheetData {
   int get columnCount => cols;
 
   @override
-  Iterable<MapEntry<CellCoordinate, CellValue>> getCellsInRange(CellRange range) => const [];
+  Iterable<MapEntry<CellCoordinate, CellValue>> getCellsInRange(
+    CellRange range,
+  ) => const [];
 
   @override
   void clearRange(CellRange range) {}
 
   @override
-  CellRange? smartFill(CellRange range, CellCoordinate destination, [Cell? Function(CellCoordinate coord, Cell? sourceCell)? valueGenerator]) => null;
+  CellRange? smartFill(
+    CellRange range,
+    CellCoordinate destination, [
+    Cell? Function(CellCoordinate coord, Cell? sourceCell)? valueGenerator,
+  ]) => null;
 
   @override
-  void fillRange(CellCoordinate source, CellRange range, [Cell? Function(CellCoordinate coord, Cell? sourceCell)? valueGenerator]) {}
+  void fillRange(
+    CellCoordinate source,
+    CellRange range, [
+    Cell? Function(CellCoordinate coord, Cell? sourceCell)? valueGenerator,
+  ]) {}
 
   @override
   void mergeCells(CellRange range) {}
@@ -95,17 +106,27 @@ class MockWorksheetData implements WorksheetData {
   @override
   void clearRichTextInRange(CellRange range) {}
   @override
-  Iterable<MapEntry<CellCoordinate, List<TextSpan>>> getRichTextInRange(CellRange range) => const [];
+  Iterable<MapEntry<CellCoordinate, List<TextSpan>>> getRichTextInRange(
+    CellRange range,
+  ) => const [];
   @override
-  Iterable<MapEntry<CellCoordinate, CellStyle>> getStylesInRange(CellRange range) => const [];
+  Iterable<MapEntry<CellCoordinate, CellStyle>> getStylesInRange(
+    CellRange range,
+  ) => const [];
   @override
-  Iterable<MapEntry<CellCoordinate, CellFormat>> getFormatsInRange(CellRange range) => const [];
+  Iterable<MapEntry<CellCoordinate, CellFormat>> getFormatsInRange(
+    CellRange range,
+  ) => const [];
   @override
   void unmergeCellsInRange(CellRange range) {}
   @override
   void moveMerges(CellRange source, CellCoordinate destination) {}
   @override
-  void replicateMerges({required CellRange sourceRange, required CellRange targetRange, required bool vertical}) {}
+  void replicateMerges({
+    required CellRange sourceRange,
+    required CellRange targetRange,
+    required bool vertical,
+  }) {}
   @override
   int? findNextPopulatedRow(int column, int fromRow) => null;
   @override
@@ -184,7 +205,10 @@ void main() {
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         stopwatch.stop();
-        developer.log('$description TTFR: ${stopwatch.elapsedMicroseconds / 1000} ms', name: 'TTFR_Benchmark');
+        developer.log(
+          '$description TTFR: ${stopwatch.elapsedMicroseconds / 1000} ms',
+          name: 'TTFR_Benchmark',
+        );
         completer.complete();
       });
 
@@ -201,17 +225,23 @@ void main() {
       await completer.future; // Wait for the post-frame callback
     }
 
-    testWidgets('TTFR for a small worksheet (10x5)', (WidgetTester tester) async {
+    testWidgets('TTFR for a small worksheet (10x5)', (
+      WidgetTester tester,
+    ) async {
       await measureTTFR(tester, 'Small Worksheet', rows: 10, cols: 5);
       expect(find.byType(Worksheet), findsOneWidget); // Basic verification
     });
 
-    testWidgets('TTFR for a medium worksheet (100x20)', (WidgetTester tester) async {
+    testWidgets('TTFR for a medium worksheet (100x20)', (
+      WidgetTester tester,
+    ) async {
       await measureTTFR(tester, 'Medium Worksheet', rows: 100, cols: 20);
       expect(find.byType(Worksheet), findsOneWidget);
     });
 
-    testWidgets('TTFR for a large worksheet (1000x50)', (WidgetTester tester) async {
+    testWidgets('TTFR for a large worksheet (1000x50)', (
+      WidgetTester tester,
+    ) async {
       await measureTTFR(tester, 'Large Worksheet', rows: 1000, cols: 50);
       expect(find.byType(Worksheet), findsOneWidget);
     });

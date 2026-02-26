@@ -10,27 +10,13 @@ import 'cell_value.dart';
 ///
 /// When adjacent cells share an edge, the border with the higher-priority
 /// line style wins (e.g., `double` beats `solid`).
-enum BorderLineStyle {
-  none,
-  dotted,
-  dashed,
-  solid,
-  double,
-}
+enum BorderLineStyle { none, dotted, dashed, solid, double }
 
 /// Text alignment options for cell content.
-enum CellTextAlignment {
-  left,
-  center,
-  right,
-}
+enum CellTextAlignment { left, center, right }
 
 /// Vertical alignment options for cell content.
-enum CellVerticalAlignment {
-  top,
-  middle,
-  bottom,
-}
+enum CellVerticalAlignment { top, middle, bottom }
 
 /// Border style for cell edges.
 @immutable
@@ -50,8 +36,10 @@ class BorderStyle {
     this.lineStyle = BorderLineStyle.solid,
   });
 
-  static const BorderStyle none =
-      BorderStyle(width: 0, lineStyle: BorderLineStyle.none);
+  static const BorderStyle none = BorderStyle(
+    width: 0,
+    lineStyle: BorderLineStyle.none,
+  );
 
   bool get isNone => lineStyle == BorderLineStyle.none || width == 0;
 
@@ -97,10 +85,10 @@ class CellBorders {
   });
 
   const CellBorders.all(BorderStyle style)
-      : top = style,
-        right = style,
-        bottom = style,
-        left = style;
+    : top = style,
+      right = style,
+      bottom = style,
+      left = style;
 
   static const CellBorders none = CellBorders();
 
@@ -250,11 +238,11 @@ class CellStyle {
 
   @override
   int get hashCode => Object.hash(
-        backgroundColor,
-        textAlignment,
-        verticalAlignment,
-        borders,
-        wrapText,
-        numberFormat,
-      );
+    backgroundColor,
+    textAlignment,
+    verticalAlignment,
+    borders,
+    wrapText,
+    numberFormat,
+  );
 }

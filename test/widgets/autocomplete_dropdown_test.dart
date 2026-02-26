@@ -53,18 +53,9 @@ void main() {
       // Each function name appears in a RichText (bold prefix)
       // and each signature appears in a Text.
       // We check the signatures since they are plain Text widgets:
-      expect(
-        find.text('SUM(number1, [number2], ...)'),
-        findsOneWidget,
-      );
-      expect(
-        find.text('SUMIF(range, criteria, [sum_range])'),
-        findsOneWidget,
-      );
-      expect(
-        find.text('SUMPRODUCT(array1, [array2], ...)'),
-        findsOneWidget,
-      );
+      expect(find.text('SUM(number1, [number2], ...)'), findsOneWidget);
+      expect(find.text('SUMIF(range, criteria, [sum_range])'), findsOneWidget);
+      expect(find.text('SUMPRODUCT(array1, [array2], ...)'), findsOneWidget);
     });
 
     testWidgets('renders function names as RichText', (tester) async {
@@ -82,19 +73,19 @@ void main() {
       // Find containers with the selected background color
       final containers = tester
           .widgetList<Container>(find.byType(Container))
-          .where((c) =>
-              c.decoration is BoxDecoration &&
-              (c.decoration as BoxDecoration).color ==
-                  AutocompleteDropdown.selectedColor)
+          .where(
+            (c) =>
+                c.decoration is BoxDecoration &&
+                (c.decoration as BoxDecoration).color ==
+                    AutocompleteDropdown.selectedColor,
+          )
           .toList();
       expect(containers, hasLength(1));
     });
 
     testWidgets('tap calls onSelect', (tester) async {
       FormulaFunction? selected;
-      await tester.pumpWidget(
-        buildDropdown(onSelect: (fn) => selected = fn),
-      );
+      await tester.pumpWidget(buildDropdown(onSelect: (fn) => selected = fn));
 
       // Tap on the SUMIF signature text (which is a plain Text widget)
       await tester.tap(find.text('SUMIF(range, criteria, [sum_range])'));
@@ -107,10 +98,7 @@ void main() {
     testWidgets('scrollable when exceeding maxVisibleItems', (tester) async {
       final manyFunctions = List.generate(
         20,
-        (i) => FormulaFunction(
-          name: 'FUNC$i',
-          signature: 'FUNC$i()',
-        ),
+        (i) => FormulaFunction(name: 'FUNC$i', signature: 'FUNC$i()'),
       );
       await tester.pumpWidget(
         buildDropdown(

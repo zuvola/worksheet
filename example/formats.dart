@@ -138,8 +138,7 @@ class _FormatsDemoState extends State<FormatsDemo> {
 
     const acctFmt = CellFormat(
       type: CellFormatType.accounting,
-      formatCode:
-          r'_("$"* #,##0.00_);_("$"* \(#,##0.00\);_("$"* "-"??_);_(@_)',
+      formatCode: r'_("$"* #,##0.00_);_("$"* \(#,##0.00\);_("$"* "-"??_);_(@_)',
     );
 
     const acctCode =
@@ -183,8 +182,7 @@ class _FormatsDemoState extends State<FormatsDemo> {
     cells[(row, 0)] = 'With decimals'.cell;
     cells[(row, 1)] = '0.00%'.cell;
     cells[(row, 2)] = '0.4256'.cell;
-    cells[(row, 3)] =
-        Cell.number(0.4256, format: CellFormat.percentageDecimal);
+    cells[(row, 3)] = Cell.number(0.4256, format: CellFormat.percentageDecimal);
     row++;
 
     cells[(row, 0)] = 'Over 100%'.cell;

@@ -138,33 +138,34 @@ class WorksheetController extends ChangeNotifier {
     if (!hController.hasClients || !vController.hasClients) return;
 
     // Anchor cell center in worksheet coordinates (zoom-independent).
-    final cellCenterX = solver.getColumnLeft(anchor.column) +
+    final cellCenterX =
+        solver.getColumnLeft(anchor.column) +
         solver.getColumnWidth(anchor.column) / 2;
-    final cellCenterY = solver.getRowTop(anchor.row) +
-        solver.getRowHeight(anchor.row) / 2;
+    final cellCenterY =
+        solver.getRowTop(anchor.row) + solver.getRowHeight(anchor.row) / 2;
 
     // Phase 1: preserve the cell center's content-area position.
-    var newScrollX =
-        cellCenterX * (newZoom - oldZoom) + hController.offset;
-    var newScrollY =
-        cellCenterY * (newZoom - oldZoom) + vController.offset;
+    var newScrollX = cellCenterX * (newZoom - oldZoom) + hController.offset;
+    var newScrollY = cellCenterY * (newZoom - oldZoom) + vController.offset;
 
     // Estimate new viewport dimensions (headers grow/shrink with zoom).
     final viewportW = hController.position.viewportDimension;
     final viewportH = vController.position.viewportDimension;
-    final newViewportW =
-        math.max(0.0, viewportW + _headerWidth * (oldZoom - newZoom));
-    final newViewportH =
-        math.max(0.0, viewportH + _headerHeight * (oldZoom - newZoom));
+    final newViewportW = math.max(
+      0.0,
+      viewportW + _headerWidth * (oldZoom - newZoom),
+    );
+    final newViewportH = math.max(
+      0.0,
+      viewportH + _headerHeight * (oldZoom - newZoom),
+    );
 
     // Phase 2: ensure the entire cell is visible in the content area.
     // The cell's edges in zoomed content-area coordinates.
     final cellLeft = solver.getColumnLeft(anchor.column) * newZoom;
-    final cellRight =
-        cellLeft + solver.getColumnWidth(anchor.column) * newZoom;
+    final cellRight = cellLeft + solver.getColumnWidth(anchor.column) * newZoom;
     final cellTop = solver.getRowTop(anchor.row) * newZoom;
-    final cellBottom =
-        cellTop + solver.getRowHeight(anchor.row) * newZoom;
+    final cellBottom = cellTop + solver.getRowHeight(anchor.row) * newZoom;
 
     // If the cell's right/bottom edge extends past the viewport, scroll more.
     // Check right/bottom first so that left/top wins if the cell is larger

@@ -45,10 +45,7 @@ void main() {
 
     layoutSolver = LayoutSolver(rows: rows, columns: columns);
 
-    painter = TilePainter(
-      data: data,
-      layoutSolver: layoutSolver,
-    );
+    painter = TilePainter(data: data, layoutSolver: layoutSolver);
   });
 
   group('TileRenderBenchmark', () {
@@ -162,10 +159,7 @@ void main() {
             CellCoordinate(row, col),
             CellStyle(
               borders: CellBorders.all(
-                BorderStyle(
-                  width: 1.0 + (row % 3),
-                  lineStyle: style,
-                ),
+                BorderStyle(width: 1.0 + (row % 3), lineStyle: style),
               ),
             ),
           );
@@ -196,8 +190,11 @@ void main() {
       // ignore: avoid_print
       print('Tile with borders: ${avgMs.toStringAsFixed(3)}ms avg');
 
-      expect(avgMs, lessThan(8.0),
-          reason: 'Tile with borders should render under 8ms');
+      expect(
+        avgMs,
+        lessThan(8.0),
+        reason: 'Tile with borders should render under 8ms',
+      );
     });
 
     test('renders tile with dense borders in under 16ms', () {
@@ -262,8 +259,11 @@ void main() {
       // ignore: avoid_print
       print('Dense borders: ${avgMs.toStringAsFixed(3)}ms avg');
 
-      expect(avgMs, lessThan(16.0),
-          reason: 'Dense borders should render under 16ms (2-frame budget)');
+      expect(
+        avgMs,
+        lessThan(16.0),
+        reason: 'Dense borders should render under 16ms (2-frame budget)',
+      );
     });
 
     test('border conflict resolution benchmark', () {
@@ -280,15 +280,21 @@ void main() {
       // ignore: avoid_print
       print('100k resolve() calls: ${totalMs.toStringAsFixed(3)}ms');
 
-      expect(totalMs, lessThan(100.0),
-          reason: '100k resolve() calls should be negligible overhead');
+      expect(
+        totalMs,
+        lessThan(100.0),
+        reason: '100k resolve() calls should be negligible overhead',
+      );
     });
 
     test('handles large cell range efficiently', () {
       // Render a tile that covers many cells
       final largeRows = SpanList(defaultSize: 16.0, count: 1000);
       final largeCols = SpanList(defaultSize: 40.0, count: 100);
-      final largeLayoutSolver = LayoutSolver(rows: largeRows, columns: largeCols);
+      final largeLayoutSolver = LayoutSolver(
+        rows: largeRows,
+        columns: largeCols,
+      );
 
       final largePainter = TilePainter(
         data: data,

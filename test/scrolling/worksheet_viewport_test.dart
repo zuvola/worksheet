@@ -26,10 +26,7 @@ class TestTileRenderer implements TileRenderer {
     renderCount++;
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder);
-    canvas.drawRect(
-      bounds,
-      ui.Paint()..color = const ui.Color(0xFFCCCCCC),
-    );
+    canvas.drawRect(bounds, ui.Paint()..color = const ui.Color(0xFFCCCCCC));
     return recorder.endRecording();
   }
 }
@@ -111,8 +108,9 @@ void main() {
       tileManager.dispose();
     });
 
-    testWidgets('renders without error using TwoDimensionalScrollable',
-        (tester) async {
+    testWidgets('renders without error using TwoDimensionalScrollable', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -356,8 +354,7 @@ void main() {
       // Should not throw
     });
 
-    testWidgets('responds to scroll controller jumps',
-        (tester) async {
+    testWidgets('responds to scroll controller jumps', (tester) async {
       final horizontalController = ScrollController();
       final verticalController = ScrollController();
 
@@ -580,7 +577,10 @@ void main() {
 
       // Hit test inside bounds
       final result = BoxHitTestResult();
-      final hit = renderObject.hitTest(result, position: const Offset(100, 100));
+      final hit = renderObject.hitTest(
+        result,
+        position: const Offset(100, 100),
+      );
 
       expect(hit, isTrue);
     });

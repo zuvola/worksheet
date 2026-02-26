@@ -58,7 +58,7 @@ class ClipboardHandler {
   void completeCut(
     CellRange range, {
     void Function(String label, CellRange range, void Function() mutation)?
-        recordUndo,
+    recordUndo,
   }) {
     if (recordUndo != null) {
       recordUndo('Cut', range, () => data.clearRange(range));
@@ -81,7 +81,7 @@ class ClipboardHandler {
   /// If [recordUndo] is provided, the synchronous write is wrapped for undo.
   Future<void> paste({
     void Function(String label, CellRange range, void Function() mutation)?
-        recordUndo,
+    recordUndo,
     CellRange? pendingCutRange,
   }) async {
     final range = selectionController.selectedRange;
@@ -114,6 +114,7 @@ class ClipboardHandler {
       }
       selectionController.selectRange(pasteRange);
     }
+
     if (recordUndo != null) {
       final affectedRange = pendingCutRange != null
           ? pasteRange.union(pendingCutRange)

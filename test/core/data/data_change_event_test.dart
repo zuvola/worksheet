@@ -21,7 +21,10 @@ void main() {
         final coord = CellCoordinate(0, 0);
         final event = DataChangeEvent.cellValue(coord);
 
-        expect(event.toString(), 'DataChangeEvent.cellValue(CellCoordinate(A1))');
+        expect(
+          event.toString(),
+          'DataChangeEvent.cellValue(CellCoordinate(A1))',
+        );
       });
     });
 
@@ -39,7 +42,10 @@ void main() {
         final coord = CellCoordinate(0, 1);
         final event = DataChangeEvent.cellStyle(coord);
 
-        expect(event.toString(), 'DataChangeEvent.cellStyle(CellCoordinate(B1))');
+        expect(
+          event.toString(),
+          'DataChangeEvent.cellStyle(CellCoordinate(B1))',
+        );
       });
     });
 
@@ -58,7 +64,9 @@ void main() {
         final event = DataChangeEvent.cellFormat(coord);
 
         expect(
-            event.toString(), 'DataChangeEvent.cellFormat(CellCoordinate(C1))');
+          event.toString(),
+          'DataChangeEvent.cellFormat(CellCoordinate(C1))',
+        );
       });
     });
 
