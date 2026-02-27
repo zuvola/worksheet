@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.7.0] - 2026-02-27
+
+### Added
+- `AutocompleteController.handleKeyEvent()` — keyboard dispatch helper for formula autocomplete (arrow navigation, Tab/Enter accept, Escape dismiss). Enables external formula bar implementations without duplicating keyboard wiring boilerplate
+- `AutocompleteController.applyAcceptedFunction()` — static utility that replaces a token in any `TextEditingController` with the accepted function name and opening parenthesis
+
+### Changed
+- `CellEditorOverlay` refactored to use `handleKeyEvent()` internally (no behaviour change)
+- Applied Dart 3.10 tall style formatting across the codebase
+- Consolidated `tool/bootstrap.sh`, `tool/test.sh`, `tool/bench.sh` into unified `tool/ci.sh`
+
+### Fixed
+- Golden tests excluded from CI to avoid cross-platform font rendering false positives
+
 ## [3.6.0] - 2026-02-25
 
 ### Added
