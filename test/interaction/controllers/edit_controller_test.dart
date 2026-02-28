@@ -710,5 +710,47 @@ void main() {
         expect(style?.fontWeight, FontWeight.bold);
       });
     });
+
+    group('isEditingFormula', () {
+      test('returns false when not editing', () {
+        expect(controller.isEditingFormula, isFalse);
+      });
+
+      test('returns true when editing a formula cell', () {
+        controller.startEdit(
+          cell: const CellCoordinate(0, 0),
+          currentValue: const CellValue.formula('=A1+B1'),
+        );
+
+        expect(controller.isEditingFormula, isTrue);
+      });
+
+      test('returns false when editing a text cell', () {
+        controller.startEdit(
+          cell: const CellCoordinate(0, 0),
+          currentValue: const CellValue.text('Hello'),
+        );
+
+        expect(controller.isEditingFormula, isFalse);
+      });
+
+      test('returns false when editing a number cell', () {
+        controller.startEdit(
+          cell: const CellCoordinate(0, 0),
+          currentValue: CellValue.number(42),
+        );
+
+        expect(controller.isEditingFormula, isFalse);
+      });
+
+      test('returns false when editing a cell with null value', () {
+        controller.startEdit(
+          cell: const CellCoordinate(0, 0),
+          currentValue: null,
+        );
+
+        expect(controller.isEditingFormula, isFalse);
+      });
+    });
   });
 }

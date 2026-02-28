@@ -344,7 +344,16 @@ class TilePainter implements TileRenderer {
     final TextSpan textSpan;
     final richText = coord != null ? data.getRichText(coord) : null;
     if (richText != null && richText.isNotEmpty) {
-      textSpan = TextSpan(style: baseTextStyle, children: richText);
+      if (richText.length == 1 &&
+          (richText.first.text == null || richText.first.text!.isEmpty)) {
+        // Cell-level style: apply span's style to the display text
+        textSpan = TextSpan(
+          text: text,
+          style: baseTextStyle.merge(richText.first.style),
+        );
+      } else {
+        textSpan = TextSpan(style: baseTextStyle, children: richText);
+      }
     } else {
       textSpan = TextSpan(text: text, style: baseTextStyle);
     }

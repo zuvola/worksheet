@@ -2387,4 +2387,170 @@ void main() {
       );
     });
   });
+
+  group('formula cell editing', () {
+    testWidgets(
+      'formula cell shows formula string, not display value from richText',
+      (tester) async {
+        // Simulate: rawData has formula "=C3*3", data has evaluated result
+        // number(3), richText has spans styled for "3".
+        editController.startEdit(
+          cell: const CellCoordinate(2, 2),
+          currentValue: const CellValue.formula('=C3*3'),
+          trigger: EditTrigger.doubleTap,
+        );
+
+        final richText = [
+          const TextSpan(
+            text: '3',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ];
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Stack(
+                children: [
+                  CellEditorOverlay(
+                    editController: editController,
+                    cellBounds: const Rect.fromLTWH(100, 50, 80, 24),
+                    onCommit:
+                        (
+                          _,
+                          _, {
+                          CellFormat? detectedFormat,
+                          List<TextSpan>? richText,
+                        }) {},
+                    onCancel: () {},
+                    richText: richText,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        final textField = tester.widget<EditableText>(
+          find.byType(EditableText),
+        );
+        // Should show the formula, not the evaluated display value "3"
+        expect(textField.controller.text, '=C3*3');
+      },
+    );
+
+    testWidgets(
+      'non-formula cell still initializes from richText spans',
+      (tester) async {
+        editController.startEdit(
+          cell: const CellCoordinate(0, 0),
+          currentValue: const CellValue.text('Bold'),
+          trigger: EditTrigger.doubleTap,
+        );
+
+        final richText = [
+          const TextSpan(
+            text: 'Bold',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ];
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Stack(
+                children: [
+                  CellEditorOverlay(
+                    editController: editController,
+                    cellBounds: const Rect.fromLTWH(100, 50, 80, 24),
+                    onCommit:
+                        (
+                          _,
+                          _, {
+                          CellFormat? detectedFormat,
+                          List<TextSpan>? richText,
+                        }) {},
+                    onCancel: () {},
+                    richText: richText,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        final textField = tester.widget<EditableText>(
+          find.byType(EditableText),
+        );
+        // Non-formula cell should still use richText (initFromSpans called)
+        expect(textField.controller.text, 'Bold');
+      },
+    );
+
+    testWidgets(
+      'formula cell commit preserves cell-level style from original richText',
+      (tester) async {
+        editController.startEdit(
+          cell: const CellCoordinate(2, 2),
+          currentValue: const CellValue.formula('=C3*3'),
+          trigger: EditTrigger.doubleTap,
+        );
+
+        final richText = [
+          const TextSpan(
+            text: '3',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ];
+
+        List<TextSpan>? committedRichText;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Stack(
+                children: [
+                  CellEditorOverlay(
+                    editController: editController,
+                    cellBounds: const Rect.fromLTWH(100, 50, 80, 24),
+                    onCommit:
+                        (
+                          cell,
+                          value, {
+                          CellFormat? detectedFormat,
+                          List<TextSpan>? richText,
+                        }) {
+                          committedRichText = richText;
+                        },
+                    onCancel: () {},
+                    richText: richText,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        // Commit via Enter
+        await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+        await tester.pump();
+
+        // Should have a cell-level style span (single span, empty text, bold)
+        expect(committedRichText, isNotNull);
+        expect(committedRichText!.length, 1);
+        expect(
+          committedRichText!.first.text == null ||
+              committedRichText!.first.text!.isEmpty,
+          isTrue,
+        );
+        expect(
+          committedRichText!.first.style?.fontWeight,
+          FontWeight.bold,
+        );
+      },
+    );
+  });
 }

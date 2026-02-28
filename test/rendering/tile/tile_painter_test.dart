@@ -777,5 +777,50 @@ void main() {
         picture.dispose();
       });
     });
+
+    group('cell-level style span', () {
+      test('renders with cell-level style span (single empty-text span)', () {
+        // Simulate a formula cell with cell-level bold style
+        data.setCell(CellCoordinate(0, 0), CellValue.number(42));
+        data.setRichText(CellCoordinate(0, 0), [
+          const TextSpan(
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ]);
+
+        final picture = painter.renderTile(
+          coordinate: TileCoordinate(0, 0),
+          bounds: const ui.Rect.fromLTWH(0, 0, 256, 256),
+          cellRange: CellRange(0, 0, 5, 2),
+          zoomBucket: ZoomBucket.full,
+        );
+
+        // Should render without errors — the style is applied to display text
+        expect(picture, isA<ui.Picture>());
+        picture.dispose();
+      });
+
+      test('renders with normal richText (multiple spans with text)', () {
+        data.setCell(CellCoordinate(0, 0), CellValue.text('Hello World'));
+        data.setRichText(CellCoordinate(0, 0), [
+          const TextSpan(
+            text: 'Hello ',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const TextSpan(text: 'World'),
+        ]);
+
+        final picture = painter.renderTile(
+          coordinate: TileCoordinate(0, 0),
+          bounds: const ui.Rect.fromLTWH(0, 0, 256, 256),
+          cellRange: CellRange(0, 0, 5, 2),
+          zoomBucket: ZoomBucket.full,
+        );
+
+        // Should render normally with children spans
+        expect(picture, isA<ui.Picture>());
+        picture.dispose();
+      });
+    });
   });
 }

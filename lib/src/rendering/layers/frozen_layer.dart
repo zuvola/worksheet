@@ -509,18 +509,32 @@ class FrozenLayer extends RenderLayer {
     final TextSpan textSpan;
     final richText = coord != null ? data.getRichText(coord) : null;
     if (richText != null && richText.isNotEmpty) {
-      // Scale child span font sizes by zoom to match frozen layer rendering
-      final scaledChildren = richText.map((span) {
-        final spanStyle = span.style;
-        if (spanStyle != null && spanStyle.fontSize != null) {
-          return TextSpan(
-            text: span.text,
-            style: spanStyle.copyWith(fontSize: spanStyle.fontSize! * zoom),
-          );
-        }
-        return span;
-      }).toList();
-      textSpan = TextSpan(style: baseTextStyle, children: scaledChildren);
+      if (richText.length == 1 &&
+          (richText.first.text == null || richText.first.text!.isEmpty)) {
+        // Cell-level style: apply span's style to the display text
+        final spanStyle = richText.first.style;
+        final mergedStyle = spanStyle != null
+            ? baseTextStyle.merge(
+                spanStyle.fontSize != null
+                    ? spanStyle.copyWith(fontSize: spanStyle.fontSize! * zoom)
+                    : spanStyle,
+              )
+            : baseTextStyle;
+        textSpan = TextSpan(text: text, style: mergedStyle);
+      } else {
+        // Scale child span font sizes by zoom to match frozen layer rendering
+        final scaledChildren = richText.map((span) {
+          final spanStyle = span.style;
+          if (spanStyle != null && spanStyle.fontSize != null) {
+            return TextSpan(
+              text: span.text,
+              style: spanStyle.copyWith(fontSize: spanStyle.fontSize! * zoom),
+            );
+          }
+          return span;
+        }).toList();
+        textSpan = TextSpan(style: baseTextStyle, children: scaledChildren);
+      }
     } else {
       textSpan = TextSpan(text: text, style: baseTextStyle);
     }

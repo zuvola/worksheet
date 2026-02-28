@@ -209,10 +209,13 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
     );
 
     // Initialize from rich text spans if available,
-    // but NOT for type-to-edit (which replaces the old value).
+    // but NOT for type-to-edit (which replaces the old value),
+    // and NOT for formula cells (where richText reflects the evaluated
+    // result, not the formula string the editor should show).
     if (widget.richText != null &&
         widget.richText!.isNotEmpty &&
-        widget.editController.trigger != EditTrigger.typing) {
+        widget.editController.trigger != EditTrigger.typing &&
+        !widget.editController.isEditingFormula) {
       _textController.initFromSpans(widget.richText!);
     }
     // For wrapText with non-top alignment, compute the initial vertical
@@ -491,13 +494,16 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
         _initialFocusApplied = true;
         if (_textController.text.isNotEmpty) {
           final trigger = widget.editController.trigger;
-          if (trigger == EditTrigger.doubleTap) {
+          if (trigger == EditTrigger.doubleTap &&
+              !widget.editController.isEditingFormula) {
             // Place cursor at the tapped character position.
             final offset = _hitTestTapPosition();
             _textController.selection = TextSelection.collapsed(
               offset: offset ?? _textController.text.length,
             );
-          } else if (trigger == EditTrigger.typing) {
+          } else if (trigger == EditTrigger.doubleTap ||
+              trigger == EditTrigger.typing) {
+            // Formula cells (doubleTap) and type-to-edit: cursor at end.
             _textController.selection = TextSelection.collapsed(
               offset: _textController.text.length,
             );
@@ -601,8 +607,32 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
   }
 
   List<TextSpan>? _extractRichText() {
-    if (!_textController.hasRichStyles) return null;
+    if (!_textController.hasRichStyles) {
+      // No rich styles in editor — for formula cells, preserve original
+      // cell-level formatting if it existed.
+      if (widget.editController.isEditingFormula && widget.richText != null) {
+        return _extractCellLevelStyle(widget.richText!);
+      }
+      return null;
+    }
     return _textController.toSpans();
+  }
+
+  /// Collapses rich text spans into a single cell-level style span.
+  ///
+  /// Takes the style from the first span (the dominant formatting) and
+  /// returns a list with a single empty-text TextSpan carrying that style.
+  /// Returns null if the spans have no usable style.
+  List<TextSpan>? _extractCellLevelStyle(List<TextSpan> spans) {
+    if (spans.isEmpty) return null;
+    // If already a cell-level style span, preserve it as-is.
+    if (spans.length == 1 &&
+        (spans.first.text == null || spans.first.text!.isEmpty)) {
+      return spans.first.style != null ? spans : null;
+    }
+    final style = spans.first.style;
+    if (style == null) return null;
+    return [TextSpan(style: style)];
   }
 
   void _commit() {

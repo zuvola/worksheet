@@ -120,6 +120,9 @@ class EditController extends ChangeNotifier {
   /// Whether editing is currently in progress.
   bool get isEditing => _state == EditState.editing;
 
+  /// Whether the cell currently being edited contains a formula.
+  bool get isEditingFormula => _originalValue?.isFormula == true;
+
   /// Starts editing a cell.
   ///
   /// [cell] is the cell to edit.
