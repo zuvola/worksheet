@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.8.0] - 2026-02-28
+
+### Added
+- **Cell-level rich text styles** — `WorksheetData.getRichText` can now return a single `TextSpan` with no text to apply a cell-wide style (e.g. bold + color) to the entire display value. Previously only per-character spans were supported
+- `EditController.isEditingFormula` — convenience getter for checking if the cell being edited contains a formula
+- `example/formula_richtext.dart` — new example demonstrating formula evaluation with rich text styling
+
+### Fixed
+- **Formula cell editing** — double-clicking a formula cell now shows the formula string (e.g. `=B2*C2`) in the editor instead of the evaluated display value (e.g. `126`)
+- **Arrow keys in formula edit mode** — ArrowUp/Down no longer commit the edit and navigate away when editing a formula cell. Arrow keys move the cursor within the formula text; cell reference insertion only triggers after typing an operator (point mode)
+- **Operator boundary cursor trapping** — arrowing through an operator character (`+`, `*`, etc.) in a formula no longer inserts a cell reference when the user is simply navigating
+
 ## [3.7.0] - 2026-02-27
 
 ### Added
