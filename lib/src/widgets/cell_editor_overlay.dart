@@ -200,6 +200,14 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
   /// changes are handled by [_onTextChanged]).
   String? _lastTextForCursor;
 
+  /// Snapshot of the formula text at the last arrow key press.
+  /// When an arrow key is pressed and the text is identical to this snapshot,
+  /// the user is navigating (cursor movement) — don't intercept for reference
+  /// insertion. When text differs (user typed something, or a reference was
+  /// just inserted), the arrow may be intercepted at an operator boundary.
+  /// This implements the "enter mode" vs "point mode" distinction.
+  String? _textAtLastArrowKey;
+
   @override
   void initState() {
     super.initState();
@@ -690,37 +698,25 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
     widget.editController.updateText(newText);
   }
 
-  /// Returns true when the cursor is at an operator boundary in a formula.
+  /// Returns true when the next arrow key should insert a cell reference.
   ///
-  /// Returns true when an arrow key should be intercepted for formula
-  /// reference insertion/movement rather than committing the edit.
-  ///
-  /// Two cases:
-  /// 1. **Operator boundary** — the character before the cursor is an operator
-  ///    (`= + - * / ^ & < > ! ( , ;`) or the cursor is at position 0/1.
-  ///    Arrow key inserts a NEW reference.
-  /// 2. **Within a reference token** — the cursor is inside or at the end of
-  ///    an existing cell/range reference. Arrow key MOVES that reference.
+  /// Only intercepts at operator boundaries when the formula text has changed
+  /// since the last arrow key press — meaning the user typed something (or a
+  /// reference was just inserted). When text is unchanged (pure cursor
+  /// navigation), arrow keys move the cursor normally ("enter mode").
   bool _shouldInterceptArrowKey() {
     final sel = _textController.selection;
     if (!sel.isCollapsed) return false;
     final text = _textController.text;
-    final offset = sel.baseOffset;
 
-    // Case 1: operator boundary
+    // If text hasn't changed since the last arrow key, the user is navigating.
+    if (text == _textAtLastArrowKey) return false;
+
+    final offset = sel.baseOffset;
     if (offset <= 0) return true;
     if (offset == 1 && text.startsWith('=')) return true;
     final charBefore = text[offset - 1];
     if ('=+-*/^&<>!,(;'.contains(charBefore)) return true;
-
-    // Case 2: cursor within or at the end of a reference token
-    final frc = widget.formulaReferenceConfig;
-    if (frc != null) {
-      final tokens = frc.tokenize(text);
-      for (final token in tokens) {
-        if (offset >= token.start && offset <= token.end) return true;
-      }
-    }
 
     return false;
   }
@@ -826,19 +822,34 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
           widget.editController.isFormulaMode(frc) &&
           widget.onFormulaArrowKey != null &&
           _shouldInterceptArrowKey()) {
+        // Record text BEFORE insertion so the next arrow key sees new text
+        // and can also intercept (consecutive arrows adjust the reference).
+        _textAtLastArrowKey = _textController.text;
         final shift = HardwareKeyboard.instance.isShiftPressed;
         widget.onFormulaArrowKey!(event.logicalKey, shift);
         return KeyEventResult.handled;
       }
+      // Not intercepted — record current text so subsequent arrows at
+      // operator boundaries are recognized as pure navigation.
+      _textAtLastArrowKey = _textController.text;
     }
 
-    if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-      _commitAndNavigate(rowDelta: 1, columnDelta: 0);
-      return KeyEventResult.handled;
-    }
-
-    if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-      _commitAndNavigate(rowDelta: -1, columnDelta: 0);
+    if (event.logicalKey == LogicalKeyboardKey.arrowDown ||
+        event.logicalKey == LogicalKeyboardKey.arrowUp) {
+      // In formula mode, consume the event without committing.
+      // The reference-interception block above already handled the
+      // operator-boundary case; reaching here means the cursor is within
+      // normal formula text — just swallow the key so the editor stays open.
+      final frc = widget.formulaReferenceConfig;
+      if (frc != null && widget.editController.isFormulaMode(frc)) {
+        return KeyEventResult.handled;
+      }
+      if (widget.editController.isEditingFormula) {
+        return KeyEventResult.handled;
+      }
+      // Non-formula cell: commit and navigate.
+      final delta = event.logicalKey == LogicalKeyboardKey.arrowDown ? 1 : -1;
+      _commitAndNavigate(rowDelta: delta, columnDelta: 0);
       return KeyEventResult.handled;
     }
 

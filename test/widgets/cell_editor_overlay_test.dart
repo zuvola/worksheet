@@ -6,6 +6,7 @@ import 'package:worksheet/src/core/models/cell_coordinate.dart';
 import 'package:worksheet/src/core/models/cell_format.dart';
 import 'package:worksheet/src/core/models/cell_style.dart';
 import 'package:worksheet/src/core/models/cell_value.dart';
+import 'package:worksheet/src/core/formula/formula_reference_config.dart';
 import 'package:worksheet/src/interaction/controllers/edit_controller.dart';
 import 'package:worksheet/src/widgets/cell_editor_overlay.dart';
 import 'package:worksheet/src/widgets/worksheet_controller.dart';
@@ -48,6 +49,8 @@ void main() {
     onCommitAndNavigate,
     bool wrapText = false,
     CellVerticalAlignment verticalAlignment = CellVerticalAlignment.middle,
+    FormulaReferenceConfig? formulaReferenceConfig,
+    void Function(LogicalKeyboardKey, bool)? onFormulaArrowKey,
   }) {
     return MaterialApp(
       home: Scaffold(
@@ -75,6 +78,8 @@ void main() {
               onCommitAndNavigate: onCommitAndNavigate,
               wrapText: wrapText,
               verticalAlignment: verticalAlignment,
+              formulaReferenceConfig: formulaReferenceConfig,
+              onFormulaArrowKey: onFormulaArrowKey,
             ),
           ],
         ),
@@ -2552,5 +2557,162 @@ void main() {
         );
       },
     );
+  });
+
+  group('formula mode arrow keys', () {
+    testWidgets('ArrowDown on formula cell (no config) stays in editor', (
+      tester,
+    ) async {
+      editController.startEdit(
+        cell: const CellCoordinate(3, 2),
+        currentValue: const CellValue.formula('=A1+B2'),
+      );
+
+      bool navigated = false;
+
+      await tester.pumpWidget(
+        buildTestWidget(
+          controller: editController,
+          onCommitAndNavigate:
+              (
+                cell,
+                value,
+                rowDelta,
+                colDelta, {
+                CellFormat? detectedFormat,
+                List<TextSpan>? richText,
+              }) {
+                navigated = true;
+              },
+        ),
+      );
+      await tester.pump();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+
+      expect(navigated, isFalse);
+      expect(editController.isEditing, isTrue);
+    });
+
+    testWidgets('ArrowUp on formula cell (no config) stays in editor', (
+      tester,
+    ) async {
+      editController.startEdit(
+        cell: const CellCoordinate(3, 2),
+        currentValue: const CellValue.formula('=A1+B2'),
+      );
+
+      bool navigated = false;
+
+      await tester.pumpWidget(
+        buildTestWidget(
+          controller: editController,
+          onCommitAndNavigate:
+              (
+                cell,
+                value,
+                rowDelta,
+                colDelta, {
+                CellFormat? detectedFormat,
+                List<TextSpan>? richText,
+              }) {
+                navigated = true;
+              },
+        ),
+      );
+      await tester.pump();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+      await tester.pump();
+
+      expect(navigated, isFalse);
+      expect(editController.isEditing, isTrue);
+    });
+
+    testWidgets(
+      'ArrowDown in formula mode with config, cursor not at operator boundary',
+      (tester) async {
+        editController.startEdit(
+          cell: const CellCoordinate(3, 2),
+          currentValue: const CellValue.formula('=SUM(A1)'),
+        );
+
+        bool navigated = false;
+        bool formulaArrowCalled = false;
+
+        await tester.pumpWidget(
+          buildTestWidget(
+            controller: editController,
+            formulaReferenceConfig: FormulaReferenceConfig(),
+            onFormulaArrowKey: (key, shift) {
+              formulaArrowCalled = true;
+            },
+            onCommitAndNavigate:
+                (
+                  cell,
+                  value,
+                  rowDelta,
+                  colDelta, {
+                  CellFormat? detectedFormat,
+                  List<TextSpan>? richText,
+                }) {
+                  navigated = true;
+                },
+          ),
+        );
+        await tester.pump();
+
+        // Place cursor at offset 3 (within "SUM"), not at an operator boundary
+        final editableText = tester.widget<EditableText>(
+          find.byType(EditableText),
+        );
+        editableText.controller.selection = const TextSelection.collapsed(
+          offset: 3,
+        );
+        await tester.pump();
+
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+        await tester.pump();
+
+        expect(navigated, isFalse);
+        expect(formulaArrowCalled, isFalse);
+        expect(editController.isEditing, isTrue);
+      },
+    );
+
+    testWidgets('ArrowDown on non-formula cell still commits (regression)', (
+      tester,
+    ) async {
+      editController.startEdit(
+        cell: const CellCoordinate(3, 2),
+        currentValue: const CellValue.text('hello'),
+      );
+
+      bool navigated = false;
+
+      await tester.pumpWidget(
+        buildTestWidget(
+          controller: editController,
+          onCommitAndNavigate:
+              (
+                cell,
+                value,
+                rowDelta,
+                colDelta, {
+                CellFormat? detectedFormat,
+                List<TextSpan>? richText,
+              }) {
+                navigated = true;
+              },
+        ),
+      );
+      await tester.pump();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+
+      expect(navigated, isTrue);
+    });
   });
 }

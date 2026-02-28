@@ -30,7 +30,9 @@ class FormulaData extends SparseWorksheetData {
     final raw = super.getCell(coord);
     if (raw == null || !raw.isFormula) return raw;
     final result = _eval(raw.rawValue as String);
-    return result != null ? CellValue.number(result) : raw;
+    return result != null
+        ? CellValue.number(result)
+        : const CellValue.error('#ERROR');
   }
 
   @override

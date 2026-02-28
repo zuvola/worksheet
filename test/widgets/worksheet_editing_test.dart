@@ -925,7 +925,7 @@ void main() {
     );
 
     testWidgets(
-      'arrow keys within an existing ref move the reference in formula mode',
+      'arrow keys within an existing ref move cursor (not reference)',
       (tester) async {
         await tester.pumpWidget(buildWorksheet(ec: editController));
         selectCell(2, 2); // C3
@@ -945,22 +945,20 @@ void main() {
         editController.updateText('=A1');
         await tester.pump();
 
-        // Press arrow-down: cursor is within ref 'A1' so should move/replace ref.
+        // Press arrow-down: cursor is within ref 'A1', NOT at an operator
+        // boundary, so the arrow key should move the cursor (or be consumed
+        // without committing in formula mode) — it should NOT insert/move a
+        // cell reference.
         await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
         await tester.pump();
 
         expect(
           editController.isEditing,
           isTrue,
-          reason: 'Arrow within ref should not commit',
+          reason: 'Arrow within ref should not commit in formula mode',
         );
-        // The ref should have been updated (moved down from current anchor C3)
-        final text = editController.currentText;
-        expect(
-          text,
-          isNot(equals('=A1')),
-          reason: 'The reference should have been moved',
-        );
+        // Text should be unchanged — no reference insertion or movement.
+        expect(editController.currentText, '=A1');
       },
     );
   });
@@ -1028,6 +1026,183 @@ void main() {
       expect(editController.currentText, equals('15'));
 
       rawData.dispose();
+    });
+  });
+
+  group('formula arrow keys should move cursor, not insert references', () {
+    testWidgets(
+      'ArrowLeft through operator boundary does not insert reference',
+      (tester) async {
+        // Reproduce: edit =D2+D3+D4, arrow-left from end, cursor should
+        // pass through the "+" without triggering reference insertion.
+        final rawData = SparseWorksheetData(rowCount: 100, columnCount: 26);
+        rawData.setCell(
+          const CellCoordinate(5, 3), // D6 in the example
+          const CellValue.formula('=D2+D3+D4'),
+        );
+        final wrapper = _EvaluatingWrapper(rawData);
+
+        await tester.pumpWidget(
+          buildWorksheet(
+            ec: editController,
+            dataOverride: wrapper,
+            rawData: rawData,
+          ),
+        );
+
+        selectCell(5, 3);
+        await tester.pump();
+
+        // F2 to start editing — cursor goes to end of formula.
+        await tester.sendKeyEvent(LogicalKeyboardKey.f2);
+        await tester.pump();
+
+        expect(editController.isEditing, isTrue);
+        expect(editController.currentText, '=D2+D3+D4');
+
+        // Place cursor at end explicitly (F2 on formula selects all by
+        // default; force cursor to end).
+        final rtc = editController.richTextController!;
+        rtc.selection = const TextSelection.collapsed(offset: 9); // end
+        await tester.pump();
+
+        // ArrowLeft 1: offset 9→8 (within D4)
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+        await tester.pump();
+        expect(
+          editController.currentText,
+          '=D2+D3+D4',
+          reason: 'ArrowLeft #1 should move cursor, not modify text',
+        );
+
+        // ArrowLeft 2: offset 8→7 (now right after "+")
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+        await tester.pump();
+        expect(
+          editController.currentText,
+          '=D2+D3+D4',
+          reason: 'ArrowLeft #2 should move cursor, not modify text',
+        );
+
+        // ArrowLeft 3: offset 7→6 — charBefore is "+", which is an operator
+        // boundary. This MUST still move the cursor, not insert a reference.
+        await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
+        await tester.pump();
+        expect(
+          editController.currentText,
+          '=D2+D3+D4',
+          reason:
+              'ArrowLeft across "+" operator boundary should move cursor, '
+              'not insert a cell reference',
+        );
+        expect(editController.isEditing, isTrue);
+      },
+    );
+  });
+
+  group('formula cell arrow keys (no FormulaReferenceConfig)', () {
+    testWidgets('ArrowDown does not commit formula cell edit', (
+      tester,
+    ) async {
+      // Set up a formula cell — same as formula_richtext.dart example.
+      final rawData = SparseWorksheetData(rowCount: 100, columnCount: 26);
+      rawData.setCell(
+        const CellCoordinate(2, 2),
+        const CellValue.formula('=A1+B1'),
+      );
+      final wrapper = _EvaluatingWrapper(rawData);
+
+      await tester.pumpWidget(
+        buildWorksheet(
+          ec: editController,
+          dataOverride: wrapper,
+          rawData: rawData,
+        ),
+      );
+
+      // Select the formula cell and start editing with F2.
+      selectCell(2, 2);
+      await tester.pump();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.f2);
+      await tester.pump();
+
+      expect(editController.isEditing, isTrue);
+      expect(editController.currentText, '=A1+B1');
+      expect(editController.isEditingFormula, isTrue);
+
+      // Press ArrowDown — should NOT commit.
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+
+      expect(
+        editController.isEditing,
+        isTrue,
+        reason: 'ArrowDown should not commit a formula cell edit',
+      );
+      expect(editController.currentText, '=A1+B1');
+
+      rawData.dispose();
+    });
+
+    testWidgets('ArrowUp does not commit formula cell edit', (tester) async {
+      final rawData = SparseWorksheetData(rowCount: 100, columnCount: 26);
+      rawData.setCell(
+        const CellCoordinate(2, 2),
+        const CellValue.formula('=A1+B1'),
+      );
+      final wrapper = _EvaluatingWrapper(rawData);
+
+      await tester.pumpWidget(
+        buildWorksheet(
+          ec: editController,
+          dataOverride: wrapper,
+          rawData: rawData,
+        ),
+      );
+
+      selectCell(2, 2);
+      await tester.pump();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.f2);
+      await tester.pump();
+
+      expect(editController.isEditing, isTrue);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+      await tester.pump();
+
+      expect(
+        editController.isEditing,
+        isTrue,
+        reason: 'ArrowUp should not commit a formula cell edit',
+      );
+
+      rawData.dispose();
+    });
+
+    testWidgets('ArrowDown on non-formula cell still commits', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildWorksheet(ec: editController));
+
+      selectCell(2, 2); // cell with value 42
+      await tester.pump();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.f2);
+      await tester.pump();
+
+      expect(editController.isEditing, isTrue);
+      expect(editController.currentText, '42');
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+
+      expect(
+        editController.isEditing,
+        isFalse,
+        reason: 'ArrowDown should commit a non-formula cell edit',
+      );
     });
   });
 }
