@@ -2445,54 +2445,51 @@ void main() {
       },
     );
 
-    testWidgets(
-      'non-formula cell still initializes from richText spans',
-      (tester) async {
-        editController.startEdit(
-          cell: const CellCoordinate(0, 0),
-          currentValue: const CellValue.text('Bold'),
-          trigger: EditTrigger.doubleTap,
-        );
+    testWidgets('non-formula cell still initializes from richText spans', (
+      tester,
+    ) async {
+      editController.startEdit(
+        cell: const CellCoordinate(0, 0),
+        currentValue: const CellValue.text('Bold'),
+        trigger: EditTrigger.doubleTap,
+      );
 
-        final richText = [
-          const TextSpan(
-            text: 'Bold',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ];
+      final richText = [
+        const TextSpan(
+          text: 'Bold',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ];
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: Stack(
-                children: [
-                  CellEditorOverlay(
-                    editController: editController,
-                    cellBounds: const Rect.fromLTWH(100, 50, 80, 24),
-                    onCommit:
-                        (
-                          _,
-                          _, {
-                          CellFormat? detectedFormat,
-                          List<TextSpan>? richText,
-                        }) {},
-                    onCancel: () {},
-                    richText: richText,
-                  ),
-                ],
-              ),
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Stack(
+              children: [
+                CellEditorOverlay(
+                  editController: editController,
+                  cellBounds: const Rect.fromLTWH(100, 50, 80, 24),
+                  onCommit:
+                      (
+                        _,
+                        _, {
+                        CellFormat? detectedFormat,
+                        List<TextSpan>? richText,
+                      }) {},
+                  onCancel: () {},
+                  richText: richText,
+                ),
+              ],
             ),
           ),
-        );
-        await tester.pump();
+        ),
+      );
+      await tester.pump();
 
-        final textField = tester.widget<EditableText>(
-          find.byType(EditableText),
-        );
-        // Non-formula cell should still use richText (initFromSpans called)
-        expect(textField.controller.text, 'Bold');
-      },
-    );
+      final textField = tester.widget<EditableText>(find.byType(EditableText));
+      // Non-formula cell should still use richText (initFromSpans called)
+      expect(textField.controller.text, 'Bold');
+    });
 
     testWidgets(
       'formula cell commit preserves cell-level style from original richText',
@@ -2551,10 +2548,7 @@ void main() {
               committedRichText!.first.text!.isEmpty,
           isTrue,
         );
-        expect(
-          committedRichText!.first.style?.fontWeight,
-          FontWeight.bold,
-        );
+        expect(committedRichText!.first.style?.fontWeight, FontWeight.bold);
       },
     );
   });

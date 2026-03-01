@@ -190,7 +190,16 @@ flutter test test/benchmarks/scalability_benchmark.dart -r expanded
 
 Follow these steps in order. Fix any issues before proceeding to the next step.
 
-### 1. Static Analysis
+### 1. Format
+```bash
+# Check formatting — must have zero changes
+dart format --output=none --set-exit-if-changed lib/ test/ example/
+
+# Auto-fix if needed
+dart format lib/ test/ example/
+```
+
+### 2. Static Analysis
 ```bash
 # Run the analyzer — must have zero issues
 flutter analyze
@@ -202,13 +211,13 @@ dart fix --apply
 flutter analyze
 ```
 
-### 2. Tests
+### 3. Tests
 ```bash
 # Run all tests — must all pass
 flutter test
 ```
 
-### 3. Coverage
+### 4. Coverage
 ```bash
 # Generate coverage data
 flutter test --coverage
@@ -220,7 +229,7 @@ open coverage/html/index.html
 # Verify minimum 80% coverage (critical paths 100%)
 ```
 
-### 4. Benchmarks
+### 5. Benchmarks
 ```bash
 # Run benchmark suite — all SLAs must pass
 flutter test test/benchmarks/
@@ -229,7 +238,7 @@ flutter test test/benchmarks/
 flutter run --profile --trace-skia
 ```
 
-### 5. Version & Changelog
+### 6. Version & Changelog
 - Bump version in `pubspec.yaml` following [semver](https://semver.org/)
   - **patch** (1.0.x): bug fixes
   - **minor** (1.x.0): new features, backwards compatible
@@ -237,7 +246,7 @@ flutter run --profile --trace-skia
 - Add entry to `CHANGELOG.md` under new version heading with date
 - Update any version references in `README.md` if needed
 
-### 6. Commit & Tag
+### 7. Commit & Tag
 ```bash
 git add -A
 git commit -m "chore: release vX.Y.Z"
@@ -245,7 +254,7 @@ git tag vX.Y.Z
 git push && git push --tags
 ```
 
-### 7. Publish to pub.dev
+### 8. Publish to pub.dev
 ```bash
 # Dry run first — fix any issues it reports
 flutter pub publish --dry-run
@@ -255,6 +264,7 @@ flutter pub publish
 ```
 
 ### Quick Reference Checklist
+- [ ] `dart format` — zero changes
 - [ ] `flutter analyze` — zero issues
 - [ ] `flutter test` — all pass
 - [ ] `flutter test --coverage` — meets 80% minimum

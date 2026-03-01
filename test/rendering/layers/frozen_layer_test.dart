@@ -419,37 +419,34 @@ void main() {
     });
 
     group('cell-level style span', () {
-      test('renders cell with cell-level style span (single empty-text span)',
-          () {
-        // Simulate a formula cell with cell-level bold style in frozen pane
-        data.setCell(
-          const CellCoordinate(0, 0),
-          CellValue.number(42),
-        );
-        data.setRichText(const CellCoordinate(0, 0), [
-          const TextSpan(
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ]);
+      test(
+        'renders cell with cell-level style span (single empty-text span)',
+        () {
+          // Simulate a formula cell with cell-level bold style in frozen pane
+          data.setCell(const CellCoordinate(0, 0), CellValue.number(42));
+          data.setRichText(const CellCoordinate(0, 0), [
+            const TextSpan(style: TextStyle(fontWeight: FontWeight.bold)),
+          ]);
 
-        frozenLayer = FrozenLayer(
-          freezeConfig: const FreezeConfig(frozenRows: 1, frozenColumns: 1),
-          data: data,
-          layoutSolver: layoutSolver,
-        );
+          frozenLayer = FrozenLayer(
+            freezeConfig: const FreezeConfig(frozenRows: 1, frozenColumns: 1),
+            data: data,
+            layoutSolver: layoutSolver,
+          );
 
-        final recorder = PictureRecorder();
-        final canvas = Canvas(recorder);
-        final context = LayerPaintContext(
-          canvas: canvas,
-          viewportSize: const Size(800, 600),
-          scrollOffset: Offset.zero,
-          zoom: 1.0,
-        );
+          final recorder = PictureRecorder();
+          final canvas = Canvas(recorder);
+          final context = LayerPaintContext(
+            canvas: canvas,
+            viewportSize: const Size(800, 600),
+            scrollOffset: Offset.zero,
+            zoom: 1.0,
+          );
 
-        expect(() => frozenLayer.paint(context), returnsNormally);
-        recorder.endRecording();
-      });
+          expect(() => frozenLayer.paint(context), returnsNormally);
+          recorder.endRecording();
+        },
+      );
 
       test('renders cell with normal richText spans in frozen pane', () {
         data.setCell(

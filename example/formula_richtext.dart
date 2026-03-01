@@ -167,10 +167,7 @@ class _FormulaRichTextDemoState extends State<FormulaRichTextDemo> {
       const CellValue.formula('=B3*C3'),
     );
 
-    _data.setCell(
-      const CellCoordinate(3, 0),
-      const CellValue.text('Cherries'),
-    );
+    _data.setCell(const CellCoordinate(3, 0), const CellValue.text('Cherries'));
     _data.setCell(const CellCoordinate(3, 1), CellValue.number(8));
     _data.setCell(const CellCoordinate(3, 2), CellValue.number(10));
     _data.setCell(

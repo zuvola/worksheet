@@ -783,9 +783,7 @@ void main() {
         // Simulate a formula cell with cell-level bold style
         data.setCell(CellCoordinate(0, 0), CellValue.number(42));
         data.setRichText(CellCoordinate(0, 0), [
-          const TextSpan(
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+          const TextSpan(style: TextStyle(fontWeight: FontWeight.bold)),
         ]);
 
         final picture = painter.renderTile(

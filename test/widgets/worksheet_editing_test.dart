@@ -1101,9 +1101,7 @@ void main() {
   });
 
   group('formula cell arrow keys (no FormulaReferenceConfig)', () {
-    testWidgets('ArrowDown does not commit formula cell edit', (
-      tester,
-    ) async {
+    testWidgets('ArrowDown does not commit formula cell edit', (tester) async {
       // Set up a formula cell — same as formula_richtext.dart example.
       final rawData = SparseWorksheetData(rowCount: 100, columnCount: 26);
       rawData.setCell(
@@ -1181,9 +1179,7 @@ void main() {
       rawData.dispose();
     });
 
-    testWidgets('ArrowDown on non-formula cell still commits', (
-      tester,
-    ) async {
+    testWidgets('ArrowDown on non-formula cell still commits', (tester) async {
       await tester.pumpWidget(buildWorksheet(ec: editController));
 
       selectCell(2, 2); // cell with value 42
