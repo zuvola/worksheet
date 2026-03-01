@@ -1183,8 +1183,9 @@ class _WorksheetState extends State<Worksheet>
 
       // Use formatted text when a format exists (matches renderer)
       final format = widget.data.getFormat(coord);
-      final effectiveText =
-          format != null ? format.formatRich(value).text : value.displayValue;
+      final effectiveText = format != null
+          ? format.formatRich(value).text
+          : value.displayValue;
       if (effectiveText.isEmpty) continue;
 
       final richText = widget.data.getRichText(coord);
@@ -1251,10 +1252,10 @@ class _WorksheetState extends State<Worksheet>
       final cellValue = widget.data.getCell(anchor);
       if (cellValue == null) continue;
 
-      final textSpan =
-          _buildMeasurementSpan(anchor, cellValue, baseTextStyle);
+      final textSpan = _buildMeasurementSpan(anchor, cellValue, baseTextStyle);
       // Skip if the measurement span has no text content
-      final hasText = textSpan.text != null && textSpan.text!.isNotEmpty ||
+      final hasText =
+          textSpan.text != null && textSpan.text!.isNotEmpty ||
           textSpan.children != null && textSpan.children!.isNotEmpty;
       if (!hasText) continue;
 
@@ -1343,7 +1344,8 @@ class _WorksheetState extends State<Worksheet>
 
       final textSpan = _buildMeasurementSpan(coord, value, baseTextStyle);
       // Skip if the measurement span has no text content
-      final hasText = textSpan.text != null && textSpan.text!.isNotEmpty ||
+      final hasText =
+          textSpan.text != null && textSpan.text!.isNotEmpty ||
           textSpan.children != null && textSpan.children!.isNotEmpty;
       if (!hasText) continue;
 
@@ -1383,10 +1385,10 @@ class _WorksheetState extends State<Worksheet>
         layoutWidth = double.infinity;
       }
 
-      final textSpan =
-          _buildMeasurementSpan(anchor, cellValue, baseTextStyle);
+      final textSpan = _buildMeasurementSpan(anchor, cellValue, baseTextStyle);
       // Skip if the measurement span has no text content
-      final hasText = textSpan.text != null && textSpan.text!.isNotEmpty ||
+      final hasText =
+          textSpan.text != null && textSpan.text!.isNotEmpty ||
           textSpan.children != null && textSpan.children!.isNotEmpty;
       if (!hasText) continue;
 

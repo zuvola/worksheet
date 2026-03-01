@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.8.2] - 2026-03-01
+
+### Fixed
+- Auto-fit now considers cell-level rich text styles (e.g. bold, large font) and `CellFormat` (e.g. currency) when calculating column width and row height
+- Previously, cell-level styles measured as zero width and formatted text used raw values, causing columns to be too narrow
+
+### Added
+- `example/auto_fit.dart` — demonstrates auto-fit with rich text styles, number formats, and combinations
+
 ## [3.8.1] - 2026-03-01
 
 ### Fixed
