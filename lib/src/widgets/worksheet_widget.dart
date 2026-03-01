@@ -1116,6 +1116,41 @@ class _WorksheetState extends State<Worksheet>
     setState(() {});
   }
 
+  /// Builds a [TextSpan] for auto-fit measurement that matches the renderer's
+  /// logic in [TilePainter._renderCellContent].
+  ///
+  /// Handles cell-level rich text styles (single empty [TextSpan] with a style)
+  /// and [CellFormat] (e.g. currency formatting).
+  TextSpan _buildMeasurementSpan(
+    CellCoordinate coord,
+    CellValue value,
+    TextStyle baseTextStyle,
+  ) {
+    // Use formatted text when a format exists (matches tile_painter)
+    final format = widget.data.getFormat(coord);
+    final String text;
+    if (format != null) {
+      text = format.formatRich(value).text;
+    } else {
+      text = value.displayValue;
+    }
+
+    final richText = widget.data.getRichText(coord);
+    if (richText != null && richText.isNotEmpty) {
+      // Cell-level style: single empty TextSpan → merge style into display text
+      if (richText.length == 1 &&
+          (richText.first.text == null || richText.first.text!.isEmpty)) {
+        return TextSpan(
+          text: text,
+          style: baseTextStyle.merge(richText.first.style),
+        );
+      }
+      // Per-character spans: text is already embedded in children
+      return TextSpan(style: baseTextStyle, children: richText);
+    }
+    return TextSpan(text: text, style: baseTextStyle);
+  }
+
   /// Auto-fits a column to the widest content.
   ///
   /// Uses display-value deduplication and character-length filtering to avoid
@@ -1133,29 +1168,43 @@ class _WorksheetState extends State<Worksheet>
 
     // Collect measurement candidates. Plain text is filtered to only the
     // longest strings (by character count) since shorter strings are virtually
-    // always narrower in proportional fonts. Rich text is deduped by display
-    // value but kept regardless of length because styling affects width.
+    // always narrower in proportional fonts. Rich text with per-character spans
+    // is deduped by display value. Cell-level styled cells (single empty
+    // TextSpan with a style) are tracked by coord for individual measurement.
     int maxCharLen = 0;
     final plainCandidates = <String>{};
     final richCandidates = <String, List<TextSpan>>{};
+    final styledCandidates = <CellCoordinate, CellValue>{};
 
     final range = CellRange(0, column, widget.rowCount - 1, column);
     for (final entry in widget.data.getCellsInRange(range)) {
-      final text = entry.value.displayValue;
-      if (text.isEmpty) continue;
+      final coord = entry.key;
+      final value = entry.value;
 
-      final richText = widget.data.getRichText(entry.key);
+      // Use formatted text when a format exists (matches renderer)
+      final format = widget.data.getFormat(coord);
+      final effectiveText =
+          format != null ? format.formatRich(value).text : value.displayValue;
+      if (effectiveText.isEmpty) continue;
+
+      final richText = widget.data.getRichText(coord);
       if (richText != null && richText.isNotEmpty) {
-        richCandidates.putIfAbsent(text, () => richText);
+        if (richText.length == 1 &&
+            (richText.first.text == null || richText.first.text!.isEmpty)) {
+          // Cell-level style: style affects width, track individually
+          styledCandidates[coord] = value;
+        } else {
+          richCandidates.putIfAbsent(effectiveText, () => richText);
+        }
         continue;
       }
 
-      if (text.length > maxCharLen) {
-        maxCharLen = text.length;
+      if (effectiveText.length > maxCharLen) {
+        maxCharLen = effectiveText.length;
         plainCandidates.clear();
-        plainCandidates.add(text);
-      } else if (text.length == maxCharLen) {
-        plainCandidates.add(text);
+        plainCandidates.add(effectiveText);
+      } else if (effectiveText.length == maxCharLen) {
+        plainCandidates.add(effectiveText);
       }
     }
 
@@ -1174,12 +1223,21 @@ class _WorksheetState extends State<Worksheet>
       if (++measured >= 1000) break;
     }
 
-    // Rich text: measure each unique display value
+    // Rich text: measure each unique display value (per-character spans)
     for (final entry in richCandidates.entries) {
       final tp = TextPainter(
         text: TextSpan(style: baseTextStyle, children: entry.value),
         textDirection: TextDirection.ltr,
       )..layout();
+      if (tp.width > maxWidth) maxWidth = tp.width;
+      tp.dispose();
+    }
+
+    // Styled candidates: cell-level rich text style merged into display text
+    for (final entry in styledCandidates.entries) {
+      final span = _buildMeasurementSpan(entry.key, entry.value, baseTextStyle);
+      final tp = TextPainter(text: span, textDirection: TextDirection.ltr)
+        ..layout();
       if (tp.width > maxWidth) maxWidth = tp.width;
       tp.dispose();
     }
@@ -1192,16 +1250,13 @@ class _WorksheetState extends State<Worksheet>
       final anchor = region.anchor;
       final cellValue = widget.data.getCell(anchor);
       if (cellValue == null) continue;
-      final text = cellValue.displayValue;
-      if (text.isEmpty) continue;
 
-      final richText = widget.data.getRichText(anchor);
-      final TextSpan textSpan;
-      if (richText != null && richText.isNotEmpty) {
-        textSpan = TextSpan(style: baseTextStyle, children: richText);
-      } else {
-        textSpan = TextSpan(text: text, style: baseTextStyle);
-      }
+      final textSpan =
+          _buildMeasurementSpan(anchor, cellValue, baseTextStyle);
+      // Skip if the measurement span has no text content
+      final hasText = textSpan.text != null && textSpan.text!.isNotEmpty ||
+          textSpan.children != null && textSpan.children!.isNotEmpty;
+      if (!hasText) continue;
 
       final tp = TextPainter(text: textSpan, textDirection: TextDirection.ltr)
         ..layout();
@@ -1260,19 +1315,25 @@ class _WorksheetState extends State<Worksheet>
     final theme = _lastTheme;
     if (theme == null) return;
 
+    final baseTextStyle = TextStyle(
+      fontSize: theme.fontSize,
+      fontFamily: theme.fontFamily,
+      package: WorksheetThemeData.resolveFontPackage(theme.fontFamily),
+    );
+
     double maxHeight = 0.0;
     final range = CellRange(row, 0, row, widget.columnCount - 1);
     for (final entry in widget.data.getCellsInRange(range)) {
-      final text = entry.value.displayValue;
-      if (text.isEmpty) continue;
+      final coord = entry.key;
+      final value = entry.value;
 
       final cellStyle = CellStyle.defaultStyle.merge(
-        widget.data.getStyle(entry.key),
+        widget.data.getStyle(coord),
       );
       final wraps = cellStyle.wrapText ?? false;
       final double layoutWidth;
       if (wraps) {
-        final colWidth = _layoutSolver.getColumnWidth(entry.key.column);
+        final colWidth = _layoutSolver.getColumnWidth(coord.column);
         final availWidth = colWidth - 2 * theme.cellPadding;
         layoutWidth = availWidth > 0 ? availWidth : double.infinity;
       } else {
@@ -1280,20 +1341,11 @@ class _WorksheetState extends State<Worksheet>
         layoutWidth = double.infinity;
       }
 
-      final baseTextStyle = TextStyle(
-        fontSize: theme.fontSize,
-        fontFamily: theme.fontFamily,
-        package: WorksheetThemeData.resolveFontPackage(theme.fontFamily),
-      );
-
-      // Use rich text spans if available for accurate measurement
-      final richText = widget.data.getRichText(entry.key);
-      final TextSpan textSpan;
-      if (richText != null && richText.isNotEmpty) {
-        textSpan = TextSpan(style: baseTextStyle, children: richText);
-      } else {
-        textSpan = TextSpan(text: text, style: baseTextStyle);
-      }
+      final textSpan = _buildMeasurementSpan(coord, value, baseTextStyle);
+      // Skip if the measurement span has no text content
+      final hasText = textSpan.text != null && textSpan.text!.isNotEmpty ||
+          textSpan.children != null && textSpan.children!.isNotEmpty;
+      if (!hasText) continue;
 
       final tp = TextPainter(text: textSpan, textDirection: TextDirection.ltr)
         ..layout(maxWidth: layoutWidth);
@@ -1309,8 +1361,6 @@ class _WorksheetState extends State<Worksheet>
       final anchor = region.anchor;
       final cellValue = widget.data.getCell(anchor);
       if (cellValue == null) continue;
-      final text = cellValue.displayValue;
-      if (text.isEmpty) continue;
 
       final cellStyle = CellStyle.defaultStyle.merge(
         widget.data.getStyle(anchor),
@@ -1333,19 +1383,12 @@ class _WorksheetState extends State<Worksheet>
         layoutWidth = double.infinity;
       }
 
-      final baseTextStyle = TextStyle(
-        fontSize: theme.fontSize,
-        fontFamily: theme.fontFamily,
-        package: WorksheetThemeData.resolveFontPackage(theme.fontFamily),
-      );
-
-      final richText = widget.data.getRichText(anchor);
-      final TextSpan textSpan;
-      if (richText != null && richText.isNotEmpty) {
-        textSpan = TextSpan(style: baseTextStyle, children: richText);
-      } else {
-        textSpan = TextSpan(text: text, style: baseTextStyle);
-      }
+      final textSpan =
+          _buildMeasurementSpan(anchor, cellValue, baseTextStyle);
+      // Skip if the measurement span has no text content
+      final hasText = textSpan.text != null && textSpan.text!.isNotEmpty ||
+          textSpan.children != null && textSpan.children!.isNotEmpty;
+      if (!hasText) continue;
 
       final tp = TextPainter(text: textSpan, textDirection: TextDirection.ltr)
         ..layout(maxWidth: layoutWidth);

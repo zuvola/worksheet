@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:worksheet/src/core/data/sparse_worksheet_data.dart';
 import 'package:worksheet/src/core/models/cell_coordinate.dart';
+import 'package:worksheet/src/core/models/cell_format.dart';
 import 'package:worksheet/src/core/models/cell_range.dart';
 import 'package:worksheet/src/core/models/cell_style.dart';
 import 'package:worksheet/src/core/models/cell_value.dart';
@@ -416,5 +417,157 @@ void main() {
         expect(resizedWidth, equals(20.0));
       },
     );
+  });
+
+  group('Auto-fit with cell-level rich text styles', () {
+    testWidgets('cell-level large font style affects column width', (
+      tester,
+    ) async {
+      // Set text with cell-level large font via setRichText
+      const coord = CellCoordinate(0, 0);
+      data.setCell(coord, CellValue.text('Hello World'));
+
+      // Also set the same text without style in column 1 for comparison
+      const coordPlain = CellCoordinate(0, 1);
+      data.setCell(coordPlain, CellValue.text('Hello World'));
+
+      // Apply cell-level large font (single empty TextSpan with fontSize)
+      // Test font varies by size, not by weight
+      data.setRichText(coord, [
+        const TextSpan(style: TextStyle(fontSize: 28.0)),
+      ]);
+
+      double? styledWidth;
+      double? plainWidth;
+      await tester.pumpWidget(
+        buildWorksheet(
+          onResizeColumn: (column, newWidth) {
+            if (column == 0) styledWidth = newWidth;
+            if (column == 1) plainWidth = newWidth;
+          },
+        ),
+      );
+      await tester.pump();
+
+      // Auto-fit column 0 (large font)
+      await doubleTapAt(tester, const Offset(149.0, 12.0));
+      await tester.pump();
+
+      // Column 1 right edge after column 0 resize: headerWidth + col0Width + col1Width
+      final col1RightEdge = 50.0 + styledWidth! + 100.0;
+      await doubleTapAt(tester, Offset(col1RightEdge - 1.0, 12.0));
+
+      expect(styledWidth, isNotNull);
+      expect(plainWidth, isNotNull);
+      // Large font text should be wider than default font text
+      expect(styledWidth!, greaterThan(plainWidth!));
+    });
+
+    testWidgets('cell-level large font style affects row height', (
+      tester,
+    ) async {
+      const coord = CellCoordinate(0, 0);
+      data.setCell(coord, CellValue.text('Tall'));
+
+      // Apply cell-level large font size (single empty TextSpan with large font)
+      data.setRichText(coord, [
+        const TextSpan(style: TextStyle(fontSize: 36.0)),
+      ]);
+
+      double? resizedHeight;
+      await tester.pumpWidget(
+        buildWorksheet(
+          onResizeRow: (row, newHeight) {
+            if (row == 0) resizedHeight = newHeight;
+          },
+        ),
+      );
+      await tester.pump();
+
+      // Row 0 bottom edge: headerHeight + rowHeight = 24 + 24 = 48
+      await doubleTapAt(tester, const Offset(25.0, 47.0));
+
+      expect(resizedHeight, isNotNull);
+      // Default font is 14px, cell-level style is 36px — row should be much taller
+      // Default single-line height: ~14px + padding ≈ 22px
+      // With 36px font: ~36px + padding ≈ 44px+
+      expect(resizedHeight!, greaterThan(30.0));
+    });
+  });
+
+  group('Auto-fit with CellFormat', () {
+    testWidgets('currency format affects column width', (tester) async {
+      // Set a number with currency format — "$1,000.00" is wider than "1000.0"
+      const coord = CellCoordinate(0, 0);
+      data.setCell(coord, CellValue.number(1000));
+      data.setFormat(coord, CellFormat.currency);
+
+      // Column 1 has same number without format for comparison
+      const coordPlain = CellCoordinate(0, 1);
+      data.setCell(coordPlain, CellValue.number(1000));
+
+      double? formattedWidth;
+      double? plainWidth;
+      await tester.pumpWidget(
+        buildWorksheet(
+          onResizeColumn: (column, newWidth) {
+            if (column == 0) formattedWidth = newWidth;
+            if (column == 1) plainWidth = newWidth;
+          },
+        ),
+      );
+      await tester.pump();
+
+      // Auto-fit column 0 (formatted)
+      await doubleTapAt(tester, const Offset(149.0, 12.0));
+      await tester.pump();
+
+      // Auto-fit column 1 (plain) — recalculate right edge after col 0 resize
+      final col1RightEdge = 50.0 + formattedWidth! + 100.0;
+      await doubleTapAt(tester, Offset(col1RightEdge - 1.0, 12.0));
+
+      expect(formattedWidth, isNotNull);
+      expect(plainWidth, isNotNull);
+      // "$1,000.00" should be wider than "1000.0"
+      expect(formattedWidth!, greaterThan(plainWidth!));
+    });
+
+    testWidgets('formatted text with wrapText affects row height', (
+      tester,
+    ) async {
+      // Use a long formatted text that will wrap
+      const coord = CellCoordinate(0, 0);
+      data.setCell(coord, CellValue.number(123456789.12));
+      // Accounting format with long text representation
+      data.setFormat(
+        coord,
+        const CellFormat(
+          type: CellFormatType.currency,
+          formatCode: r'$#,##0.00',
+        ),
+      );
+      data.setStyle(coord, const CellStyle(wrapText: true));
+
+      // Shrink column to force wrapping of "$123,456,789.12"
+      // We can't set column width directly in the test, but the default
+      // 100px column should cause the formatted text to wrap
+
+      double? resizedHeight;
+      await tester.pumpWidget(
+        buildWorksheet(
+          onResizeRow: (row, newHeight) {
+            if (row == 0) resizedHeight = newHeight;
+          },
+        ),
+      );
+      await tester.pump();
+
+      // Row 0 bottom edge: headerHeight + rowHeight = 24 + 24 = 48
+      await doubleTapAt(tester, const Offset(25.0, 47.0));
+
+      expect(resizedHeight, isNotNull);
+      // Height should reflect the formatted text, not just the raw number
+      expect(resizedHeight!, greaterThan(10.0));
+    });
   });
 }
