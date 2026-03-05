@@ -581,175 +581,168 @@ void main() {
     // Column 0 right edge (screen): 25 + 50 = 75
     // Row 0 bottom edge (screen):   12 + 12 = 24
 
-    testWidgets(
-      'manual column resize at 50% zoom applies correct logical delta',
-      (tester) async {
-        controller.setZoom(0.5);
+    testWidgets('manual column resize at 50% zoom applies correct logical delta', (
+      tester,
+    ) async {
+      controller.setZoom(0.5);
 
-        final resizes = <(int, double)>[];
-        await tester.pumpWidget(
-          buildWorksheet(
-            onResizeColumn: (column, newWidth) {
-              resizes.add((column, newWidth));
-            },
-          ),
-        );
-        await tester.pump();
+      final resizes = <(int, double)>[];
+      await tester.pumpWidget(
+        buildWorksheet(
+          onResizeColumn: (column, newWidth) {
+            resizes.add((column, newWidth));
+          },
+        ),
+      );
+      await tester.pump();
 
-        final initialWidth = 100.0; // default column width
+      final initialWidth = 100.0; // default column width
 
-        // Column 0 right edge at 50% zoom: headerWidth*0.5 + colWidth*0.5 = 25 + 50 = 75
-        // Start drag near column border (within 4px tolerance * zoom is checked in worksheet coords)
-        final dragStart = const Offset(74.0, 6.0); // In column header area, near col 0 border
-        final dragEnd = Offset(74.0 + 20.0, 6.0); // Drag 20 screen pixels right
+      // Column 0 right edge at 50% zoom: headerWidth*0.5 + colWidth*0.5 = 25 + 50 = 75
+      // Start drag near column border (within 4px tolerance * zoom is checked in worksheet coords)
+      await tester.timedDragFrom(
+        const Offset(74.0, 6.0), // In column header area, near col 0 border
+        const Offset(20.0, 0.0),
+        const Duration(milliseconds: 300),
+      );
+      await tester.pumpAndSettle();
 
-        await tester.timedDragFrom(
-          dragStart,
-          const Offset(20.0, 0.0),
-          const Duration(milliseconds: 300),
-        );
-        await tester.pumpAndSettle();
+      expect(resizes, isNotEmpty, reason: 'Column resize callback should fire');
+      // 20 screen px / 0.5 zoom = 40 logical units delta
+      // New width = 100 + 40 = 140
+      final lastWidth = resizes.last.$2;
+      expect(lastWidth, closeTo(initialWidth + 40.0, 5.0));
+    });
 
-        expect(resizes, isNotEmpty, reason: 'Column resize callback should fire');
-        // 20 screen px / 0.5 zoom = 40 logical units delta
-        // New width = 100 + 40 = 140
-        final lastWidth = resizes.last.$2;
-        expect(lastWidth, closeTo(initialWidth + 40.0, 5.0));
-      },
-    );
+    testWidgets('manual row resize at 50% zoom applies correct logical delta', (
+      tester,
+    ) async {
+      controller.setZoom(0.5);
 
-    testWidgets(
-      'manual row resize at 50% zoom applies correct logical delta',
-      (tester) async {
-        controller.setZoom(0.5);
+      final resizes = <(int, double)>[];
+      await tester.pumpWidget(
+        buildWorksheet(
+          onResizeRow: (row, newHeight) {
+            resizes.add((row, newHeight));
+          },
+        ),
+      );
+      await tester.pump();
 
-        final resizes = <(int, double)>[];
-        await tester.pumpWidget(
-          buildWorksheet(
-            onResizeRow: (row, newHeight) {
-              resizes.add((row, newHeight));
-            },
-          ),
-        );
-        await tester.pump();
+      final initialHeight = 24.0; // default row height
 
-        final initialHeight = 24.0; // default row height
+      // Row 0 bottom edge at 50% zoom: headerHeight*0.5 + rowHeight*0.5 = 12 + 12 = 24
+      // Start drag near row border (in row header area)
+      final dragStart = const Offset(
+        12.0,
+        23.0,
+      ); // In row header area, near row 0 border
 
-        // Row 0 bottom edge at 50% zoom: headerHeight*0.5 + rowHeight*0.5 = 12 + 12 = 24
-        // Start drag near row border (in row header area)
-        final dragStart = const Offset(12.0, 23.0); // In row header area, near row 0 border
+      await tester.timedDragFrom(
+        dragStart,
+        const Offset(0.0, 10.0), // 10 screen pixels down
+        const Duration(milliseconds: 300),
+      );
+      await tester.pumpAndSettle();
 
-        await tester.timedDragFrom(
-          dragStart,
-          const Offset(0.0, 10.0), // 10 screen pixels down
-          const Duration(milliseconds: 300),
-        );
-        await tester.pumpAndSettle();
+      expect(resizes, isNotEmpty, reason: 'Row resize callback should fire');
+      // 10 screen px / 0.5 zoom = 20 logical units delta
+      // New height = 24 + 20 = 44
+      final lastHeight = resizes.last.$2;
+      expect(lastHeight, closeTo(initialHeight + 20.0, 5.0));
+    });
 
-        expect(resizes, isNotEmpty, reason: 'Row resize callback should fire');
-        // 10 screen px / 0.5 zoom = 20 logical units delta
-        // New height = 24 + 20 = 44
-        final lastHeight = resizes.last.$2;
-        expect(lastHeight, closeTo(initialHeight + 20.0, 5.0));
-      },
-    );
+    testWidgets('auto-fit column at 50% zoom fires callback', (tester) async {
+      controller.setZoom(0.5);
 
-    testWidgets(
-      'auto-fit column at 50% zoom fires callback',
-      (tester) async {
-        controller.setZoom(0.5);
+      data.setCell(
+        const CellCoordinate(0, 0),
+        CellValue.text('A fairly long text value for testing'),
+      );
 
-        data.setCell(
-          const CellCoordinate(0, 0),
-          CellValue.text('A fairly long text value for testing'),
-        );
+      double? width50;
+      await tester.pumpWidget(
+        buildWorksheet(
+          onResizeColumn: (column, newWidth) {
+            if (column == 0) width50 = newWidth;
+          },
+        ),
+      );
+      await tester.pump();
 
-        double? width50;
-        await tester.pumpWidget(
-          buildWorksheet(
-            onResizeColumn: (column, newWidth) {
-              if (column == 0) width50 = newWidth;
-            },
-          ),
-        );
-        await tester.pump();
+      // Column 0 right edge at 50%: headerWidth*0.5 + colWidth*0.5 = 25 + 50 = 75
+      await doubleTapAt(tester, const Offset(74.0, 6.0));
 
-        // Column 0 right edge at 50%: headerWidth*0.5 + colWidth*0.5 = 25 + 50 = 75
-        await doubleTapAt(tester, const Offset(74.0, 6.0));
+      expect(width50, isNotNull, reason: 'Auto-fit at 50% zoom should fire');
+      // Auto-fit measures in logical coordinates — result should be > minimum
+      expect(width50!, greaterThan(20.0));
+    });
 
-        expect(width50, isNotNull, reason: 'Auto-fit at 50% zoom should fire');
-        // Auto-fit measures in logical coordinates — result should be > minimum
-        expect(width50!, greaterThan(20.0));
-      },
-    );
+    testWidgets('auto-fit row at 50% zoom fires callback', (tester) async {
+      controller.setZoom(0.5);
 
-    testWidgets(
-      'auto-fit row at 50% zoom fires callback',
-      (tester) async {
-        controller.setZoom(0.5);
+      data.setCell(const CellCoordinate(0, 0), CellValue.text('Text'));
 
-        data.setCell(const CellCoordinate(0, 0), CellValue.text('Text'));
+      double? height50;
+      await tester.pumpWidget(
+        buildWorksheet(
+          onResizeRow: (row, newHeight) {
+            if (row == 0) height50 = newHeight;
+          },
+        ),
+      );
+      await tester.pump();
 
-        double? height50;
-        await tester.pumpWidget(
-          buildWorksheet(
-            onResizeRow: (row, newHeight) {
-              if (row == 0) height50 = newHeight;
-            },
-          ),
-        );
-        await tester.pump();
+      // Row 0 bottom edge at 50%: headerHeight*0.5 + rowHeight*0.5 = 12 + 12 = 24
+      await doubleTapAt(tester, const Offset(12.0, 23.0));
 
-        // Row 0 bottom edge at 50%: headerHeight*0.5 + rowHeight*0.5 = 12 + 12 = 24
-        await doubleTapAt(tester, const Offset(12.0, 23.0));
+      expect(height50, isNotNull, reason: 'Auto-fit at 50% zoom should fire');
+      expect(height50!, greaterThan(10.0));
+    });
 
-        expect(height50, isNotNull, reason: 'Auto-fit at 50% zoom should fire');
-        expect(height50!, greaterThan(10.0));
-      },
-    );
+    testWidgets('column width unchanged after zoom change (no resize)', (
+      tester,
+    ) async {
+      // Set a custom column width at 100% zoom
+      double? lastWidth;
+      controller.setZoom(1.0);
+      await tester.pumpWidget(
+        buildWorksheet(
+          onResizeColumn: (column, newWidth) {
+            if (column == 0) lastWidth = newWidth;
+          },
+        ),
+      );
+      await tester.pump();
 
-    testWidgets(
-      'column width unchanged after zoom change (no resize)',
-      (tester) async {
-        // Set a custom column width at 100% zoom
-        double? lastWidth;
-        controller.setZoom(1.0);
-        await tester.pumpWidget(
-          buildWorksheet(
-            onResizeColumn: (column, newWidth) {
-              if (column == 0) lastWidth = newWidth;
-            },
-          ),
-        );
-        await tester.pump();
+      // Manually resize column 0 at 100%: drag 30px right
+      await tester.timedDragFrom(
+        const Offset(149.0, 12.0), // column 0 right edge
+        const Offset(30.0, 0.0),
+        const Duration(milliseconds: 300),
+      );
+      await tester.pumpAndSettle();
 
-        // Manually resize column 0 at 100%: drag 30px right
-        await tester.timedDragFrom(
-          const Offset(149.0, 12.0), // column 0 right edge
-          const Offset(30.0, 0.0),
-          const Duration(milliseconds: 300),
-        );
-        await tester.pumpAndSettle();
+      expect(lastWidth, isNotNull, reason: 'Resize callback should fire');
 
-        expect(lastWidth, isNotNull, reason: 'Resize callback should fire');
-        final widthAfterResize = lastWidth!;
+      // Change zoom to 50% — should NOT trigger any resize callback
+      lastWidth = null;
+      controller.setZoom(0.5);
+      await tester.pump();
 
-        // Change zoom to 50% — should NOT trigger any resize callback
-        lastWidth = null;
-        controller.setZoom(0.5);
-        await tester.pump();
+      // No resize callback should have fired from zoom change alone
+      expect(
+        lastWidth,
+        isNull,
+        reason: 'Zoom change should not trigger resize callback',
+      );
 
-        // No resize callback should have fired from zoom change alone
-        expect(lastWidth, isNull,
-            reason: 'Zoom change should not trigger resize callback');
-
-        // Verify the logical width is preserved by reading it back via auto-fit
-        // on an empty column (which would set to minimum 20.0)
-        // Instead, we can just verify the controller zoom changed but the
-        // layout solver still has the same width by doing another resize
-        // and checking the starting point.
-        // For simplicity, just confirm no spurious callback fired.
-      },
-    );
+      // Verify the logical width is preserved by reading it back via auto-fit
+      // on an empty column (which would set to minimum 20.0)
+      // Instead, we can just verify the controller zoom changed but the
+      // layout solver still has the same width by doing another resize
+      // and checking the starting point.
+      // For simplicity, just confirm no spurious callback fired.
+    });
   });
 }

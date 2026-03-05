@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.9.0] - 2026-03-05
+
+### Added
+- Widget-level tests for column/row resize and auto-fit at sub-100% zoom levels
+- Verifies manual resize correctly converts screen-pixel deltas to logical units at 50% zoom
+- Verifies auto-fit fires correctly at 50% zoom
+- Verifies zoom changes do not trigger spurious resize callbacks
+
 ## [3.8.2] - 2026-03-01
 
 ### Fixed
