@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.9.1] - 2026-03-14
+
+### Fixed
+- Fix visible tile boundary seams at non-100% zoom in Chrome by snapping tile positions to device pixel boundaries (not just logical pixels), accounting for fractional DPR from browser zoom
+- Disable anti-aliasing on tile clip rects to prevent semi-transparent edge pixels at tile boundaries
+- Fix selection border drawing several pixels off at high zoom (e.g. 400%) by snapping selection coordinates in worksheet space to match gridline rendering
+
 ## [3.9.0] - 2026-03-05
 
 ### Added

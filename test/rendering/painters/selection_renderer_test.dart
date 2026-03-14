@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -406,6 +407,200 @@ void main() {
         );
 
         recorder.endRecording();
+      });
+    });
+
+    group('selection–gridline alignment at high zoom', () {
+      // Gridlines are drawn in tile-local (worksheet) coordinates with
+      //   x = (worksheetX - tileLeft).roundToDouble() + 0.5
+      // then the canvas is scaled by zoom.  So the gridline center on
+      // screen is at:
+      //   (worksheetX.round() + 0.5) * zoom
+      //
+      // The selection _snapRect must produce the same screen position
+      // so that the selection border sits exactly on top of the gridline.
+
+      /// Computes the expected screen position of a gridline at the
+      /// given [worksheetPos] and [zoom], matching TilePainter logic.
+      double gridlineScreenPos(double worksheetPos, double zoom) {
+        return (worksheetPos.roundToDouble() + 0.5) * zoom;
+      }
+
+      /// Renders a single-cell selection and returns the RGBA pixel data.
+      Future<ByteData> renderSelection({
+        required double zoom,
+        required CellCoordinate cell,
+        Offset viewportOffset = Offset.zero,
+        int imageSize = 600,
+      }) async {
+        final recorder = PictureRecorder();
+        final canvas = Canvas(
+          recorder,
+          Rect.fromLTWH(0, 0, imageSize.toDouble(), imageSize.toDouble()),
+        );
+
+        // White background so selection strokes are clearly visible.
+        canvas.drawRect(
+          Rect.fromLTWH(0, 0, imageSize.toDouble(), imageSize.toDouble()),
+          Paint()..color = const Color(0xFFFFFFFF),
+        );
+
+        renderer.paintSingleCell(
+          canvas: canvas,
+          viewportOffset: viewportOffset,
+          zoom: zoom,
+          cell: cell,
+        );
+
+        final picture = recorder.endRecording();
+        final image = await picture.toImage(imageSize, imageSize);
+        final bytes = await image.toByteData(format: ImageByteFormat.rawRgba);
+        picture.dispose();
+        image.dispose();
+        return bytes!;
+      }
+
+      /// Returns true if the pixel at (x,y) is NOT white (i.e. has paint).
+      bool isPainted(ByteData bytes, int x, int y, {int width = 600}) {
+        final offset = (y * width + x) * 4;
+        final r = bytes.getUint8(offset);
+        final g = bytes.getUint8(offset + 1);
+        final b = bytes.getUint8(offset + 2);
+        return !(r == 255 && g == 255 && b == 255);
+      }
+
+      /// Finds the first painted pixel scanning rightward from [startX]
+      /// along row [y].  Returns the x coordinate, or -1 if not found.
+      int findFirstPaintedX(
+        ByteData bytes,
+        int startX,
+        int y, {
+        int width = 600,
+        int limit = 50,
+      }) {
+        for (var x = startX; x < startX + limit && x < width; x++) {
+          if (isPainted(bytes, x, y, width: width)) return x;
+        }
+        return -1;
+      }
+
+      /// Finds the first painted pixel scanning downward from [startY]
+      /// along column [x].  Returns the y coordinate, or -1 if not found.
+      int findFirstPaintedY(
+        ByteData bytes,
+        int x,
+        int startY, {
+        int width = 600,
+        int limit = 50,
+      }) {
+        for (var y = startY; y < startY + limit && y < width; y++) {
+          if (isPainted(bytes, x, y, width: width)) return y;
+        }
+        return -1;
+      }
+
+      test('at zoom 4.0 selection left edge aligns with gridline', () async {
+        // Cell (0,1) left edge = column 1 left = 100 worksheet pixels
+        // (default column width = 100).
+        const zoom = 4.0;
+        const cell = CellCoordinate(0, 1);
+        final bytes = await renderSelection(zoom: zoom, cell: cell);
+
+        final expectedCenter = gridlineScreenPos(100.0, zoom);
+        // The selection border is a 1px stroke centered on expectedCenter,
+        // so it should paint at floor(expectedCenter).
+        final expectedPixel = expectedCenter.floor();
+
+        // Scan along y=10 (well inside the cell height) to find the
+        // leftmost painted pixel.
+        final actualPixel = findFirstPaintedX(bytes, expectedPixel - 5, 10);
+
+        expect(
+          actualPixel,
+          closeTo(expectedPixel, 1),
+          reason:
+              'Selection left edge at zoom $zoom should be within 1px of '
+              'gridline position $expectedPixel, but was at $actualPixel',
+        );
+      });
+
+      test('at zoom 4.0 selection top edge aligns with gridline', () async {
+        // Cell (1,0) top edge = row 1 top = 24 worksheet pixels
+        // (default row height = 24).
+        const zoom = 4.0;
+        const cell = CellCoordinate(1, 0);
+        final bytes = await renderSelection(zoom: zoom, cell: cell);
+
+        final expectedCenter = gridlineScreenPos(24.0, zoom);
+        final expectedPixel = expectedCenter.floor();
+
+        // Scan along x=10 to find the topmost painted pixel.
+        final actualPixel = findFirstPaintedY(bytes, 10, expectedPixel - 5);
+
+        expect(
+          actualPixel,
+          closeTo(expectedPixel, 1),
+          reason:
+              'Selection top edge at zoom $zoom should be within 1px of '
+              'gridline position $expectedPixel, but was at $actualPixel',
+        );
+      });
+
+      test('at zoom 2.0 selection edges align with gridlines', () async {
+        const zoom = 2.0;
+        const cell = CellCoordinate(0, 1);
+        final bytes = await renderSelection(zoom: zoom, cell: cell);
+
+        final expectedCenter = gridlineScreenPos(100.0, zoom);
+        final expectedPixel = expectedCenter.floor();
+
+        final actualPixel = findFirstPaintedX(bytes, expectedPixel - 5, 10);
+
+        expect(
+          actualPixel,
+          closeTo(expectedPixel, 1),
+          reason:
+              'Selection left edge at zoom $zoom should be within 1px of '
+              'gridline position $expectedPixel, but was at $actualPixel',
+        );
+      });
+
+      test('at zoom 1.0 selection edges align (baseline)', () async {
+        const zoom = 1.0;
+        const cell = CellCoordinate(0, 1);
+        final bytes = await renderSelection(zoom: zoom, cell: cell);
+
+        final expectedCenter = gridlineScreenPos(100.0, zoom);
+        final expectedPixel = expectedCenter.floor();
+
+        final actualPixel = findFirstPaintedX(bytes, expectedPixel - 5, 10);
+
+        expect(
+          actualPixel,
+          closeTo(expectedPixel, 1),
+          reason:
+              'Selection left edge at zoom $zoom should be within 1px of '
+              'gridline position $expectedPixel, but was at $actualPixel',
+        );
+      });
+
+      test('at zoom 3.0 selection edges align with gridlines', () async {
+        const zoom = 3.0;
+        const cell = CellCoordinate(0, 1);
+        final bytes = await renderSelection(zoom: zoom, cell: cell);
+
+        final expectedCenter = gridlineScreenPos(100.0, zoom);
+        final expectedPixel = expectedCenter.floor();
+
+        final actualPixel = findFirstPaintedX(bytes, expectedPixel - 5, 10);
+
+        expect(
+          actualPixel,
+          closeTo(expectedPixel, 1),
+          reason:
+              'Selection left edge at zoom $zoom should be within 1px of '
+              'gridline position $expectedPixel, but was at $actualPixel',
+        );
       });
     });
   });

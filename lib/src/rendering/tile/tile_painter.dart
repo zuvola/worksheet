@@ -105,7 +105,7 @@ class TilePainter implements TileRenderer {
     // clip.  Without this, cell backgrounds that straddle a tile boundary
     // overflow into the Picture and get composited on top of adjacent tiles,
     // hiding text in neighbouring cells.
-    canvas.clipRect(localCullRect);
+    canvas.clipRect(localCullRect, doAntiAlias: false);
 
     // Fill background
     canvas.drawRect(

@@ -26,6 +26,9 @@ class WorksheetViewport extends LeafRenderObjectWidget {
   /// The current zoom level (1.0 = 100%).
   final double zoom;
 
+  /// The device pixel ratio used for sub-pixel tile snapping.
+  final double devicePixelRatio;
+
   /// A version number that changes when the viewport needs to repaint.
   /// Increment this when tiles are invalidated or layout changes.
   final int layoutVersion;
@@ -38,6 +41,7 @@ class WorksheetViewport extends LeafRenderObjectWidget {
     required this.tileManager,
     required this.layoutSolver,
     required this.zoom,
+    this.devicePixelRatio = 1.0,
     this.layoutVersion = 0,
   });
 
@@ -49,6 +53,7 @@ class WorksheetViewport extends LeafRenderObjectWidget {
       tileManager: tileManager,
       layoutSolver: layoutSolver,
       zoom: zoom,
+      devicePixelRatio: devicePixelRatio,
       layoutVersion: layoutVersion,
     );
   }
@@ -64,6 +69,7 @@ class WorksheetViewport extends LeafRenderObjectWidget {
       ..tileManager = tileManager
       ..layoutSolver = layoutSolver
       ..zoom = zoom
+      ..devicePixelRatio = devicePixelRatio
       ..layoutVersion = layoutVersion;
   }
 }
@@ -81,6 +87,7 @@ class RenderWorksheetViewport extends RenderBox {
   TileManager _tileManager;
   LayoutSolver _layoutSolver;
   double _zoom;
+  double _devicePixelRatio;
   int _layoutVersion;
 
   /// Creates a render worksheet viewport.
@@ -90,12 +97,14 @@ class RenderWorksheetViewport extends RenderBox {
     required TileManager tileManager,
     required LayoutSolver layoutSolver,
     required double zoom,
+    double devicePixelRatio = 1.0,
     int layoutVersion = 0,
   }) : _horizontalPosition = horizontalPosition,
        _verticalPosition = verticalPosition,
        _tileManager = tileManager,
        _layoutSolver = layoutSolver,
        _zoom = zoom,
+       _devicePixelRatio = devicePixelRatio,
        _layoutVersion = layoutVersion;
 
   /// The horizontal scroll position.
@@ -149,6 +158,14 @@ class RenderWorksheetViewport extends RenderBox {
     if (_zoom == value) return;
     _zoom = value;
     markNeedsLayout();
+  }
+
+  /// The device pixel ratio for sub-pixel tile snapping.
+  double get devicePixelRatio => _devicePixelRatio;
+  set devicePixelRatio(double value) {
+    if (_devicePixelRatio == value) return;
+    _devicePixelRatio = value;
+    markNeedsPaint();
   }
 
   @override
@@ -250,8 +267,20 @@ class RenderWorksheetViewport extends RenderBox {
         tileHeight: _tileManager.config.tileHeight,
       );
 
+      // Snap tile position to device pixel grid to prevent hairline gap
+      // artifacts at tile boundaries.  We multiply by both zoom and
+      // devicePixelRatio so the floor lands on an actual device pixel,
+      // which matters when Chrome's browser-zoom produces a fractional
+      // DPR (e.g. 1.1, 1.25).  floor() guarantees sub-pixel overlap
+      // (never a gap) — the later tile's opaque content overwrites it.
+      final effectiveScale = _zoom * _devicePixelRatio;
+      final snappedLeft =
+          (tileBounds.left * effectiveScale).floorToDouble() / effectiveScale;
+      final snappedTop =
+          (tileBounds.top * effectiveScale).floorToDouble() / effectiveScale;
+
       canvas.save();
-      canvas.translate(tileBounds.left, tileBounds.top);
+      canvas.translate(snappedLeft, snappedTop);
       canvas.drawPicture(tile.picture);
       canvas.restore();
     }

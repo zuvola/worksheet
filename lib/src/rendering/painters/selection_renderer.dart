@@ -216,6 +216,7 @@ class SelectionRenderer {
       (bounds.top - viewportOffset.dy) * zoom,
       (bounds.right - viewportOffset.dx) * zoom,
       (bounds.bottom - viewportOffset.dy) * zoom,
+      zoom,
     );
 
     // Draw selection fill
@@ -255,6 +256,7 @@ class SelectionRenderer {
       (bounds.top - viewportOffset.dy) * zoom,
       (bounds.right - viewportOffset.dx) * zoom,
       (bounds.bottom - viewportOffset.dy) * zoom,
+      zoom,
     );
 
     // When editing with expanded bounds, draw white background to cover
@@ -406,6 +408,7 @@ class SelectionRenderer {
       (bounds.top - viewportOffset.dy) * zoom,
       (bounds.right - viewportOffset.dx) * zoom,
       (bounds.bottom - viewportOffset.dy) * zoom,
+      zoom,
     );
 
     canvas.drawRect(screenBounds, _fillPreviewPaint);
@@ -431,6 +434,7 @@ class SelectionRenderer {
       (bounds.top - viewportOffset.dy) * zoom,
       (bounds.right - viewportOffset.dx) * zoom,
       (bounds.bottom - viewportOffset.dy) * zoom,
+      zoom,
     );
 
     // Draw a dashed border by drawing short line segments
@@ -477,12 +481,19 @@ class SelectionRenderer {
 
   /// Snaps rect edges to half-pixel positions so 1px strokes land on exact
   /// pixel boundaries instead of straddling two pixels.
-  static Rect _snapRect(double l, double t, double r, double b) {
+  ///
+  /// The snap is applied in **worksheet** coordinates (before zoom scaling)
+  /// to match the gridline rendering in [TilePainter], which uses
+  /// `roundToDouble() + 0.5` in tile-local (worksheet) space.  Without
+  /// this, at high zoom levels (e.g. 400%) the selection border drifts
+  /// away from the gridlines by `0.5 * zoom - 0.5` screen pixels.
+  static Rect _snapRect(double l, double t, double r, double b, double zoom) {
+    // Convert screen → worksheet, snap to half-pixel, convert back.
     return Rect.fromLTRB(
-      l.roundToDouble() + 0.5,
-      t.roundToDouble() + 0.5,
-      r.roundToDouble() + 0.5,
-      b.roundToDouble() + 0.5,
+      ((l / zoom).roundToDouble() + 0.5) * zoom,
+      ((t / zoom).roundToDouble() + 0.5) * zoom,
+      ((r / zoom).roundToDouble() + 0.5) * zoom,
+      ((b / zoom).roundToDouble() + 0.5) * zoom,
     );
   }
 }

@@ -3793,6 +3793,7 @@ class _WorksheetState extends State<Worksheet>
           tileManager: _tileManager,
           layoutSolver: _layoutSolver,
           zoom: _controller.zoom,
+          devicePixelRatio: MediaQuery.of(context).devicePixelRatio,
           layoutVersion: _layoutVersion,
         );
       },
