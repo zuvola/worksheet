@@ -411,19 +411,14 @@ void main() {
     });
 
     group('selection–gridline alignment at high zoom', () {
-      // Gridlines are drawn in tile-local (worksheet) coordinates with
-      //   x = (worksheetX - tileLeft).roundToDouble() + 0.5
-      // then the canvas is scaled by zoom.  So the gridline center on
-      // screen is at:
-      //   (worksheetX.round() + 0.5) * zoom
-      //
-      // The selection _snapRect must produce the same screen position
-      // so that the selection border sits exactly on top of the gridline.
+      // Gridlines use hairline strokes at exact integer worksheet positions.
+      // The selection _snapRect rounds screen coordinates to the nearest
+      // pixel to match.
 
       /// Computes the expected screen position of a gridline at the
       /// given [worksheetPos] and [zoom], matching TilePainter logic.
       double gridlineScreenPos(double worksheetPos, double zoom) {
-        return (worksheetPos.roundToDouble() + 0.5) * zoom;
+        return worksheetPos * zoom;
       }
 
       /// Renders a single-cell selection and returns the RGBA pixel data.

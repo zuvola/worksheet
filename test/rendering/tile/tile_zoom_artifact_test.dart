@@ -80,14 +80,10 @@ Future<ByteData> compositeTiles({
       tileWidth: tileSize,
       tileHeight: tileSize,
     );
-    // Mirror the viewport's device-pixel-aware snapping fix
-    final effectiveScale = zoom * devicePixelRatio;
-    final snappedLeft =
-        (bounds.left * effectiveScale).floorToDouble() / effectiveScale;
-    final snappedTop =
-        (bounds.top * effectiveScale).floorToDouble() / effectiveScale;
+    // Mirror the viewport: draw tile at its nominal worksheet position.
+    // Tile seams are prevented by the 1px overlap extension in TilePainter.
     canvas.save();
-    canvas.translate(snappedLeft, snappedTop);
+    canvas.translate(bounds.left, bounds.top);
     canvas.drawPicture(entry.$2);
     canvas.restore();
   }

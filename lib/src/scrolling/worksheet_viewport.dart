@@ -267,20 +267,12 @@ class RenderWorksheetViewport extends RenderBox {
         tileHeight: _tileManager.config.tileHeight,
       );
 
-      // Snap tile position to device pixel grid to prevent hairline gap
-      // artifacts at tile boundaries.  We multiply by both zoom and
-      // devicePixelRatio so the floor lands on an actual device pixel,
-      // which matters when Chrome's browser-zoom produces a fractional
-      // DPR (e.g. 1.1, 1.25).  floor() guarantees sub-pixel overlap
-      // (never a gap) — the later tile's opaque content overwrites it.
-      final effectiveScale = _zoom * _devicePixelRatio;
-      final snappedLeft =
-          (tileBounds.left * effectiveScale).floorToDouble() / effectiveScale;
-      final snappedTop =
-          (tileBounds.top * effectiveScale).floorToDouble() / effectiveScale;
-
+      // Draw tile at its nominal worksheet position.  Tile seams are
+      // prevented by the 1px overlap extension in TilePainter (each
+      // tile's background extends 1 worksheet pixel beyond its right
+      // and bottom edges so adjacent tiles physically overlap).
       canvas.save();
-      canvas.translate(snappedLeft, snappedTop);
+      canvas.translate(tileBounds.left, tileBounds.top);
       canvas.drawPicture(tile.picture);
       canvas.restore();
     }

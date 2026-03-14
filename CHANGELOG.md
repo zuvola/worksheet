@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.9.2] - 2026-03-14
+
+### Fixed
+- Fix gridlines disappearing at certain zoom levels (e.g. 85%) by switching to hairline strokes (always 1 device pixel regardless of zoom)
+- Fix gridlines appearing as double lines at some zoom levels by removing zoom-dependent stroke width calculation
+- Fix header borders misaligning with content gridlines by using consistent direct coordinate conversion
+- Tile seams prevented by 1px overlap extension instead of floor-based position snapping
+
 ## [3.9.1] - 2026-03-14
 
 ### Fixed

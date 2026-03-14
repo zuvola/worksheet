@@ -156,9 +156,10 @@ class HeaderRenderer {
 
     _borderPaint = Paint()
       ..color = style.borderColor
-      ..strokeWidth = style.borderWidth
+      ..strokeWidth =
+          0 // hairline: always 1 device pixel, matches tile gridlines
       ..style = PaintingStyle.stroke
-      ..isAntiAlias = false; // Crisp 1px lines
+      ..isAntiAlias = false;
   }
 
   /// Paints the column headers (A, B, C, ...).
@@ -246,12 +247,9 @@ class HeaderRenderer {
       col++
     ) {
       final colLeft = layoutSolver.getColumnLeft(col + 1);
-      final tileSize = 256.0; // TileConfig default
-      final tileBoundsLeft = (colLeft ~/ tileSize) * tileSize;
-      final tileLocalX = (colLeft - tileBoundsLeft).roundToDouble() + 0.5;
+      // Direct worksheet-to-screen conversion matching tile gridline positions
       final borderX =
-          (tileBoundsLeft - viewportOffset.dx + tileLocalX) * zoom +
-          scaledRowHeaderWidth;
+          (colLeft - viewportOffset.dx) * zoom + scaledRowHeaderWidth;
       canvas.drawLine(
         Offset(borderX, 0),
         Offset(borderX, scaledColumnHeaderHeight),
@@ -337,12 +335,9 @@ class HeaderRenderer {
     // Pass 2: borders (drawn last so they're never obscured)
     for (var row = visibleRows.startIndex; row <= visibleRows.endIndex; row++) {
       final rowTop = layoutSolver.getRowTop(row + 1);
-      final tileSize = 256.0; // TileConfig default
-      final tileBoundsTop = (rowTop ~/ tileSize) * tileSize;
-      final tileLocalY = (rowTop - tileBoundsTop).roundToDouble() + 0.5;
+      // Direct worksheet-to-screen conversion matching tile gridline positions
       final borderY =
-          (tileBoundsTop - viewportOffset.dy + tileLocalY) * zoom +
-          scaledColumnHeaderHeight;
+          (rowTop - viewportOffset.dy) * zoom + scaledColumnHeaderHeight;
       canvas.drawLine(
         Offset(0, borderY),
         Offset(scaledRowHeaderWidth, borderY),

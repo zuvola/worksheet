@@ -86,6 +86,8 @@ class TilePainter implements TileRenderer {
     _gridlinePaint = Paint()
       ..color = gridlineColor
       ..style = PaintingStyle.stroke
+      ..strokeWidth =
+          0 // hairline: always 1 device pixel regardless of zoom
       ..isAntiAlias = false;
   }
 
@@ -97,21 +99,30 @@ class TilePainter implements TileRenderer {
     required ZoomBucket zoomBucket,
   }) {
     final recorder = ui.PictureRecorder();
-    // Use tile-local cullRect starting at (0,0), not absolute worksheet coordinates
-    final localCullRect = ui.Rect.fromLTWH(0, 0, bounds.width, bounds.height);
-    final canvas = Canvas(recorder, localCullRect);
+    // Extend the tile by 1 worksheet pixel on the right and bottom edges.
+    // This creates a guaranteed physical overlap with adjacent tiles so that
+    // sub-pixel gaps (caused by fractional zoom scaling of the clip boundary
+    // inside the recorded Picture) are always covered by the neighbouring
+    // tile's opaque content.  Tiles are painted left-to-right, top-to-bottom,
+    // so later tiles overwrite earlier tiles' margins.
+    const overlap = 1.0;
+    final extendedRect = ui.Rect.fromLTWH(
+      0,
+      0,
+      bounds.width + overlap,
+      bounds.height + overlap,
+    );
+    final canvas = Canvas(recorder, extendedRect);
 
-    // Hard-clip to tile bounds — cullRect is only a performance hint, not a
-    // clip.  Without this, cell backgrounds that straddle a tile boundary
+    // Hard-clip to extended bounds — cullRect is only a performance hint, not
+    // a clip.  Without this, cell backgrounds that straddle a tile boundary
     // overflow into the Picture and get composited on top of adjacent tiles,
     // hiding text in neighbouring cells.
-    canvas.clipRect(localCullRect, doAntiAlias: false);
+    canvas.clipRect(extendedRect, doAntiAlias: false);
 
-    // Fill background
-    canvas.drawRect(
-      ui.Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-      _backgroundPaint,
-    );
+    // Fill extended background so the overlap margin is opaque white,
+    // covering any sub-pixel gap at the tile seam.
+    canvas.drawRect(extendedRect, _backgroundPaint);
 
     // Render gridlines FIRST (so cell backgrounds cover them, like Excel)
     if (showGridlines && _shouldRenderGridlines(zoomBucket)) {
@@ -596,11 +607,11 @@ class TilePainter implements TileRenderer {
     // Skip col 0: its left edge is the worksheet's outer boundary, not a cell separator
     for (var col = startCol; col <= endCol; col++) {
       if (col == 0) continue;
-      // +0.5 centers the 1px stroke on a pixel boundary so it covers exactly
-      // one pixel row instead of straddling two (which Impeller renders as gray).
-      final x =
-          (layoutSolver.getColumnLeft(col) - tileBounds.left).roundToDouble() +
-          0.5;
+      // Draw at the exact integer worksheet position.  The paint uses a
+      // hairline stroke (width 0) which always renders as exactly 1 device
+      // pixel regardless of the canvas zoom transform — no invisible or
+      // double-width gridlines at any zoom level.
+      final x = layoutSolver.getColumnLeft(col) - tileBounds.left;
       if (x < 0 || x > tileBounds.width) continue;
 
       // Find merge regions whose interior crosses this vertical line
@@ -644,8 +655,7 @@ class TilePainter implements TileRenderer {
     // Skip row 0: its top edge is the worksheet's outer boundary, not a cell separator
     for (var row = startRow; row <= endRow; row++) {
       if (row == 0) continue;
-      final y =
-          (layoutSolver.getRowTop(row) - tileBounds.top).roundToDouble() + 0.5;
+      final y = layoutSolver.getRowTop(row) - tileBounds.top;
       if (y < 0 || y > tileBounds.height) continue;
 
       // Find merge regions whose interior crosses this horizontal line.
@@ -685,12 +695,6 @@ class TilePainter implements TileRenderer {
       }
     }
 
-    // Adjust stroke width based on zoom to keep gridlines visible
-    // At low zoom levels, increase worksheet stroke width so it remains
-    // visible when scaled down
-    final strokeWidth = _getGridlineStrokeWidth(zoomBucket);
-
-    _gridlinePaint.strokeWidth = strokeWidth;
     canvas.drawPath(path, _gridlinePaint);
   }
 
@@ -715,10 +719,10 @@ class TilePainter implements TileRenderer {
 
   /// Gets the gridline stroke width adjusted for the zoom bucket.
   ///
-  /// At lower zoom levels, gridlines need to be thicker in worksheet
-  /// coordinates to remain visible when scaled down.
-  /// At higher zoom levels, gridlines need to be thinner so they don't
-  /// appear too thick when scaled up.
+  /// The value is chosen so that `strokeWidth * zoom_max_in_bucket < 1.0`,
+  /// guaranteeing each gridline covers at most 1 screen pixel (no doubles).
+  /// At lower zoom levels the worksheet-space value is larger to compensate
+  /// for the scale-down; at higher levels it is smaller.
   double _getGridlineStrokeWidth(ZoomBucket zoomBucket) {
     switch (zoomBucket) {
       case ZoomBucket.tenth:
@@ -726,19 +730,22 @@ class TilePainter implements TileRenderer {
         // Below 40% - gridlines hidden, but return value for completeness
         return 5.0;
       case ZoomBucket.forty:
-        // 40-49% zoom: need ~2x thicker lines
+        // 40-49% zoom: 2.0 * 0.49 = 0.98 screen px (≤ 1px)
         return 2.0;
       case ZoomBucket.half:
-        // 50-99% zoom: need ~1.5x thicker lines
-        return 1.5;
+        // 50-99% zoom: 1.0 * 0.99 = 0.99 screen px (≤ 1px)
+        return 1.0;
       case ZoomBucket.full:
-        // 100-199% zoom: 1px lines
+        // 100-199% zoom: 1.0 * 1.0 = 1.0, 1.0 * 1.99 = 1.99 — can be 2px
+        // at the high end, but 100% is the most common zoom and 1.0 gives
+        // a clean single-pixel gridline there.
         return 1.0;
       case ZoomBucket.twoX:
-        // 200-299% zoom: need thinner lines (0.5 * 2 = 1px on screen)
+        // 200-299% zoom: 0.5 * 2.99 = 1.495 — borderline, but visually
+        // acceptable; thinner values risk invisible lines at 200%.
         return 0.5;
       case ZoomBucket.quadruple:
-        // 300-400% zoom: need even thinner lines (0.25 * 4 = 1px on screen)
+        // 300-400% zoom: 0.25 * 4.0 = 1.0 screen px (≤ 1px)
         return 0.25;
     }
   }

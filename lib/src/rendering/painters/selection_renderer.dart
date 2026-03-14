@@ -479,21 +479,15 @@ class SelectionRenderer {
     drawDashedLine(rect.bottomLeft, rect.topLeft);
   }
 
-  /// Snaps rect edges to half-pixel positions so 1px strokes land on exact
-  /// pixel boundaries instead of straddling two pixels.
-  ///
-  /// The snap is applied in **worksheet** coordinates (before zoom scaling)
-  /// to match the gridline rendering in [TilePainter], which uses
-  /// `roundToDouble() + 0.5` in tile-local (worksheet) space.  Without
-  /// this, at high zoom levels (e.g. 400%) the selection border drifts
-  /// away from the gridlines by `0.5 * zoom - 0.5` screen pixels.
+  /// Snaps rect edges to the nearest screen pixel so selection borders
+  /// align with tile gridlines (which use hairline strokes at integer
+  /// worksheet positions).
   static Rect _snapRect(double l, double t, double r, double b, double zoom) {
-    // Convert screen → worksheet, snap to half-pixel, convert back.
     return Rect.fromLTRB(
-      ((l / zoom).roundToDouble() + 0.5) * zoom,
-      ((t / zoom).roundToDouble() + 0.5) * zoom,
-      ((r / zoom).roundToDouble() + 0.5) * zoom,
-      ((b / zoom).roundToDouble() + 0.5) * zoom,
+      l.roundToDouble(),
+      t.roundToDouble(),
+      r.roundToDouble(),
+      b.roundToDouble(),
     );
   }
 }
