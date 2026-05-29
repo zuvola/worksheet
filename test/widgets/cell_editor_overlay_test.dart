@@ -51,6 +51,7 @@ void main() {
     CellVerticalAlignment verticalAlignment = CellVerticalAlignment.middle,
     FormulaReferenceConfig? formulaReferenceConfig,
     void Function(LogicalKeyboardKey, bool)? onFormulaArrowKey,
+    Color? backgroundColor,
   }) {
     return MaterialApp(
       home: Scaffold(
@@ -80,6 +81,7 @@ void main() {
               verticalAlignment: verticalAlignment,
               formulaReferenceConfig: formulaReferenceConfig,
               onFormulaArrowKey: onFormulaArrowKey,
+              backgroundColor: backgroundColor,
             ),
           ],
         ),
@@ -2707,6 +2709,165 @@ void main() {
       await tester.pump();
 
       expect(navigated, isTrue);
+    });
+  });
+
+  group('backgroundColor (Worksheet integration)', () {
+    testWidgets('editor overlay uses cell backgroundColor when set', (
+      tester,
+    ) async {
+      const cellColor = Color(0xFFFFEB3B);
+      final data = SparseWorksheetData(rowCount: 100, columnCount: 26);
+      data.setStyle(
+        const CellCoordinate(0, 0),
+        const CellStyle(backgroundColor: cellColor),
+      );
+
+      final controller = WorksheetController();
+      final ec = EditController();
+
+      addTearDown(() {
+        controller.dispose();
+        ec.dispose();
+        data.dispose();
+      });
+
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: MediaQuery(
+            data: const MediaQueryData(size: Size(800, 600)),
+            child: WorksheetTheme(
+              data: const WorksheetThemeData(),
+              child: SizedBox(
+                width: 800,
+                height: 600,
+                child: Worksheet(
+                  data: data,
+                  controller: controller,
+                  editController: ec,
+                  rowCount: 100,
+                  columnCount: 26,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      const cell = CellCoordinate(0, 0);
+      controller.selectCell(cell);
+      ec.startEdit(cell: cell, currentValue: data.getCell(cell));
+      await tester.pump();
+
+      final overlay = tester.widget<CellEditorOverlay>(
+        find.byType(CellEditorOverlay),
+      );
+      expect(
+        overlay.backgroundColor,
+        cellColor,
+        reason: 'overlay should use the cell style backgroundColor',
+      );
+    });
+
+    testWidgets(
+      'editor overlay falls back to theme cellBackgroundColor when cell has no backgroundColor',
+      (tester) async {
+        final data = SparseWorksheetData(rowCount: 100, columnCount: 26);
+        final controller = WorksheetController();
+        final ec = EditController();
+        final themeData = const WorksheetThemeData().copyWith(
+          cellBackgroundColor: Colors.green,
+        );
+
+        addTearDown(() {
+          controller.dispose();
+          ec.dispose();
+          data.dispose();
+        });
+
+        await tester.pumpWidget(
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: MediaQuery(
+              data: const MediaQueryData(size: Size(800, 600)),
+              child: WorksheetTheme(
+                data: themeData,
+                child: SizedBox(
+                  width: 800,
+                  height: 600,
+                  child: Worksheet(
+                    data: data,
+                    controller: controller,
+                    editController: ec,
+                    rowCount: 100,
+                    columnCount: 26,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        const cell = CellCoordinate(0, 0);
+        controller.selectCell(cell);
+        ec.startEdit(cell: cell, currentValue: data.getCell(cell));
+        await tester.pump();
+
+        final overlay = tester.widget<CellEditorOverlay>(
+          find.byType(CellEditorOverlay),
+        );
+        expect(
+          overlay.backgroundColor,
+          themeData.cellBackgroundColor,
+          reason: 'overlay should fall back to theme.cellBackgroundColor',
+        );
+      },
+    );
+  });
+
+  group('backgroundColor (CellEditorOverlay unit)', () {
+    testWidgets('renders ColoredBox with given backgroundColor', (
+      tester,
+    ) async {
+      const cellColor = Color(0xFFFF5733);
+      editController.startEdit(cell: const CellCoordinate(0, 0));
+
+      await tester.pumpWidget(
+        buildTestWidget(controller: editController, backgroundColor: cellColor),
+      );
+
+      final coloredBox = tester.widget<ColoredBox>(
+        find
+            .descendant(
+              of: find.byType(CellEditorOverlay),
+              matching: find.byType(ColoredBox),
+            )
+            .first,
+      );
+      expect(coloredBox.color, cellColor);
+    });
+
+    testWidgets('renders transparent ColoredBox when backgroundColor is null', (
+      tester,
+    ) async {
+      editController.startEdit(cell: const CellCoordinate(0, 0));
+
+      await tester.pumpWidget(
+        buildTestWidget(controller: editController, backgroundColor: null),
+      );
+
+      final coloredBox = tester.widget<ColoredBox>(
+        find
+            .descendant(
+              of: find.byType(CellEditorOverlay),
+              matching: find.byType(ColoredBox),
+            )
+            .first,
+      );
+      expect(coloredBox.color, const Color(0x00000000));
     });
   });
 }
