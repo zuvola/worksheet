@@ -3573,7 +3573,9 @@ class _WorksheetState extends State<Worksheet>
                             fontFamily:
                                 firstSpanStyle?.fontFamily ?? theme.fontFamily,
                             textColor: theme.textColor,
-                            backgroundColor: cellStyle.backgroundColor,
+                            backgroundColor:
+                                cellStyle.backgroundColor ??
+                                theme.cellBackgroundColor,
                             textAlign: _toTextAlign(
                               cellStyle.textAlignment ??
                                   (widget.data.getCell(cell) != null
