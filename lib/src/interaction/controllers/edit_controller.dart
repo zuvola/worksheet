@@ -96,6 +96,13 @@ class EditController extends ChangeNotifier {
   EditTrigger? _trigger;
   Offset? _tapPosition;
 
+  // -- Formula bar support --
+
+  TextEditingController? _formulaBarController;
+
+  /// Guard flag: prevents circular sync between cell editor and formula bar.
+  bool _formulaBarSyncing = false;
+
   /// The current edit state.
   EditState get state => _state;
 
@@ -122,6 +129,89 @@ class EditController extends ChangeNotifier {
 
   /// Whether the cell currently being edited contains a formula.
   bool get isEditingFormula => _originalValue?.isFormula == true;
+
+  /// Registers a [TextEditingController] as the formula bar controller.
+  ///
+  /// The controller will be kept in sync with the active cell editor:
+  /// text and cursor position are mirrored in both directions. Registering
+  /// a new controller automatically detaches the previous one.
+  void attachFormulaBar(TextEditingController controller) {
+    _formulaBarController?.removeListener(_onFormulaBarControllerChanged);
+    _formulaBarController = controller;
+    controller.addListener(_onFormulaBarControllerChanged);
+    // Immediately reflect current editing state.
+    _syncCurrentStateToFormulaBar();
+  }
+
+  /// Unregisters the formula bar controller previously set via [attachFormulaBar].
+  void detachFormulaBar() {
+    _formulaBarController?.removeListener(_onFormulaBarControllerChanged);
+    _formulaBarController = null;
+  }
+
+  /// Called by [CellEditorOverlay] whenever its internal [TextEditingValue]
+  /// changes (text or cursor). Pushes the value to the formula bar.
+  void syncEditorValueToFormulaBar(TextEditingValue value) {
+    if (_formulaBarSyncing) return;
+    final fb = _formulaBarController;
+    if (fb == null) return;
+    _formulaBarSyncing = true;
+    fb.value = value;
+    _formulaBarSyncing = false;
+  }
+
+  /// Pushes the current [_currentText] (and collapsed end-cursor) to the
+  /// formula bar. Called after edit start/stop.
+  void _syncCurrentStateToFormulaBar() {
+    final fb = _formulaBarController;
+    if (fb == null) return;
+    _formulaBarSyncing = true;
+    if (_state == EditState.editing) {
+      // Preserve whatever selection the overlay has already synced, or
+      // default to collapsed-at-end so the bar reflects edit start.
+      final currentSel = fb.selection;
+      final validSel =
+          currentSel.isValid &&
+          currentSel.start <= _currentText.length &&
+          currentSel.end <= _currentText.length;
+      fb.value = TextEditingValue(
+        text: _currentText,
+        selection: validSel
+            ? currentSel
+            : TextSelection.collapsed(offset: _currentText.length),
+      );
+    } else {
+      fb.value = TextEditingValue(
+        text: _currentText,
+        selection: TextSelection.collapsed(offset: _currentText.length),
+      );
+    }
+    _formulaBarSyncing = false;
+  }
+
+  /// Listener attached to [_formulaBarController]. Propagates formula bar
+  /// changes back to the active cell editor.
+  void _onFormulaBarControllerChanged() {
+    if (_formulaBarSyncing || _state != EditState.editing) return;
+    final fb = _formulaBarController;
+    if (fb == null) return;
+
+    final newText = fb.text;
+    final newSel = fb.selection;
+
+    _formulaBarSyncing = true;
+    if (newText != _currentText) {
+      _currentText = newText;
+      // Update the overlay's RichTextEditingController so the cell editor
+      // reflects the new text (plain text replaces any rich styling).
+      richTextController?.value = fb.value;
+      notifyListeners();
+    } else {
+      // Text unchanged — sync cursor/selection only.
+      richTextController?.selection = newSel;
+    }
+    _formulaBarSyncing = false;
+  }
 
   /// Starts editing a cell.
   ///
@@ -158,6 +248,7 @@ class EditController extends ChangeNotifier {
     }
 
     notifyListeners();
+    _syncCurrentStateToFormulaBar();
     return true;
   }
 
@@ -231,6 +322,7 @@ class EditController extends ChangeNotifier {
     _tapPosition = null;
 
     notifyListeners();
+    _syncCurrentStateToFormulaBar();
     return newValue;
   }
 
@@ -248,6 +340,7 @@ class EditController extends ChangeNotifier {
     _tapPosition = null;
 
     notifyListeners();
+    _syncCurrentStateToFormulaBar();
   }
 
   /// Parses text into a cell value.

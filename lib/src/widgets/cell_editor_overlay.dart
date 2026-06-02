@@ -271,6 +271,10 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
       _textController.addListener(_onSelectionGuard);
     }
 
+    // Keep the formula bar in sync with every text/cursor change in this
+    // overlay so both inputs always show the same content and caret.
+    _textController.addListener(_onOverlayValueChanged);
+
     // Request focus after the EditableText is built and attached to the tree.
     // This ensures the text input connection is established on mobile,
     // which is required to show the software keyboard.
@@ -319,6 +323,7 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
     _textController.removeListener(_onSelectionGuard);
     _textController.removeListener(_onRestorationGuard);
     _textController.removeListener(_onCursorChanged);
+    _textController.removeListener(_onOverlayValueChanged);
     _textController.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -612,6 +617,12 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
       ac.onTextChanged(text, offset);
       _lastTextForCursor = text;
     }
+  }
+
+  /// Forwards every overlay value change (text or cursor) to the formula bar
+  /// via [EditController.syncEditorValueToFormulaBar].
+  void _onOverlayValueChanged() {
+    widget.editController.syncEditorValueToFormulaBar(_textController.value);
   }
 
   List<TextSpan>? _extractRichText() {
