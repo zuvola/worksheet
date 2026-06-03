@@ -105,7 +105,7 @@ class TilePainter implements TileRenderer {
     // inside the recorded Picture) are always covered by the neighbouring
     // tile's opaque content.  Tiles are painted left-to-right, top-to-bottom,
     // so later tiles overwrite earlier tiles' margins.
-    const overlap = 1.0;
+    const overlap = 0.0;
     final extendedRect = ui.Rect.fromLTWH(
       0,
       0,
@@ -118,7 +118,7 @@ class TilePainter implements TileRenderer {
     // a clip.  Without this, cell backgrounds that straddle a tile boundary
     // overflow into the Picture and get composited on top of adjacent tiles,
     // hiding text in neighbouring cells.
-    canvas.clipRect(extendedRect, doAntiAlias: false);
+    canvas.clipRect(extendedRect.inflate(1), doAntiAlias: false);
 
     // Fill extended background so the overlap margin is opaque white,
     // covering any sub-pixel gap at the tile seam.
