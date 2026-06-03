@@ -120,6 +120,9 @@ class EditController extends ChangeNotifier {
   /// True while the current edit session should keep focus in the formula bar.
   bool _preferFormulaBarFocus = false;
 
+  /// True when the next editor focus gain should keep the current selection.
+  bool _preserveEditorSelectionOnNextFocus = false;
+
   /// Whether the most recent transition to [EditState.idle] was via [cancelEdit].
   bool _lastEditEndedWithCancel = false;
 
@@ -167,6 +170,13 @@ class EditController extends ChangeNotifier {
   /// Clears the formula-bar focus preference.
   void endFormulaBarFocusSession() {
     _preferFormulaBarFocus = false;
+  }
+
+  /// Consumes the pending editor-selection preservation request, if any.
+  bool consumePreserveEditorSelectionOnNextFocus() {
+    final shouldPreserve = _preserveEditorSelectionOnNextFocus;
+    _preserveEditorSelectionOnNextFocus = false;
+    return shouldPreserve;
   }
 
   /// Requests commit via the owning [Worksheet]'s integrated edit pathway.
@@ -275,8 +285,17 @@ class EditController extends ChangeNotifier {
       richTextController?.value = fb.value;
       notifyListeners();
     } else {
-      // Text unchanged — sync cursor/selection only.
-      richTextController?.selection = newSel;
+      // Text unchanged — mirror caret moves from the formula bar, but avoid
+      // copying text ranges into the cell editor. Formula-reference insertion
+      // uses the cell editor cursor, and a formula-bar select-all would
+      // otherwise turn `=B4` followed by a cell click into `B3=B4`.
+      final validCaret =
+          newSel.isValid &&
+          newSel.isCollapsed &&
+          newSel.baseOffset <= _currentText.length;
+      if (validCaret) {
+        richTextController?.selection = newSel;
+      }
     }
     _formulaBarSyncing = false;
   }
@@ -508,9 +527,12 @@ class EditController extends ChangeNotifier {
   /// (e.g. clicking an [IconButton] while editing). Schedules focus
   /// restoration via a post-frame callback so it runs after the current
   /// build phase completes.
-  void requestEditorFocus() {
+  void requestEditorFocus({bool preserveSelection = false}) {
     final node = editorFocusNode;
     if (node == null || !isEditing) return;
+    if (preserveSelection && !node.hasFocus) {
+      _preserveEditorSelectionOnNextFocus = true;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (isEditing && !node.hasFocus && node.canRequestFocus) {
         node.requestFocus();

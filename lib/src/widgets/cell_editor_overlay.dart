@@ -357,6 +357,12 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
   /// One-shot guard for focus restoration: catches platform select-all that
   /// arrives after the text input connection is re-established on web, and
   /// replaces it with [_pendingSelectionRestore].
+  void _armRestorationGuard(TextSelection target) {
+    _pendingSelectionRestore = target;
+    _textController.removeListener(_onRestorationGuard);
+    _textController.addListener(_onRestorationGuard);
+  }
+
   void _onRestorationGuard() {
     final target = _pendingSelectionRestore;
     if (target == null) {
@@ -508,6 +514,13 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
         // First focus gain — apply trigger-based selection.
         _initialFocusApplied = true;
         if (_textController.text.isNotEmpty) {
+          if (widget.editController
+              .consumePreserveEditorSelectionOnNextFocus()) {
+            final target = _validSelectionOrEnd();
+            _textController.selection = target;
+            _armRestorationGuard(target);
+            return;
+          }
           final trigger = widget.editController.trigger;
           if (trigger == EditTrigger.doubleTap &&
               !widget.editController.isEditingFormula) {
@@ -537,14 +550,22 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
         // On web the platform re-establishes the text input connection on
         // focus gain, which may fire a select-all that overrides our
         // restoration. Arm a one-shot guard to catch and reverse it.
-        _textController.removeListener(_onRestorationGuard);
-        _pendingSelectionRestore = saved;
-        _textController.addListener(_onRestorationGuard);
+        _armRestorationGuard(saved);
       }
     } else if (widget.editController.isEditing) {
       // Focus lost while still editing — save selection for restoration.
       _selectionBeforeFocusLoss = _textController.selection;
     }
+  }
+
+  TextSelection _validSelectionOrEnd() {
+    final selection = _textController.selection;
+    final textLength = _textController.text.length;
+    final isValid =
+        selection.isValid &&
+        selection.start >= 0 &&
+        selection.end <= textLength;
+    return isValid ? selection : TextSelection.collapsed(offset: textLength);
   }
 
   /// Measures the wrapped content height and returns the vertical offset

@@ -1883,7 +1883,7 @@ class _WorksheetState extends State<Worksheet>
     if (controller == null) return;
 
     final formula = controller.text;
-    final cursorOffset = controller.selection.baseOffset;
+    final cursorOffset = _formulaCursorOffset(controller, formula);
     final tokens = frc.tokenize(formula);
 
     final result = FormulaReferenceInserter.insertCellRef(
@@ -1899,6 +1899,7 @@ class _WorksheetState extends State<Worksheet>
       selection: TextSelection.collapsed(offset: result.cursorOffset),
     );
     ec.updateText(result.text);
+    ec.requestEditorFocus(preserveSelection: true);
   }
 
   /// Inserts a range reference into the formula being edited.
@@ -1912,7 +1913,7 @@ class _WorksheetState extends State<Worksheet>
     if (controller == null) return;
 
     final formula = controller.text;
-    final cursorOffset = controller.selection.baseOffset;
+    final cursorOffset = _formulaCursorOffset(controller, formula);
     final tokens = frc.tokenize(formula);
 
     final result = FormulaReferenceInserter.insertRangeRef(
@@ -1929,6 +1930,16 @@ class _WorksheetState extends State<Worksheet>
       selection: TextSelection.collapsed(offset: result.cursorOffset),
     );
     ec.updateText(result.text);
+    ec.requestEditorFocus(preserveSelection: true);
+  }
+
+  int _formulaCursorOffset(TextEditingController controller, String formula) {
+    final selection = controller.selection;
+    final offset = selection.baseOffset;
+    if (!selection.isValid || offset < 0 || offset > formula.length) {
+      return formula.length;
+    }
+    return offset;
   }
 
   /// Handles arrow key press in formula mode by inserting a cell reference

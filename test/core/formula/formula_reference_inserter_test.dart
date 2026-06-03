@@ -96,6 +96,20 @@ void main() {
       expect(result.text, '=Z100');
       expect(result.cursorOffset, 5); // after "Z100"
     });
+
+    test('invalid cursor offset replaces active trailing ref', () {
+      final formula = '=B4';
+      final tokens = FormulaTokenizer.tokenize(formula);
+      final result = FormulaReferenceInserter.insertCellRef(
+        formula: formula,
+        cursorOffset: -1,
+        cell: const CellCoordinate(5, 3),
+        tokens: tokens,
+        cellToRef: defaultCellToRef,
+      );
+      expect(result.text, '=D6');
+      expect(result.cursorOffset, 3);
+    });
   });
 
   group('FormulaReferenceInserter.insertRangeRef', () {
@@ -131,6 +145,21 @@ void main() {
         expect(result.cursorOffset, 6);
       },
     );
+
+    test('invalid cursor offset replaces active trailing ref with range', () {
+      final formula = '=B4';
+      final tokens = FormulaTokenizer.tokenize(formula);
+      final result = FormulaReferenceInserter.insertRangeRef(
+        formula: formula,
+        cursorOffset: -1,
+        start: const CellCoordinate(0, 0),
+        end: const CellCoordinate(4, 2),
+        tokens: tokens,
+        rangeToRef: defaultRangeToRef,
+      );
+      expect(result.text, '=A1:C5');
+      expect(result.cursorOffset, 6);
+    });
   });
 
   group('FormulaReferenceInserter.cycleAbsoluteRelative', () {

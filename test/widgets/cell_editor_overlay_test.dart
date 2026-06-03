@@ -2070,6 +2070,69 @@ void main() {
       });
 
       testWidgets(
+        'requestEditorFocus can preserve initial formula reference cursor',
+        (tester) async {
+          editController.beginFormulaBarFocusSession();
+          editController.startEdit(
+            cell: const CellCoordinate(0, 0),
+            currentValue: const CellValue.formula('=B2'),
+            trigger: EditTrigger.programmatic,
+          );
+
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: Stack(
+                  children: [
+                    CellEditorOverlay(
+                      editController: editController,
+                      cellBounds: const Rect.fromLTWH(0, 0, 200, 30),
+                      onCommit:
+                          (
+                            _,
+                            _, {
+                            CellFormat? detectedFormat,
+                            List<TextSpan>? richText,
+                          }) {},
+                      onCancel: () {},
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+          await tester.pumpAndSettle();
+
+          final editableText = tester.widget<EditableText>(
+            find.byType(EditableText),
+          );
+          expect(editableText.focusNode.hasFocus, isFalse);
+
+          final controller = editController.richTextController!;
+          controller.selection = const TextSelection.collapsed(offset: 3);
+
+          editController.requestEditorFocus(preserveSelection: true);
+          await tester.pumpAndSettle();
+
+          expect(editableText.focusNode.hasFocus, isTrue);
+          expect(
+            controller.selection,
+            const TextSelection.collapsed(offset: 3),
+          );
+
+          controller.selection = const TextSelection(
+            baseOffset: 0,
+            extentOffset: 3,
+          );
+          expect(
+            controller.selection,
+            const TextSelection.collapsed(offset: 3),
+            reason: 'platform select-all after focus should be reversed',
+          );
+        },
+      );
+
+      testWidgets(
         'toggleBold at end of text preserves cursor instead of selecting all',
         (tester) async {
           final stealerFocus = FocusNode(debugLabel: 'toolbar');
