@@ -2772,7 +2772,7 @@ void main() {
     });
 
     testWidgets(
-      'editor overlay falls back to theme cellBackgroundColor when cell has no backgroundColor',
+      'editor overlay does not fall back to theme cellBackgroundColor when cell has no backgroundColor',
       (tester) async {
         final data = SparseWorksheetData(rowCount: 100, columnCount: 26);
         final controller = WorksheetController();
@@ -2821,8 +2821,9 @@ void main() {
         );
         expect(
           overlay.backgroundColor,
-          themeData.cellBackgroundColor,
-          reason: 'overlay should fall back to theme.cellBackgroundColor',
+          isNull,
+          reason:
+              'theme backgrounds are painted by SelectionRenderer during editing',
         );
       },
     );

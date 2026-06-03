@@ -121,6 +121,7 @@ void main() {
     test('creates with default style', () {
       final r = SelectionRenderer(layoutSolver: layoutSolver);
       expect(r.style, SelectionStyle.defaultStyle);
+      expect(r.editingBackgroundColor, const Color(0xFFFFFFFF));
     });
 
     test('creates with custom style', () {
@@ -130,6 +131,15 @@ void main() {
         style: customStyle,
       );
       expect(r.style.borderWidth, 4.0);
+    });
+
+    test('creates with custom editing background color', () {
+      final r = SelectionRenderer(
+        layoutSolver: layoutSolver,
+        editingBackgroundColor: const Color(0xFFF0F0F0),
+      );
+
+      expect(r.editingBackgroundColor, const Color(0xFFF0F0F0));
     });
 
     group('paintSelection', () {

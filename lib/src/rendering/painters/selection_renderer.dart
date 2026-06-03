@@ -130,6 +130,9 @@ class SelectionRenderer {
   /// selection border to match text overflow.
   Rect? editingFocusBounds;
 
+  /// The fill color used behind the expanded editing focus area.
+  final Color editingBackgroundColor;
+
   // Pre-allocated paint objects for performance
   late final Paint _fillPaint;
   late final Paint _borderPaint;
@@ -145,6 +148,7 @@ class SelectionRenderer {
     required this.layoutSolver,
     this.style = SelectionStyle.defaultStyle,
     this.devicePixelRatio,
+    this.editingBackgroundColor = const Color(0xFFFFFFFF),
   }) {
     _fillPaint = Paint()
       ..color = style.fillColor
@@ -177,7 +181,7 @@ class SelectionRenderer {
       ..isAntiAlias = false;
 
     _editingBackgroundPaint = Paint()
-      ..color = const Color(0xFFFFFFFF)
+      ..color = editingBackgroundColor
       ..style = PaintingStyle.fill;
 
     _movePreviewBorderPaint = Paint()

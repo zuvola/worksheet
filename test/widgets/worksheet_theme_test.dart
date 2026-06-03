@@ -14,6 +14,7 @@ void main() {
       expect(theme.gridlineColor, const Color(0xFFD4D4D4));
       expect(theme.gridlineWidth, 1.0);
       expect(theme.cellBackgroundColor, const Color(0xFFFFFFFF));
+      expect(theme.editingCellBackgroundColor, const Color(0xFFFFFFFF));
       expect(theme.textColor, const Color(0xFF000000));
       expect(theme.fontSize, 14.0);
       expect(theme.fontFamily, 'Roboto');
@@ -34,12 +35,14 @@ void main() {
     test('can be customized', () {
       const theme = WorksheetThemeData(
         gridlineColor: Color(0xFF000000),
+        editingCellBackgroundColor: Color(0xFFF0F0F0),
         fontSize: 16.0,
         showGridlines: false,
         showHeaders: false,
       );
 
       expect(theme.gridlineColor, const Color(0xFF000000));
+      expect(theme.editingCellBackgroundColor, const Color(0xFFF0F0F0));
       expect(theme.fontSize, 16.0);
       expect(theme.showGridlines, isFalse);
       expect(theme.showHeaders, isFalse);
@@ -53,6 +56,10 @@ void main() {
       expect(modified.showGridlines, isFalse);
       // Other properties should be unchanged
       expect(modified.textColor, original.textColor);
+      expect(
+        modified.editingCellBackgroundColor,
+        original.editingCellBackgroundColor,
+      );
       expect(modified.showHeaders, original.showHeaders);
     });
 
@@ -67,9 +74,13 @@ void main() {
       const theme1 = WorksheetThemeData();
       const theme2 = WorksheetThemeData();
       const theme3 = WorksheetThemeData(fontSize: 18.0);
+      const theme4 = WorksheetThemeData(
+        editingCellBackgroundColor: Color(0xFFF0F0F0),
+      );
 
       expect(theme1, equals(theme2));
       expect(theme1, isNot(equals(theme3)));
+      expect(theme1, isNot(equals(theme4)));
     });
 
     test('hashCode is consistent', () {
@@ -140,8 +151,14 @@ void main() {
     });
 
     test('lerp interpolates colors correctly', () {
-      const a = WorksheetThemeData(gridlineColor: Color(0xFF000000));
-      const b = WorksheetThemeData(gridlineColor: Color(0xFFFFFFFF));
+      const a = WorksheetThemeData(
+        gridlineColor: Color(0xFF000000),
+        editingCellBackgroundColor: Color(0xFF000000),
+      );
+      const b = WorksheetThemeData(
+        gridlineColor: Color(0xFFFFFFFF),
+        editingCellBackgroundColor: Color(0xFFFFFFFF),
+      );
 
       final result = WorksheetThemeData.lerp(a, b, 0.5);
 
@@ -149,6 +166,10 @@ void main() {
       expect((result.gridlineColor.r * 255).round(), closeTo(128, 1));
       expect((result.gridlineColor.g * 255).round(), closeTo(128, 1));
       expect((result.gridlineColor.b * 255).round(), closeTo(128, 1));
+      expect(
+        (result.editingCellBackgroundColor.r * 255).round(),
+        closeTo(128, 1),
+      );
     });
   });
 

@@ -634,6 +634,7 @@ class _WorksheetState extends State<Worksheet>
       layoutSolver: _layoutSolver,
       style: theme.selectionStyle,
       devicePixelRatio: devicePixelRatio,
+      editingBackgroundColor: theme.editingCellBackgroundColor,
     );
 
     _headerRenderer = HeaderRenderer(
@@ -3573,9 +3574,7 @@ class _WorksheetState extends State<Worksheet>
                             fontFamily:
                                 firstSpanStyle?.fontFamily ?? theme.fontFamily,
                             textColor: theme.textColor,
-                            backgroundColor:
-                                cellStyle.backgroundColor ??
-                                theme.cellBackgroundColor,
+                            backgroundColor: cellStyle.backgroundColor,
                             textAlign: _toTextAlign(
                               cellStyle.textAlignment ??
                                   (widget.data.getCell(cell) != null
