@@ -144,6 +144,51 @@ void main() {
       });
     });
 
+    group('formula bar sync', () {
+      test('does not mirror formula bar text selection into cell editor', () {
+        final editor = RichTextEditingController(text: '=B4');
+        addTearDown(editor.dispose);
+        editor.selection = const TextSelection.collapsed(offset: 3);
+
+        final formulaBar = TextEditingController();
+        addTearDown(formulaBar.dispose);
+
+        controller.richTextController = editor;
+        controller.attachFormulaBar(formulaBar);
+        controller.startEdit(
+          cell: const CellCoordinate(0, 0),
+          currentValue: const CellValue.formula('=B4'),
+        );
+
+        formulaBar.selection = const TextSelection(
+          baseOffset: 0,
+          extentOffset: 3,
+        );
+
+        expect(editor.selection, const TextSelection.collapsed(offset: 3));
+      });
+
+      test('mirrors formula bar caret moves into cell editor', () {
+        final editor = RichTextEditingController(text: '=B4');
+        addTearDown(editor.dispose);
+        editor.selection = const TextSelection.collapsed(offset: 3);
+
+        final formulaBar = TextEditingController();
+        addTearDown(formulaBar.dispose);
+
+        controller.richTextController = editor;
+        controller.attachFormulaBar(formulaBar);
+        controller.startEdit(
+          cell: const CellCoordinate(0, 0),
+          currentValue: const CellValue.formula('=B4'),
+        );
+
+        formulaBar.selection = const TextSelection.collapsed(offset: 1);
+
+        expect(editor.selection, const TextSelection.collapsed(offset: 1));
+      });
+    });
+
     group('commitEdit', () {
       test('commits text value', () {
         controller.startEdit(cell: const CellCoordinate(0, 0));

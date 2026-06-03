@@ -271,11 +271,16 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
       _textController.addListener(_onSelectionGuard);
     }
 
+    // Keep the formula bar in sync with every text/cursor change in this
+    // overlay so both inputs always show the same content and caret.
+    _textController.addListener(_onOverlayValueChanged);
+
     // Request focus after the EditableText is built and attached to the tree.
     // This ensures the text input connection is established on mobile,
     // which is required to show the software keyboard.
+    // Skip when the formula bar already holds focus (formula-bar-initiated edit).
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
+      if (mounted && !widget.editController.preferFormulaBarFocus) {
         _focusNode.requestFocus();
       }
     });
@@ -291,7 +296,8 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted &&
             widget.editController.isEditing &&
-            !_focusNode.hasFocus) {
+            !_focusNode.hasFocus &&
+            !widget.editController.preferFormulaBarFocus) {
           _focusNode.requestFocus();
         }
       });
@@ -319,6 +325,7 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
     _textController.removeListener(_onSelectionGuard);
     _textController.removeListener(_onRestorationGuard);
     _textController.removeListener(_onCursorChanged);
+    _textController.removeListener(_onOverlayValueChanged);
     _textController.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -350,6 +357,12 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
   /// One-shot guard for focus restoration: catches platform select-all that
   /// arrives after the text input connection is re-established on web, and
   /// replaces it with [_pendingSelectionRestore].
+  void _armRestorationGuard(TextSelection target) {
+    _pendingSelectionRestore = target;
+    _textController.removeListener(_onRestorationGuard);
+    _textController.addListener(_onRestorationGuard);
+  }
+
   void _onRestorationGuard() {
     final target = _pendingSelectionRestore;
     if (target == null) {
@@ -501,6 +514,13 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
         // First focus gain — apply trigger-based selection.
         _initialFocusApplied = true;
         if (_textController.text.isNotEmpty) {
+          if (widget.editController
+              .consumePreserveEditorSelectionOnNextFocus()) {
+            final target = _validSelectionOrEnd();
+            _textController.selection = target;
+            _armRestorationGuard(target);
+            return;
+          }
           final trigger = widget.editController.trigger;
           if (trigger == EditTrigger.doubleTap &&
               !widget.editController.isEditingFormula) {
@@ -530,14 +550,22 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
         // On web the platform re-establishes the text input connection on
         // focus gain, which may fire a select-all that overrides our
         // restoration. Arm a one-shot guard to catch and reverse it.
-        _textController.removeListener(_onRestorationGuard);
-        _pendingSelectionRestore = saved;
-        _textController.addListener(_onRestorationGuard);
+        _armRestorationGuard(saved);
       }
     } else if (widget.editController.isEditing) {
       // Focus lost while still editing — save selection for restoration.
       _selectionBeforeFocusLoss = _textController.selection;
     }
+  }
+
+  TextSelection _validSelectionOrEnd() {
+    final selection = _textController.selection;
+    final textLength = _textController.text.length;
+    final isValid =
+        selection.isValid &&
+        selection.start >= 0 &&
+        selection.end <= textLength;
+    return isValid ? selection : TextSelection.collapsed(offset: textLength);
   }
 
   /// Measures the wrapped content height and returns the vertical offset
@@ -612,6 +640,12 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
       ac.onTextChanged(text, offset);
       _lastTextForCursor = text;
     }
+  }
+
+  /// Forwards every overlay value change (text or cursor) to the formula bar
+  /// via [EditController.syncEditorValueToFormulaBar].
+  void _onOverlayValueChanged() {
+    widget.editController.syncEditorValueToFormulaBar(_textController.value);
   }
 
   List<TextSpan>? _extractRichText() {
@@ -1012,7 +1046,7 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
                       key: _editableKey,
                       controller: _textController,
                       focusNode: _focusNode,
-                      autofocus: true,
+                      autofocus: !widget.editController.preferFormulaBarFocus,
                       style: textStyle,
                       maxLines: widget.wrapText ? null : 1,
                       textAlign: widget.textAlign,

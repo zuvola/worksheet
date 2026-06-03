@@ -113,7 +113,11 @@ class FormulaReferenceInserter {
     required String ref,
     required List<FormulaToken> tokens,
   }) {
-    final existing = _tokenAt(tokens, cursorOffset);
+    final normalizedCursorOffset = _normalizeCursorOffset(
+      formula,
+      cursorOffset,
+    );
+    final existing = _tokenAt(tokens, normalizedCursorOffset);
 
     if (existing != null) {
       // Replace existing token.
@@ -126,9 +130,19 @@ class FormulaReferenceInserter {
     }
 
     // Insert at cursor position.
-    final before = formula.substring(0, cursorOffset);
-    final after = formula.substring(cursorOffset);
-    return (text: '$before$ref$after', cursorOffset: cursorOffset + ref.length);
+    final before = formula.substring(0, normalizedCursorOffset);
+    final after = formula.substring(normalizedCursorOffset);
+    return (
+      text: '$before$ref$after',
+      cursorOffset: normalizedCursorOffset + ref.length,
+    );
+  }
+
+  static int _normalizeCursorOffset(String formula, int cursorOffset) {
+    if (cursorOffset < 0 || cursorOffset > formula.length) {
+      return formula.length;
+    }
+    return cursorOffset;
   }
 
   /// Finds the token containing [cursorOffset], or null if none.

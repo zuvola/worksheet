@@ -28,6 +28,7 @@ export 'src/interaction/interaction.dart';
 // Widgets
 export 'src/widgets/autocomplete_dropdown.dart';
 export 'src/widgets/cell_editor_overlay.dart';
+export 'src/widgets/formula_bar.dart';
 export 'src/widgets/worksheet_controller.dart';
 export 'src/widgets/worksheet_scrollbar_config.dart';
 export 'src/widgets/worksheet_theme.dart';

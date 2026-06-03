@@ -612,6 +612,8 @@ class _WorksheetState extends State<Worksheet>
 
     // Listen to editController for expansion recomputation
     widget.editController?.addListener(_onEditTextChanged);
+    widget.editController?.externalCommitHandler = _commitIntegratedEdit;
+    widget.editController?.externalCancelHandler = _cancelIntegratedEdit;
 
     // Build merged listenable so the editor overlay rebuilds on scroll
     _updateEditorOverlayListenable();
@@ -1881,7 +1883,7 @@ class _WorksheetState extends State<Worksheet>
     if (controller == null) return;
 
     final formula = controller.text;
-    final cursorOffset = controller.selection.baseOffset;
+    final cursorOffset = _formulaCursorOffset(controller, formula);
     final tokens = frc.tokenize(formula);
 
     final result = FormulaReferenceInserter.insertCellRef(
@@ -1897,6 +1899,7 @@ class _WorksheetState extends State<Worksheet>
       selection: TextSelection.collapsed(offset: result.cursorOffset),
     );
     ec.updateText(result.text);
+    ec.requestEditorFocus(preserveSelection: true);
   }
 
   /// Inserts a range reference into the formula being edited.
@@ -1910,7 +1913,7 @@ class _WorksheetState extends State<Worksheet>
     if (controller == null) return;
 
     final formula = controller.text;
-    final cursorOffset = controller.selection.baseOffset;
+    final cursorOffset = _formulaCursorOffset(controller, formula);
     final tokens = frc.tokenize(formula);
 
     final result = FormulaReferenceInserter.insertRangeRef(
@@ -1927,6 +1930,16 @@ class _WorksheetState extends State<Worksheet>
       selection: TextSelection.collapsed(offset: result.cursorOffset),
     );
     ec.updateText(result.text);
+    ec.requestEditorFocus(preserveSelection: true);
+  }
+
+  int _formulaCursorOffset(TextEditingController controller, String formula) {
+    final selection = controller.selection;
+    final offset = selection.baseOffset;
+    if (!selection.isValid || offset < 0 || offset > formula.length) {
+      return formula.length;
+    }
+    return offset;
   }
 
   /// Handles arrow key press in formula mode by inserting a cell reference
@@ -1994,6 +2007,23 @@ class _WorksheetState extends State<Worksheet>
     invalidateAndRebuild();
   }
 
+  /// Commits the active integrated edit from an external input surface.
+  void _commitIntegratedEdit() {
+    final ec = widget.editController;
+    if (ec == null || !ec.isEditing) return;
+    final richText = ec.richTextExtractor?.call();
+    ec.commitEdit(
+      onCommit: (cell, value, {CellFormat? detectedFormat}) {
+        _onInternalCommit(
+          cell,
+          value,
+          detectedFormat: detectedFormat,
+          richText: richText,
+        );
+      },
+    );
+  }
+
   /// Converts CellTextAlignment to Flutter TextAlign.
   static TextAlign _toTextAlign(CellTextAlignment? alignment) {
     switch (alignment) {
@@ -2011,6 +2041,14 @@ class _WorksheetState extends State<Worksheet>
   void _onInternalCancel() {
     _clearEditingCell();
     // Focus restores automatically via CellEditorOverlay._previousFocus
+  }
+
+  /// Cancels the active integrated edit from an external input surface.
+  void _cancelIntegratedEdit() {
+    final ec = widget.editController;
+    if (ec == null || !ec.isEditing) return;
+    ec.cancelEdit();
+    _onInternalCancel();
   }
 
   /// Handles commit-and-navigate from the internal CellEditorOverlay.
@@ -2348,7 +2386,11 @@ class _WorksheetState extends State<Worksheet>
 
     if (widget.editController != oldWidget.editController) {
       oldWidget.editController?.removeListener(_onEditTextChanged);
+      oldWidget.editController?.externalCommitHandler = null;
+      oldWidget.editController?.externalCancelHandler = null;
       widget.editController?.addListener(_onEditTextChanged);
+      widget.editController?.externalCommitHandler = _commitIntegratedEdit;
+      widget.editController?.externalCancelHandler = _cancelIntegratedEdit;
       _updateEditorOverlayListenable();
     }
 
@@ -2450,6 +2492,8 @@ class _WorksheetState extends State<Worksheet>
     _pendingDataChanges = null;
     _dataSubscription?.cancel();
     widget.editController?.removeListener(_onEditTextChanged);
+    widget.editController?.externalCommitHandler = null;
+    widget.editController?.externalCancelHandler = null;
     _controller.detachActionDispatcher();
     _controller.detachLayout();
     _controller.removeListener(_onControllerChanged);
