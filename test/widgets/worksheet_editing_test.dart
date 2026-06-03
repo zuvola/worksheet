@@ -7,6 +7,7 @@ import 'package:worksheet/src/core/data/sparse_worksheet_data.dart';
 import 'package:worksheet/src/core/data/worksheet_data.dart';
 import 'package:worksheet/src/core/formula/formula_reference_config.dart';
 import 'package:worksheet/src/core/models/cell_coordinate.dart';
+import 'package:worksheet/src/core/models/cell_format.dart';
 import 'package:worksheet/src/core/models/cell_style.dart';
 import 'package:worksheet/src/core/models/cell_value.dart';
 import 'package:worksheet/src/interaction/controllers/edit_controller.dart';
@@ -194,10 +195,7 @@ void main() {
       await tester.pump();
 
       expect(editController.isEditing, isFalse);
-      expect(
-        find.byType(TextField),
-        findsOneWidget,
-      );
+      expect(find.byType(TextField), findsOneWidget);
       expect(
         tester.widget<TextField>(find.byType(TextField)).controller!.text,
         'Committed',
@@ -240,6 +238,48 @@ void main() {
         const CellValue.text('A1'),
       );
     });
+
+    testWidgets(
+      'formula bar clears when edit ends and idle text is unchanged',
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: FormulaBar(editController: editController, idleText: ''),
+            ),
+          ),
+        );
+
+        editController.startEdit(
+          cell: const CellCoordinate(10, 10),
+          currentValue: null,
+        );
+        await tester.pump();
+
+        editController.updateText('Typed');
+        editController.syncEditorValueToFormulaBar(
+          const TextEditingValue(
+            text: 'Typed',
+            selection: TextSelection.collapsed(offset: 5),
+          ),
+        );
+        await tester.pump();
+        expect(
+          tester.widget<TextField>(find.byType(TextField)).controller!.text,
+          'Typed',
+        );
+
+        editController.commitEdit(
+          onCommit: (cell, value, {CellFormat? detectedFormat}) {},
+        );
+        await tester.pump();
+
+        expect(
+          tester.widget<TextField>(find.byType(TextField)).controller!.text,
+          '',
+        );
+      },
+    );
   });
 
   group('Type-to-edit (navigation mode)', () {

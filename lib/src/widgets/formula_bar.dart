@@ -123,9 +123,7 @@ class _FormulaBarState extends State<FormulaBar> {
     // reflect the new value immediately in the text field.
     if (!widget.editController.isEditing &&
         widget.idleText != oldWidget.idleText) {
-      _selfUpdate = true;
-      _controller.text = widget.idleText;
-      _selfUpdate = false;
+      _setIdleText();
     }
   }
 
@@ -161,16 +159,28 @@ class _FormulaBarState extends State<FormulaBar> {
 
   /// Called when [EditController] state changes (edit started/stopped).
   void _onEditControllerChanged() {
-    if (!widget.editController.isEditing &&
-        widget.editController.lastEditEndedWithCancel) {
-      // Cancel — restore the cell's display value from the host.
-      _selfUpdate = true;
-      _controller.text = widget.idleText;
-      _selfUpdate = false;
+    if (!widget.editController.isEditing) {
+      if (widget.editController.lastEditEndedWithCancel ||
+          !_focusNode.hasFocus) {
+        // Editing ended outside the formula bar — restore the host-owned idle
+        // display. This also covers committing from an empty cell into another
+        // empty cell, where idleText stays '' and didUpdateWidget would not
+        // observe a prop change. Formula-bar commits keep their typed text
+        // visible until the host supplies an updated idleText.
+        _setIdleText();
+      }
     }
-    // On commit, keep [_controller] text (already reflects the committed value).
     // Rebuild to reflect enabled/disabled state.
     if (mounted) setState(() {});
+  }
+
+  void _setIdleText() {
+    _selfUpdate = true;
+    _controller.value = TextEditingValue(
+      text: widget.idleText,
+      selection: TextSelection.collapsed(offset: widget.idleText.length),
+    );
+    _selfUpdate = false;
   }
 
   /// Called on every [_controller] change. Forwards text typed in the formula
