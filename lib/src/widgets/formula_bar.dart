@@ -56,6 +56,13 @@ class FormulaBar extends StatefulWidget {
   /// When null a private node is created automatically.
   final FocusNode? focusNode;
 
+  /// Called when the user taps / focuses the formula bar while no edit is
+  /// in progress.
+  ///
+  /// The host should call [EditController.startEdit] for the currently
+  /// selected cell. When null, tapping the bar while idle has no effect.
+  final VoidCallback? onStartEdit;
+
   /// Creates a formula bar.
   const FormulaBar({
     super.key,
@@ -64,6 +71,7 @@ class FormulaBar extends StatefulWidget {
     this.textStyle,
     this.decoration,
     this.focusNode,
+    this.onStartEdit,
   });
 
   @override
@@ -94,8 +102,10 @@ class _FormulaBarState extends State<FormulaBar> {
 
     _controller = TextEditingController(text: widget.idleText);
     _controller.addListener(_onFormulaBarChanged);
+    _focusNode.addListener(_onFocusChanged);
     widget.editController.addListener(_onEditControllerChanged);
     widget.editController.attachFormulaBar(_controller);
+    widget.editController.formulaBarFocusNode = _focusNode;
   }
 
   @override
@@ -104,16 +114,28 @@ class _FormulaBarState extends State<FormulaBar> {
     if (widget.editController != oldWidget.editController) {
       oldWidget.editController.removeListener(_onEditControllerChanged);
       oldWidget.editController.detachFormulaBar();
+      oldWidget.editController.formulaBarFocusNode = null;
       widget.editController.addListener(_onEditControllerChanged);
       widget.editController.attachFormulaBar(_controller);
+      widget.editController.formulaBarFocusNode = _focusNode;
+    }
+    // When the selected cell changes (idleText prop updated) while not editing,
+    // reflect the new value immediately in the text field.
+    if (!widget.editController.isEditing &&
+        widget.idleText != oldWidget.idleText) {
+      _selfUpdate = true;
+      _controller.text = widget.idleText;
+      _selfUpdate = false;
     }
   }
 
   @override
   void dispose() {
+    _focusNode.removeListener(_onFocusChanged);
     _controller.removeListener(_onFormulaBarChanged);
     widget.editController.removeListener(_onEditControllerChanged);
     widget.editController.detachFormulaBar();
+    widget.editController.formulaBarFocusNode = null;
     _controller.dispose();
     if (_ownsFocusNode) {
       _focusNode.dispose();
@@ -125,20 +147,28 @@ class _FormulaBarState extends State<FormulaBar> {
   // Listeners
   // ---------------------------------------------------------------------------
 
+  /// Called when the formula bar gains focus.
+  void _onFocusChanged() {
+    if (_focusNode.hasFocus) {
+      widget.editController.beginFormulaBarFocusSession();
+      if (!widget.editController.isEditing) {
+        widget.onStartEdit?.call();
+      }
+    } else if (!_focusNode.hasFocus) {
+      widget.editController.endFormulaBarFocusSession();
+    }
+  }
+
   /// Called when [EditController] state changes (edit started/stopped).
   void _onEditControllerChanged() {
-    if (!widget.editController.isEditing) {
-      // Edit stopped — show idle text and drop focus.
+    if (!widget.editController.isEditing &&
+        widget.editController.lastEditEndedWithCancel) {
+      // Cancel — restore the cell's display value from the host.
       _selfUpdate = true;
       _controller.text = widget.idleText;
       _selfUpdate = false;
-      if (_focusNode.hasFocus) {
-        // Unfocus gently; the cell will manage its own focus restoration.
-        _focusNode.unfocus(
-          disposition: UnfocusDisposition.previouslyFocusedChild,
-        );
-      }
     }
+    // On commit, keep [_controller] text (already reflects the committed value).
     // Rebuild to reflect enabled/disabled state.
     if (mounted) setState(() {});
   }
@@ -164,7 +194,7 @@ class _FormulaBarState extends State<FormulaBar> {
     if (!widget.editController.isEditing) return KeyEventResult.ignored;
 
     if (event.logicalKey == LogicalKeyboardKey.escape) {
-      widget.editController.cancelEdit();
+      widget.editController.requestExternalCancel();
       return KeyEventResult.handled;
     }
 
@@ -183,13 +213,8 @@ class _FormulaBarState extends State<FormulaBar> {
   }
 
   void _commitFromFormulaBar() {
-    // Rich text is preserved via the overlay's extractor when available.
-    widget.editController.commitEdit(
-      onCommit: (cell, value, {CellFormat? detectedFormat}) {
-        // FormulaBar itself does not perform post-commit navigation.
-        // The host widget's Worksheet handles selection via its own
-        // EditController listener.
-      },
+    widget.editController.requestExternalCommit(
+      onFallbackCommit: (cell, value, {CellFormat? detectedFormat}) {},
     );
   }
 
@@ -199,34 +224,30 @@ class _FormulaBarState extends State<FormulaBar> {
 
   @override
   Widget build(BuildContext context) {
-    final isEditing = widget.editController.isEditing;
-
     final effectiveDecoration =
-        (widget.decoration ??
-                InputDecoration(
-                  isDense: true,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 6,
-                  ),
-                  border: const OutlineInputBorder(),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  enabled: isEditing,
-                ))
-            .copyWith(enabled: isEditing);
+        widget.decoration ??
+        InputDecoration(
+          isDense: true,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 6,
+          ),
+          border: const OutlineInputBorder(),
+          focusedBorder: OutlineInputBorder(
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+        );
 
     return Focus(
       onKeyEvent: _handleKeyEvent,
       child: TextField(
         controller: _controller,
         focusNode: _focusNode,
-        enabled: isEditing,
         style: widget.textStyle,
         decoration: effectiveDecoration,
+        // Always enabled — tapping while idle triggers onStartEdit.
         // Single-line input; Enter / Escape handled via onKeyEvent above.
         maxLines: 1,
         keyboardType: TextInputType.text,

@@ -89,6 +89,20 @@ class EditController extends ChangeNotifier {
   /// after toolbar actions steal it.
   FocusNode? editorFocusNode;
 
+  /// The formula bar's focus node, registered by [FormulaBar] on attach.
+  ///
+  /// When this node has focus, [CellEditorOverlay] skips its post-frame focus
+  /// request so the formula bar retains focus during formula-bar-initiated edits.
+  FocusNode? formulaBarFocusNode;
+
+  /// Called by [Worksheet] to commit an integrated edit from an external input
+  /// surface such as [FormulaBar].
+  VoidCallback? externalCommitHandler;
+
+  /// Called by [Worksheet] to cancel an integrated edit from an external input
+  /// surface such as [FormulaBar].
+  VoidCallback? externalCancelHandler;
+
   EditState _state = EditState.idle;
   CellCoordinate? _editingCell;
   CellValue? _originalValue;
@@ -102,6 +116,12 @@ class EditController extends ChangeNotifier {
 
   /// Guard flag: prevents circular sync between cell editor and formula bar.
   bool _formulaBarSyncing = false;
+
+  /// True while the current edit session should keep focus in the formula bar.
+  bool _preferFormulaBarFocus = false;
+
+  /// Whether the most recent transition to [EditState.idle] was via [cancelEdit].
+  bool _lastEditEndedWithCancel = false;
 
   /// The current edit state.
   EditState get state => _state;
@@ -129,6 +149,54 @@ class EditController extends ChangeNotifier {
 
   /// Whether the cell currently being edited contains a formula.
   bool get isEditingFormula => _originalValue?.isFormula == true;
+
+  /// Whether overlay focus requests should defer to the formula bar.
+  bool get preferFormulaBarFocus => _preferFormulaBarFocus;
+
+  /// Whether the last edit session ended with [cancelEdit] rather than [commitEdit].
+  ///
+  /// Used by [FormulaBar] to restore [FormulaBar.idleText] on cancel while keeping
+  /// the committed text visible after commit.
+  bool get lastEditEndedWithCancel => _lastEditEndedWithCancel;
+
+  /// Marks the current edit session as formula-bar-focused.
+  void beginFormulaBarFocusSession() {
+    _preferFormulaBarFocus = true;
+  }
+
+  /// Clears the formula-bar focus preference.
+  void endFormulaBarFocusSession() {
+    _preferFormulaBarFocus = false;
+  }
+
+  /// Requests commit via the owning [Worksheet]'s integrated edit pathway.
+  ///
+  /// Falls back to [commitEdit] only when no external handler is registered.
+  void requestExternalCommit({
+    required void Function(
+      CellCoordinate cell,
+      CellValue? value, {
+      CellFormat? detectedFormat,
+    })
+    onFallbackCommit,
+  }) {
+    final handler = externalCommitHandler;
+    if (handler != null) {
+      handler();
+      return;
+    }
+    commitEdit(onCommit: onFallbackCommit);
+  }
+
+  /// Requests cancel via the owning [Worksheet]'s integrated edit pathway.
+  void requestExternalCancel() {
+    final handler = externalCancelHandler;
+    if (handler != null) {
+      handler();
+      return;
+    }
+    cancelEdit();
+  }
 
   /// Registers a [TextEditingController] as the formula bar controller.
   ///
@@ -166,26 +234,26 @@ class EditController extends ChangeNotifier {
     final fb = _formulaBarController;
     if (fb == null) return;
     _formulaBarSyncing = true;
-    if (_state == EditState.editing) {
-      // Preserve whatever selection the overlay has already synced, or
-      // default to collapsed-at-end so the bar reflects edit start.
-      final currentSel = fb.selection;
-      final validSel =
-          currentSel.isValid &&
-          currentSel.start <= _currentText.length &&
-          currentSel.end <= _currentText.length;
-      fb.value = TextEditingValue(
-        text: _currentText,
-        selection: validSel
-            ? currentSel
-            : TextSelection.collapsed(offset: _currentText.length),
-      );
-    } else {
-      fb.value = TextEditingValue(
-        text: _currentText,
-        selection: TextSelection.collapsed(offset: _currentText.length),
-      );
+    if (_state != EditState.editing) {
+      // Idle display is owned by [FormulaBar] (via [FormulaBar.idleText] on
+      // cancel, or the last committed text on commit). Do not push empty
+      // [_currentText] here — that would clear the bar after commit.
+      return;
     }
+
+    // Preserve whatever selection the overlay has already synced, or
+    // default to collapsed-at-end so the bar reflects edit start.
+    final currentSel = fb.selection;
+    final validSel =
+        currentSel.isValid &&
+        currentSel.start <= _currentText.length &&
+        currentSel.end <= _currentText.length;
+    fb.value = TextEditingValue(
+      text: _currentText,
+      selection: validSel
+          ? currentSel
+          : TextSelection.collapsed(offset: _currentText.length),
+    );
     _formulaBarSyncing = false;
   }
 
@@ -278,6 +346,7 @@ class EditController extends ChangeNotifier {
   }) {
     if (_state != EditState.editing) return null;
 
+    _lastEditEndedWithCancel = false;
     _state = EditState.committing;
 
     final cell = _editingCell!;
@@ -332,12 +401,14 @@ class EditController extends ChangeNotifier {
   void cancelEdit() {
     if (_state != EditState.editing) return;
 
+    _lastEditEndedWithCancel = true;
     _state = EditState.idle;
     _editingCell = null;
     _originalValue = null;
     _currentText = '';
     _trigger = null;
     _tapPosition = null;
+    _preferFormulaBarFocus = false;
 
     notifyListeners();
     _syncCurrentStateToFormulaBar();

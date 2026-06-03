@@ -32,19 +32,40 @@ class _FormulaBarExampleState extends State<FormulaBarExample> {
     _controller = WorksheetController();
     _editController = EditController();
     _controller.selectionController.addListener(_onSelectionChanged);
+    _editController.addListener(_onEditStateChanged);
   }
 
   @override
   void dispose() {
     _controller.selectionController.removeListener(_onSelectionChanged);
+    _editController.removeListener(_onEditStateChanged);
     _controller.dispose();
     _editController.dispose();
     _data.dispose();
     super.dispose();
   }
 
+  void _startEditSelectedCell() {
+    final anchor = _controller.selectionController.anchor;
+    if (anchor == null) return;
+    _editController.startEdit(
+      cell: anchor,
+      currentValue: _data.getCell(anchor),
+      trigger: EditTrigger.programmatic,
+    );
+  }
+
+  void _onEditStateChanged() {
+    if (_editController.isEditing) return;
+    _refreshSelectedCellDisplay();
+  }
+
   void _onSelectionChanged() {
     if (_editController.isEditing) return;
+    _refreshSelectedCellDisplay();
+  }
+
+  void _refreshSelectedCellDisplay() {
     final anchor = _controller.selectionController.anchor;
     if (anchor == null) {
       setState(() {
@@ -150,6 +171,7 @@ class _FormulaBarExampleState extends State<FormulaBarExample> {
                   child: FormulaBar(
                     editController: _editController,
                     idleText: _selectedCellDisplay,
+                    onStartEdit: _startEditSelectedCell,
                   ),
                 ),
               ],

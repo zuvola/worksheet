@@ -10,6 +10,7 @@ import 'package:worksheet/src/core/models/cell_coordinate.dart';
 import 'package:worksheet/src/core/models/cell_style.dart';
 import 'package:worksheet/src/core/models/cell_value.dart';
 import 'package:worksheet/src/interaction/controllers/edit_controller.dart';
+import 'package:worksheet/src/widgets/formula_bar.dart';
 import 'package:worksheet/src/widgets/worksheet_controller.dart';
 import 'package:worksheet/src/widgets/worksheet_theme.dart';
 import 'package:worksheet/src/widgets/worksheet_widget.dart';
@@ -68,9 +69,178 @@ void main() {
     );
   }
 
+  Widget buildWorksheetWithFormulaBar({required FocusNode formulaBarFocus}) {
+    void startEditSelectedCell() {
+      final cell = controller.focusCell;
+      if (cell == null) return;
+      editController.startEdit(
+        cell: cell,
+        currentValue: data.getCell(cell),
+        trigger: EditTrigger.programmatic,
+      );
+    }
+
+    return MaterialApp(
+      home: Scaffold(
+        body: Column(
+          children: [
+            SizedBox(
+              height: 48,
+              child: FormulaBar(
+                editController: editController,
+                idleText:
+                    data
+                        .getCell(
+                          controller.focusCell ?? const CellCoordinate(0, 0),
+                        )
+                        ?.displayValue ??
+                    '',
+                focusNode: formulaBarFocus,
+                onStartEdit: startEditSelectedCell,
+              ),
+            ),
+            Expanded(
+              child: WorksheetTheme(
+                data: const WorksheetThemeData(),
+                child: Worksheet(
+                  data: data,
+                  controller: controller,
+                  editController: editController,
+                  rowCount: 100,
+                  columnCount: 26,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void selectCell(int row, int col) {
     controller.selectCell(CellCoordinate(row, col));
   }
+
+  group('FormulaBar focus', () {
+    testWidgets(
+      'clicking idle formula bar starts editing and keeps bar focus',
+      (tester) async {
+        final formulaBarFocus = FocusNode(debugLabel: 'formula bar');
+        addTearDown(formulaBarFocus.dispose);
+
+        selectCell(0, 0);
+        await tester.pumpWidget(
+          buildWorksheetWithFormulaBar(formulaBarFocus: formulaBarFocus),
+        );
+        await tester.pump();
+
+        await tester.tap(find.byType(FormulaBar));
+        await tester.pump();
+        await tester.pump();
+
+        expect(editController.isEditing, isTrue);
+        expect(editController.editingCell, const CellCoordinate(0, 0));
+        expect(editController.preferFormulaBarFocus, isTrue);
+        expect(formulaBarFocus.hasFocus, isTrue);
+      },
+    );
+
+    testWidgets('clicking formula bar during edit marks bar as focus owner', (
+      tester,
+    ) async {
+      final formulaBarFocus = FocusNode(debugLabel: 'formula bar');
+      addTearDown(formulaBarFocus.dispose);
+
+      selectCell(0, 0);
+      await tester.pumpWidget(
+        buildWorksheetWithFormulaBar(formulaBarFocus: formulaBarFocus),
+      );
+      await tester.pump();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.f2);
+      await tester.pump();
+      await tester.pump();
+      expect(editController.isEditing, isTrue);
+      expect(formulaBarFocus.hasFocus, isFalse);
+
+      await tester.tap(find.byType(FormulaBar));
+      await tester.pump();
+
+      expect(editController.isEditing, isTrue);
+      expect(editController.preferFormulaBarFocus, isTrue);
+      expect(formulaBarFocus.hasFocus, isTrue);
+    });
+
+    testWidgets('Enter in formula bar commits and keeps typed text visible', (
+      tester,
+    ) async {
+      final formulaBarFocus = FocusNode(debugLabel: 'formula bar');
+      addTearDown(formulaBarFocus.dispose);
+
+      selectCell(0, 0);
+      await tester.pumpWidget(
+        buildWorksheetWithFormulaBar(formulaBarFocus: formulaBarFocus),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byType(FormulaBar));
+      await tester.pump();
+
+      await tester.enterText(find.byType(TextField), 'Committed');
+      await tester.pump();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      await tester.pump();
+
+      expect(editController.isEditing, isFalse);
+      expect(
+        find.byType(TextField),
+        findsOneWidget,
+      );
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        'Committed',
+      );
+      expect(
+        data.getCell(const CellCoordinate(0, 0)),
+        const CellValue.text('Committed'),
+      );
+    });
+
+    testWidgets('Escape in formula bar restores idle cell text', (
+      tester,
+    ) async {
+      final formulaBarFocus = FocusNode(debugLabel: 'formula bar');
+      addTearDown(formulaBarFocus.dispose);
+
+      selectCell(0, 0);
+      await tester.pumpWidget(
+        buildWorksheetWithFormulaBar(formulaBarFocus: formulaBarFocus),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byType(FormulaBar));
+      await tester.pump();
+
+      await tester.enterText(find.byType(TextField), 'Discarded');
+      await tester.pump();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+      await tester.pump();
+      await tester.pump();
+
+      expect(editController.isEditing, isFalse);
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        'A1',
+      );
+      expect(
+        data.getCell(const CellCoordinate(0, 0)),
+        const CellValue.text('A1'),
+      );
+    });
+  });
 
   group('Type-to-edit (navigation mode)', () {
     testWidgets('pressing a printable character starts editing', (

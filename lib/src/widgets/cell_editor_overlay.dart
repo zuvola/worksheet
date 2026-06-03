@@ -278,8 +278,9 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
     // Request focus after the EditableText is built and attached to the tree.
     // This ensures the text input connection is established on mobile,
     // which is required to show the software keyboard.
+    // Skip when the formula bar already holds focus (formula-bar-initiated edit).
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
+      if (mounted && !widget.editController.preferFormulaBarFocus) {
         _focusNode.requestFocus();
       }
     });
@@ -295,7 +296,8 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted &&
             widget.editController.isEditing &&
-            !_focusNode.hasFocus) {
+            !_focusNode.hasFocus &&
+            !widget.editController.preferFormulaBarFocus) {
           _focusNode.requestFocus();
         }
       });
@@ -1023,7 +1025,7 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
                       key: _editableKey,
                       controller: _textController,
                       focusNode: _focusNode,
-                      autofocus: true,
+                      autofocus: !widget.editController.preferFormulaBarFocus,
                       style: textStyle,
                       maxLines: widget.wrapText ? null : 1,
                       textAlign: widget.textAlign,
