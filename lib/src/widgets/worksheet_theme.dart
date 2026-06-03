@@ -34,6 +34,9 @@ class WorksheetThemeData {
   /// The default cell background color.
   final Color cellBackgroundColor;
 
+  /// The background color painted behind expanded cell editor content.
+  final Color editingCellBackgroundColor;
+
   /// The default text color.
   final Color textColor;
 
@@ -70,6 +73,7 @@ class WorksheetThemeData {
     this.gridlineColor = const Color(0xFFD4D4D4),
     this.gridlineWidth = 1.0,
     this.cellBackgroundColor = const Color(0xFFFFFFFF),
+    this.editingCellBackgroundColor = const Color(0xFFFFFFFF),
     this.textColor = const Color(0xFF000000),
     this.fontSize = 14.0,
     this.fontFamily = CellStyle.defaultFontFamily,
@@ -99,6 +103,7 @@ class WorksheetThemeData {
     Color? gridlineColor,
     double? gridlineWidth,
     Color? cellBackgroundColor,
+    Color? editingCellBackgroundColor,
     Color? textColor,
     double? fontSize,
     String? fontFamily,
@@ -116,6 +121,8 @@ class WorksheetThemeData {
       gridlineColor: gridlineColor ?? this.gridlineColor,
       gridlineWidth: gridlineWidth ?? this.gridlineWidth,
       cellBackgroundColor: cellBackgroundColor ?? this.cellBackgroundColor,
+      editingCellBackgroundColor:
+          editingCellBackgroundColor ?? this.editingCellBackgroundColor,
       textColor: textColor ?? this.textColor,
       fontSize: fontSize ?? this.fontSize,
       fontFamily: fontFamily ?? this.fontFamily,
@@ -144,6 +151,11 @@ class WorksheetThemeData {
       cellBackgroundColor: Color.lerp(
         a.cellBackgroundColor,
         b.cellBackgroundColor,
+        t,
+      )!,
+      editingCellBackgroundColor: Color.lerp(
+        a.editingCellBackgroundColor,
+        b.editingCellBackgroundColor,
         t,
       )!,
       textColor: Color.lerp(a.textColor, b.textColor, t)!,
@@ -176,6 +188,7 @@ class WorksheetThemeData {
         other.gridlineColor == gridlineColor &&
         other.gridlineWidth == gridlineWidth &&
         other.cellBackgroundColor == cellBackgroundColor &&
+        other.editingCellBackgroundColor == editingCellBackgroundColor &&
         other.textColor == textColor &&
         other.fontSize == fontSize &&
         other.fontFamily == fontFamily &&
@@ -195,6 +208,7 @@ class WorksheetThemeData {
     gridlineColor,
     gridlineWidth,
     cellBackgroundColor,
+    editingCellBackgroundColor,
     textColor,
     fontSize,
     fontFamily,
