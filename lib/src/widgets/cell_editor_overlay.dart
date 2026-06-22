@@ -732,6 +732,11 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
     widget.editController.updateText(newText);
   }
 
+  /// Handles the platform IME action (for example, iOS keyboard "Done").
+  void _onSubmitted(String _) {
+    _commitAndNavigate(rowDelta: 1, columnDelta: 0);
+  }
+
   /// Returns true when the next arrow key should insert a cell reference.
   ///
   /// Only intercepts at operator boundaries when the formula text has changed
@@ -1053,6 +1058,8 @@ class _CellEditorOverlayState extends State<CellEditorOverlay> {
                       cursorHeight: cursorHeight,
                       cursorColor: widget.textColor,
                       backgroundCursorColor: const Color(0xFF808080),
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: _onSubmitted,
                       onChanged: _onTextChanged,
                       rendererIgnoresPointer: true,
                       selectionColor: widget.textColor.withValues(alpha: 0.3),

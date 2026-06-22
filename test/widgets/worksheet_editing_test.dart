@@ -1,4 +1,5 @@
 import 'package:flutter/gestures.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -45,6 +46,8 @@ void main() {
     double defaultColumnWidth = 100.0,
     WorksheetData? dataOverride,
     WorksheetData? rawData,
+    FormulaReferenceConfig? formulaReferenceConfig =
+        const FormulaReferenceConfig(),
   }) {
     return MaterialApp(
       home: Scaffold(
@@ -56,6 +59,7 @@ void main() {
             child: Worksheet(
               data: dataOverride ?? data,
               rawData: rawData,
+              formulaReferenceConfig: formulaReferenceConfig,
               controller: controller,
               editController: ec,
               rowCount: 100,
@@ -708,6 +712,41 @@ void main() {
       expect(controller.focusCell, const CellCoordinate(1, 0));
     });
 
+    testWidgets('software keyboard done commits formula and closes editor', (
+      tester,
+    ) async {
+      final evaluatedData = _EvaluatingWrapper(data);
+      await tester.pumpWidget(
+        buildWorksheet(
+          ec: editController,
+          dataOverride: evaluatedData,
+          rawData: data,
+        ),
+      );
+      selectCell(0, 0);
+      await tester.pump();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.f2);
+      await tester.pump();
+      await tester.pump();
+      await tester.enterText(find.byType(EditableText), '=B5');
+
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      await tester.pump();
+
+      expect(editController.isEditing, isFalse);
+      expect(
+        data.getCell(const CellCoordinate(0, 0)),
+        const CellValue.formula('=B5'),
+      );
+      expect(
+        evaluatedData.getCell(const CellCoordinate(0, 0)),
+        CellValue.number(15),
+      );
+      expect(controller.focusCell, const CellCoordinate(1, 0));
+    });
+
     testWidgets('F2 starts editing with full cell value', (tester) async {
       await tester.pumpWidget(buildWorksheet(ec: editController));
       selectCell(0, 0);
@@ -1007,6 +1046,53 @@ void main() {
   });
 
   group('Formula reference editing', () {
+    testWidgets(
+      'iOS formula reference touch does not turn next drag into pinch zoom',
+      (tester) async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+        addTearDown(() => debugDefaultTargetPlatformOverride = null);
+
+        await tester.pumpWidget(
+          buildWorksheet(
+            ec: editController,
+            formulaReferenceConfig: const FormulaReferenceConfig(),
+          ),
+        );
+        selectCell(0, 0);
+        await tester.pump();
+
+        await tester.sendKeyEvent(LogicalKeyboardKey.equal);
+        await tester.pump();
+        await tester.pump();
+        expect(editController.isEditing, isTrue);
+
+        final referenceTouch = TestPointer(1, PointerDeviceKind.touch);
+        await tester.sendEventToBinding(
+          referenceTouch.down(const Offset(175, 60)),
+        );
+        await tester.sendEventToBinding(referenceTouch.up());
+        await tester.pump();
+
+        editController.requestExternalCommit(
+          onFallbackCommit: (cell, value, {detectedFormat}) {
+            data.setCell(cell, value);
+          },
+        );
+        await tester.pump();
+
+        final zoomBeforeDrag = controller.zoom;
+        final dragTouch = TestPointer(2, PointerDeviceKind.touch);
+        await tester.sendEventToBinding(dragTouch.down(const Offset(200, 200)));
+        await tester.sendEventToBinding(dragTouch.move(const Offset(260, 260)));
+        await tester.sendEventToBinding(dragTouch.up());
+        await tester.pump();
+
+        debugDefaultTargetPlatformOverride = null;
+        expect(controller.zoom, zoomBeforeDrag);
+        await tester.pump(const Duration(milliseconds: 50));
+      },
+    );
+
     testWidgets(
       'clicking a cell in formula mode inserts ref and Enter commits',
       (tester) async {

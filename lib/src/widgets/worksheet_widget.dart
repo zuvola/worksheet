@@ -2977,19 +2977,23 @@ class _WorksheetState extends State<Worksheet>
                     onPointerUp: widget.readOnly
                         ? null
                         : (event) {
-                            // End formula drag-to-reference
-                            if (_formulaDragging) {
-                              _formulaDragging = false;
-                              _formulaDragStart = null;
-                              return;
-                            }
-                            // Clean up pointer tracking for pinch-to-zoom
+                            // Always release touch tracking before any
+                            // gesture-specific early return. Formula-reference
+                            // drags used to leave this pointer active, causing
+                            // the next one-finger drag on iOS to be treated as
+                            // a two-finger pinch.
                             if (_isMobileMode) {
                               _activePointers.remove(event.pointer);
                               if (_scaleHandler?.isScaling == true &&
                                   _activePointers.length < 2) {
                                 _scaleHandler!.onScaleEnd();
                               }
+                            }
+                            // End formula drag-to-reference
+                            if (_formulaDragging) {
+                              _formulaDragging = false;
+                              _formulaDragStart = null;
+                              return;
                             }
                             _stopAutoScroll();
                             _pointerInScrollbarArea = false;
